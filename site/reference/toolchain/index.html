@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/emperator-docs/reference/toolchain/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Toolchain Matrix - Emperator Technical Brief</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../assets/styles/extra.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Emperator Technical Brief</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Tutorial</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../tutorial/getting-started/" class="dropdown-item">Bootstrapping Emperator in a Repository</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">How-to Guides</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../how-to/author-contract/" class="dropdown-item">Author the Project Contract</a>
+</li>
+                                    
+<li>
+    <a href="../../how-to/ci-integration/" class="dropdown-item">Integrate with CI/CD Pipelines</a>
+</li>
+                                    
+<li>
+    <a href="../../how-to/ai-assisted-refactors/" class="dropdown-item">Use AI-Assisted Refactors Safely</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Explanation</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../explanation/executive-summary/" class="dropdown-item">Executive Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/system-architecture/" class="dropdown-item">System Architecture Deep Dive</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/devsecops-supply-chain/" class="dropdown-item">DevSecOps and Supply Chain</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/developer-experience/" class="dropdown-item">Developer Experience Integration</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/security-safety/" class="dropdown-item">Security and Safety Envelope</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/ai-orchestration/" class="dropdown-item">AI-Orchestrated Refactoring</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/implementation-roadmap/" class="dropdown-item">Implementation Roadmap</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Reference</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../contract-spec/" class="dropdown-item">Project Contract Reference</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Toolchain Matrix</a>
+</li>
+                                    
+<li>
+    <a href="../governance/" class="dropdown-item">Governance and Compliance Controls</a>
+</li>
+                                    
+<li>
+    <a href="../../includes/copilot-prompts/" class="dropdown-item">Copilot Prompt Patterns</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../contract-spec/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../governance/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/example/emperator/edit/master/docs/reference/toolchain.md" class="nav-link">Edit on Emperator
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#toolchain-matrix" class="nav-link">Toolchain Matrix</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#static-analysis-support" class="nav-link">Static analysis support</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#codemod-engines" class="nav-link">Codemod engines</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#formatter-integrations" class="nav-link">Formatter integrations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#cli-highlights" class="nav-link">CLI highlights</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#environment-variables" class="nav-link">Environment variables</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#recommended-lint-and-formatter-stacks" class="nav-link">Recommended lint and formatter stacks</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="toolchain-matrix">Toolchain Matrix<a class="headerlink" href="#toolchain-matrix" title="Permanent link">&para;</a></h1>
+<p>Reference chart for the analyzers, codemods, formatters, and CLI options Emperator orchestrates. Use it to confirm support coverage and choose the right flags for different workflows.</p>
+<h2 id="static-analysis-support">Static analysis support<a class="headerlink" href="#static-analysis-support" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Tree-sitter</th>
+<th>CodeQL</th>
+<th>Semgrep</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>Full stack with LibCST codemods and Ruff formatter.</td>
+</tr>
+<tr>
+<td>Java</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>Leverages OpenRewrite recipes for framework upgrades.</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript</td>
+<td>✔</td>
+<td>Partial</td>
+<td>✔</td>
+<td>CodeQL JS pack supports security queries; OpenRewrite JS recipes available.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>✔</td>
+<td>✔</td>
+<td>✔</td>
+<td>gofmt integration for formatting.</td>
+</tr>
+<tr>
+<td>C / C++</td>
+<td>✔</td>
+<td>✔</td>
+<td>Partial</td>
+<td>Semgrep coverage limited to focused rules; clang-format handles formatting.</td>
+</tr>
+<tr>
+<td>Ruby</td>
+<td>✔</td>
+<td>✖</td>
+<td>✔</td>
+<td>Relies on Semgrep and Tree-sitter; consider Sorbet integration for deeper analysis.</td>
+</tr>
+<tr>
+<td>Shell</td>
+<td>✔</td>
+<td>✖</td>
+<td>✔</td>
+<td>Static analysis limited to Semgrep patterns and shellcheck (optional plugin).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="codemod-engines">Codemod engines<a class="headerlink" href="#codemod-engines" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ecosystem</th>
+<th>Engine</th>
+<th>Typical use cases</th>
+<th>Safety tier guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>LibCST</td>
+<td>API migrations, string formatting upgrades, import normalization.</td>
+<td><code>formatting</code> or <code>low</code> by default; raise to <code>medium</code> for behavioural changes.</td>
+</tr>
+<tr>
+<td>JVM (Java/Kotlin)</td>
+<td>OpenRewrite</td>
+<td>Dependency upgrades, Spring migrations, logging refactors.</td>
+<td><code>low</code>–<code>medium</code> depending on recipe maturity.</td>
+</tr>
+<tr>
+<td>JavaScript/TypeScript</td>
+<td>TS AST + OpenRewrite JS</td>
+<td>Deprecated API replacements, lint autofixes.</td>
+<td><code>low</code> when AST transform is deterministic.</td>
+</tr>
+<tr>
+<td>YAML / XML</td>
+<td>OpenRewrite</td>
+<td>Configuration rewrites (Kubernetes manifests, Maven POM).</td>
+<td><code>low</code> (structure-preserving).</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>Custom go/ast transforms</td>
+<td>Interface renames, dependency injection wiring.</td>
+<td><code>medium</code> unless validated by tests.</td>
+</tr>
+<tr>
+<td>C/C++</td>
+<td>Clang-Tidy refactors</td>
+<td>Modernization (auto, nullptr), includes reorder.</td>
+<td><code>medium</code> due to potential macro interactions.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="formatter-integrations">Formatter integrations<a class="headerlink" href="#formatter-integrations" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Formatter</th>
+<th>Invocation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>Ruff / Black</td>
+<td><code>ruff check --fix</code> (primary) with optional <code>black</code> fallback.</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript</td>
+<td>Prettier</td>
+<td><code>prettier --write</code> respecting contract-defined settings.</td>
+</tr>
+<tr>
+<td>Java</td>
+<td>google-java-format or Spotless</td>
+<td>Configured via contract metadata.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>gofmt</td>
+<td><code>gofmt -w</code> with module-aware path filtering.</td>
+</tr>
+<tr>
+<td>C / C++</td>
+<td>clang-format</td>
+<td>Style file generated from contract defaults.</td>
+</tr>
+<tr>
+<td>Markdown / YAML</td>
+<td>mdformat / prettier</td>
+<td>Keeps documentation and config consistent with docs build.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cli-highlights">CLI highlights<a class="headerlink" href="#cli-highlights" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>emperor apply</code></td>
+<td>Compile contract, run checks, apply safe fixes, and re-validate.</td>
+<td>Use <code>--diff</code>, <code>--no-commit</code>, <code>--fast</code>, or <code>--strict</code> depending on context.</td>
+</tr>
+<tr>
+<td><code>emperor check</code></td>
+<td>Run checks without applying fixes.</td>
+<td>Pair with <code>--format sarif</code> for CI uploads.</td>
+</tr>
+<tr>
+<td><code>emperor explain</code></td>
+<td>Show provenance of the last run (contract version, applied rules, AI model metadata).</td>
+<td>Helpful when auditing AI-assisted changes or exemption usage.</td>
+</tr>
+<tr>
+<td><code>emperor sbom</code></td>
+<td>Generate CycloneDX or SPDX SBOMs from dependency manifests and IR metadata.</td>
+<td>Supports <code>--format cyclonedx\|spdx</code> and <code>--output</code> path options.</td>
+</tr>
+<tr>
+<td><code>emperor attest</code></td>
+<td>Produce in-toto attestations capturing rule enforcement and tool versions.</td>
+<td>Combine with Sigstore Cosign for signed provenance.</td>
+</tr>
+<tr>
+<td><code>emperor ai suggest</code></td>
+<td>Request AI-generated fixes for a finding set.</td>
+<td>Respects rule safety tiers and always triggers the validation loop.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EMPERATOR_CONTRACT_PATH</code></td>
+<td>Override default <code>contract/</code> directory. Useful for monorepos.</td>
+</tr>
+<tr>
+<td><code>EMPERATOR_CACHE_DIR</code></td>
+<td>Set location for IR caches (Tree-sitter, CodeQL). Configure in CI for faster reruns.</td>
+</tr>
+<tr>
+<td><code>EMPERATOR_AI_ENABLED</code></td>
+<td>Toggle AI-assisted workflows (<code>0</code> or <code>1</code>).</td>
+</tr>
+<tr>
+<td><code>EMPERATOR_STRICT_MODE</code></td>
+<td>Force <code>--strict</code> behaviour even if CLI flag omitted (handy in protected branches).</td>
+</tr>
+<tr>
+<td><code>EMPERATOR_TRACE</code></td>
+<td>Enable verbose logging for debugging integration issues.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="recommended-lint-and-formatter-stacks">Recommended lint and formatter stacks<a class="headerlink" href="#recommended-lint-and-formatter-stacks" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ecosystem</th>
+<th>Primary tooling</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>Ruff (<code>ruff check</code>, <code>ruff format</code>)</td>
+<td>Drop-in for Flake8/Black/isort with 10–100× speedups. Keep Black only if its exact formatting is mandated.</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript (Track A)</td>
+<td>ESLint + Prettier</td>
+<td>Default pairing across most projects; Prettier also covers JSON, YAML, Markdown.</td>
+</tr>
+<tr>
+<td>JavaScript / TypeScript (Track B)</td>
+<td>Biome</td>
+<td>Single binary for lint + format with safe/unsafe fix modes; ideal for air-gapped environments.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td>gofmt + golangci-lint</td>
+<td>gofmt enforces canonical style; golangci-lint aggregates fast parallel linters.</td>
+</tr>
+<tr>
+<td>Java</td>
+<td>google-java-format + Error Prone</td>
+<td>Deterministic formatting with compile-time bug pattern checks; add Spotless as wrapper if needed.</td>
+</tr>
+<tr>
+<td>Kotlin</td>
+<td>ktlint + detekt</td>
+<td>ktlint enforces Kotlin style; detekt flags code smells and supports baselining legacy issues.</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>rustfmt + Clippy</td>
+<td>Shipping defaults that encode community idioms and over 750 lint rules.</td>
+</tr>
+<tr>
+<td>C / C++</td>
+<td>clang-format + clang-tidy</td>
+<td>clang-format standardizes layout; clang-tidy provides static analysis and modernization checks.</td>
+</tr>
+<tr>
+<td>Shell</td>
+<td>shfmt + ShellCheck</td>
+<td>shfmt for consistent indentation; ShellCheck for common shell pitfalls.</td>
+</tr>
+<tr>
+<td>Protobuf</td>
+<td>buf format + buf lint</td>
+<td>Ensures consistent style and forward-compatible API design.</td>
+</tr>
+<tr>
+<td>Terraform</td>
+<td>terraform fmt + TFLint</td>
+<td>Canonical formatting plus provider-aware linting and security checks.</td>
+</tr>
+<tr>
+<td>Dockerfiles</td>
+<td>hadolint</td>
+<td>AST-based linting that also shells through to ShellCheck for <code>RUN</code> commands.</td>
+</tr>
+<tr>
+<td>YAML / JSON / Markdown</td>
+<td>Prettier + yamllint + markdownlint</td>
+<td>Prettier handles structure; yamllint and markdownlint enforce semantics.</td>
+</tr>
+<tr>
+<td>TOML</td>
+<td>Taplo</td>
+<td>Formatter and LSP support for manifests (Cargo, Config).</td>
+</tr>
+<tr>
+<td>.NET / C#</td>
+<td>dotnet format + Roslyn analyzers</td>
+<td>Aligns with <code>.editorconfig</code>; Roslyn analyzers supply style and quality rules.</td>
+</tr>
+</tbody>
+</table>
+<p>Keep this matrix updated as you expand language support or onboard new teams so everyone shares the same expectations about analyser coverage and automation guarantees.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+        <script src="../../assets/js/mermaid-theme.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

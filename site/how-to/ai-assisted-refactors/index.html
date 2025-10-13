@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/emperator-docs/how-to/ai-assisted-refactors/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Use AI-Assisted Refactors Safely - Emperator Technical Brief</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../assets/styles/extra.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Emperator Technical Brief</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Tutorial</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../tutorial/getting-started/" class="dropdown-item">Bootstrapping Emperator in a Repository</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">How-to Guides</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../author-contract/" class="dropdown-item">Author the Project Contract</a>
+</li>
+                                    
+<li>
+    <a href="../ci-integration/" class="dropdown-item">Integrate with CI/CD Pipelines</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Use AI-Assisted Refactors Safely</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Explanation</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../explanation/executive-summary/" class="dropdown-item">Executive Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/system-architecture/" class="dropdown-item">System Architecture Deep Dive</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/devsecops-supply-chain/" class="dropdown-item">DevSecOps and Supply Chain</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/developer-experience/" class="dropdown-item">Developer Experience Integration</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/security-safety/" class="dropdown-item">Security and Safety Envelope</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/ai-orchestration/" class="dropdown-item">AI-Orchestrated Refactoring</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/implementation-roadmap/" class="dropdown-item">Implementation Roadmap</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Reference</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../reference/contract-spec/" class="dropdown-item">Project Contract Reference</a>
+</li>
+                                    
+<li>
+    <a href="../../reference/toolchain/" class="dropdown-item">Toolchain Matrix</a>
+</li>
+                                    
+<li>
+    <a href="../../reference/governance/" class="dropdown-item">Governance and Compliance Controls</a>
+</li>
+                                    
+<li>
+    <a href="../../includes/copilot-prompts/" class="dropdown-item">Copilot Prompt Patterns</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../ci-integration/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../explanation/executive-summary/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/example/emperator/edit/master/docs/how-to/ai-assisted-refactors.md" class="nav-link">Edit on Emperator
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#using-ai-assisted-refactors-safely" class="nav-link">Using AI-Assisted Refactors Safely</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-enable-local-models" class="nav-link">1. Enable local models</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-follow-the-propose-rank-validate-loop" class="nav-link">2. Follow the propose → rank → validate loop</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-craft-effective-prompts" class="nav-link">3. Craft effective prompts</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-gate-ai-suggestions-by-safety-tier" class="nav-link">4. Gate AI suggestions by safety tier</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-test-before-trusting" class="nav-link">5. Test before trusting</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-maintain-feedback-loops" class="nav-link">6. Maintain feedback loops</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="using-ai-assisted-refactors-safely">Using AI-Assisted Refactors Safely<a class="headerlink" href="#using-ai-assisted-refactors-safely" title="Permanent link">&para;</a></h1>
+<p>Emperor’s deterministic codemods cover common rules, but some refactors benefit from context-aware suggestions. This guide explains how to enable local LLM support and keep every AI-generated change within Emperator’s safety envelope.</p>
+<h2 id="1-enable-local-models">1. Enable local models<a class="headerlink" href="#1-enable-local-models" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Install an open-source code-capable model (e.g., Code Llama, StarCoder, Phi-3) that fits your security requirements. Keep weights on-prem to avoid leaking proprietary code.</li>
+<li>Configure Emperator’s AI bridge via <code>emperor ai init --model path/to/model.gguf --max-tokens 1024</code>. This stores model metadata in <code>.emperor/config.yaml</code>.</li>
+<li>Set <code>EMPERATOR_AI_ENABLED=1</code> in your environment to opt in.</li>
+</ul>
+<div class="highlight"><span class="filename">.emperor/config.yaml</span><pre><span></span><code><span class="nt">ai</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+<span class="w">  </span><span class="nt">model_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/models/code-llama-13b.gguf</span>
+<span class="w">  </span><span class="nt">context_window</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32768</span>
+<span class="w">  </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span>
+<span class="w">  </span><span class="nt">stop_sequences</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;```&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;#</span><span class="nv"> </span><span class="s">end&quot;</span>
+</code></pre></div>
+<h2 id="2-follow-the-propose-rank-validate-loop">2. Follow the propose → rank → validate loop<a class="headerlink" href="#2-follow-the-propose-rank-validate-loop" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+  A[Static analysis finding] --&gt; B[LLM prompt builder]
+  B --&gt; C[Generate N candidate patches]
+  C --&gt; D[Ranker
+  (contract diff heuristics)]
+  D --&gt; E[Safety gate]
+  E --&gt;|passes checks| F[Apply patch + log provenance]
+  E --&gt;|fails| G[Discard + surface manual TODO]</code></pre>
+<p>The loop guarantees that AI assistance never bypasses Emperator’s core validation:</p>
+<ol>
+<li><strong>Propose:</strong> Emperator crafts a prompt with the rule description, relevant code slice, and contract snippets. It requests multiple candidates to improve diversity.</li>
+<li><strong>Rank:</strong> Candidates are evaluated using contract-aware heuristics (diff size, naming compliance) and quick static checks. Lower-ranked suggestions are discarded early.</li>
+<li><strong>Validate:</strong> The remaining candidate is applied in a scratch workspace, then Emperator re-runs static analysis and optional property-based tests. Only if everything passes does the change graduate to a formal suggestion.</li>
+</ol>
+<h2 id="3-craft-effective-prompts">3. Craft effective prompts<a class="headerlink" href="#3-craft-effective-prompts" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Reference authoritative docs in the prompt payload (e.g., link to new API contract, cite policy rationale). Models perform better when given explicit constraints.</li>
+<li>Provide before/after code patterns for deterministic sections, keeping the AI focused on the gap you need filled.</li>
+<li>Include acceptance tests or assertions when possible so the validation stage can execute them immediately.</li>
+</ul>
+<p>Example prompt block stored in <code>docs/includes/copilot-prompts.md</code>:</p>
+<div class="highlight"><pre><span></span><code>You are Emperator’s refactoring planner. Transform the provided code so it complies with the contract rule: {{ rule.id }} — {{ rule.description }}.
+
+Constraints:
+- Maintain public signatures.
+- Preserve documented side effects.
+- Prefer codemodable patterns (LibCST/OpenRewrite friendly).
+
+Return unified diff only.
+</code></pre></div>
+<h2 id="4-gate-ai-suggestions-by-safety-tier">4. Gate AI suggestions by safety tier<a class="headerlink" href="#4-gate-ai-suggestions-by-safety-tier" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Map each contract rule to a safety tier (<code>formatting</code>, <code>low</code>, <code>medium</code>, <code>high</code>). Allow automatic AI fixes only for <code>formatting</code> and <code>low</code>; surface <code>medium/high</code> as reviewable diffs.</li>
+<li>Require human approval when AI changes touch security-critical modules, persistence layers, or public API contracts.</li>
+<li>Log provenance (model version, prompt hash) with <code>emperor explain --last</code> so reviewers can inspect the AI context.</li>
+</ul>
+<h2 id="5-test-before-trusting">5. Test before trusting<a class="headerlink" href="#5-test-before-trusting" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Run <code>emperor test --scope touched-files</code> after each accepted AI patch. Emperator can synthesize property-based tests for marked functions, providing additional assurance.</li>
+<li>For migrations, pair AI-generated diffs with codemod regression tests to ensure idempotence (<code>emperor codemod verify path/to/recipe.py</code>).</li>
+</ul>
+<h2 id="6-maintain-feedback-loops">6. Maintain feedback loops<a class="headerlink" href="#6-maintain-feedback-loops" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Capture rejected suggestions to fine-tune prompts or adjust model parameters (e.g., reduce temperature to limit creative deviations).</li>
+<li>Periodically retrain or swap models as new open releases improve code quality metrics.</li>
+<li>Update the Copilot prompt include with new rule exemplars so human copilots stay aligned with the latest contract expectations.</li>
+</ul>
+<p>By treating AI output as a proposal that must earn its place through the same stringent checks as manual code, you gain the productivity benefits of context-aware refactors without compromising safety.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+        <script src="../../assets/js/mermaid-theme.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,62 @@
+site_name: Emperator Technical Brief
+site_description: Frontier-grade development orchestration documentation organized with the Diátaxis framework.
+site_url: https://example.com/emperator-docs
+repo_url: https://github.com/example/emperator
+repo_name: Emperator
+
+nav:
+  - Home: index.md
+  - Tutorial:
+      - Bootstrapping Emperator in a Repository: tutorial/getting-started.md
+  - How-to Guides:
+      - Author the Project Contract: how-to/author-contract.md
+      - Integrate with CI/CD Pipelines: how-to/ci-integration.md
+      - Use AI-Assisted Refactors Safely: how-to/ai-assisted-refactors.md
+  - Explanation:
+      - Executive Summary: explanation/executive-summary.md
+      - System Architecture Deep Dive: explanation/system-architecture.md
+      - DevSecOps and Supply Chain: explanation/devsecops-supply-chain.md
+      - Developer Experience Integration: explanation/developer-experience.md
+      - Security and Safety Envelope: explanation/security-safety.md
+      - AI-Orchestrated Refactoring: explanation/ai-orchestration.md
+      - Implementation Roadmap: explanation/implementation-roadmap.md
+  - Reference:
+    - Project Contract Reference: reference/contract-spec.md
+    - Toolchain Matrix: reference/toolchain.md
+    - Governance and Compliance Controls: reference/governance.md
+    - Copilot Prompt Patterns: includes/copilot-prompts.md
+
+theme:
+  name: mkdocs
+  highlightjs: true
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.indexes
+
+plugins:
+  - search
+
+extra_css:
+  - assets/styles/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - assets/js/mermaid-theme.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - toc:
+      permalink: true
+
+extra:
+  copilot_prompts_include: includes/copilot-prompts.md

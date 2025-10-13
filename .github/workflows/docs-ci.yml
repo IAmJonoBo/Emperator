@@ -1,0 +1,44 @@
+name: Docs CI
+
+on:
+  push:
+    paths:
+      - 'mkdocs.yml'
+      - 'docs/**'
+      - '.github/workflows/docs-ci.yml'
+  pull_request:
+    paths:
+      - 'mkdocs.yml'
+      - 'docs/**'
+
+concurrency:
+  group: docs-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build MkDocs site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install MkDocs toolchain
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs pymdown-extensions
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mkdocs-site
+          path: site

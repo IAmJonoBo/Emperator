@@ -38,7 +38,7 @@ jobs:
         run: npx --yes markdownlint-cli2 "docs/**/*.md" "Emperator_1.md" --config .markdownlint.jsonc
 
       - name: Check documentation links
-        uses: lycheeverse/lychee-action@v1
+        uses: lycheeverse/lychee-action@v2.0.2
         with:
           args: --config .lychee.toml
 

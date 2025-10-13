@@ -68,6 +68,12 @@ Return unified diff only.
 - Run `emperor test --scope touched-files` after each accepted AI patch. Emperator can synthesize property-based tests for marked functions, providing additional assurance.
 - For migrations, pair AI-generated diffs with codemod regression tests to ensure idempotence (`emperor codemod verify path/to/recipe.py`).
 
+## Lint-aware fixes {#lint-aware-fixes}
+
+- Keep the [Toolchain Matrix](../reference/toolchain.md#recommended-lint-and-formatter-stacks) handy so AI suggestions never fight formatter output. Apply formatters (`ruff format`, `prettier --write`, `gofmt`) immediately after accepting an AI diff to normalize style before review.
+- Prefer codemod-plus-formatter combinations for deterministic cleanups; Emperator can chain Ruff/Prettier after AI changes to minimize noise in pull requests.
+- When a team mandates a specific formatter (e.g., Black), configure Emperator’s safety tiers so AI fixes stop short of reformats and leave the existing formatter to resolve layout.
+
 ## 6. Maintain feedback loops
 
 - Capture rejected suggestions to fine-tune prompts or adjust model parameters (e.g., reduce temperature to limit creative deviations).

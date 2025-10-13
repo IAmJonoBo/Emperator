@@ -1,0 +1,21 @@
+# Configuration for lychee link checker
+# https://github.com/lycheeverse/lychee
+
+[lychee]
+# Check only documentation sources and project metadata
+input = ["docs", "Emperator_1.md", "mkdocs.yml"]
+# Retry transient outages automatically
+max_retries = 2
+retry_wait_time = 2
+# Treat 200-299, 301-308, and 429 as success (rate limits)
+accept = ["200-299", "301-308", "429"]
+# Reduce noise from offline or intentionally unreachable hosts
+exclude = [
+  "https://example.com/emperator-docs",
+  "https://IAmJonoBo.github.io/Emperator/"
+]
+# Cache results for speed during local runs
+cache = true
+max_cache_age = "1d"
+# Use more threads for faster CI execution
+threads = 8

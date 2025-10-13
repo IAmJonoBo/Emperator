@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/reference/governance/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/reference/governance/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Governance and Compliance Controls - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/reference/governance.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/reference/governance.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -172,11 +172,19 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#exemption-governance" class="nav-link">Exemption governance</a>
+            <li class="nav-item" data-bs-level="2"><a href="#managing-exemptions" class="nav-link">Exemption governance</a>
               <ul class="nav flex-column">
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#audit-ready-logging" class="nav-link">Audit-ready logging</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#documentation-standards" class="nav-link">Documentation standards</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#language-owners" class="nav-link">Language owners</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -242,7 +250,7 @@
 <li>Deny merges when contract exemptions exceed a predefined count or expiry window.</li>
 <li>Evaluate policies both locally (<code>opa eval</code>) and in CI to ensure consistent decisions across environments.</li>
 </ul>
-<h2 id="exemption-governance">Exemption governance<a class="headerlink" href="#exemption-governance" title="Permanent link">&para;</a></h2>
+<h2 id="managing-exemptions">Exemption governance<a class="headerlink" href="#managing-exemptions" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Collect all approved waivers in <code>contract/exemptions.yaml</code> with owner, expiry, and mitigation plan.</li>
 <li>Schedule a recurring review (e.g., monthly) where compliance leads confirm whether exemptions can be retired.</li>
@@ -254,6 +262,18 @@
 <li>Retain Emperator execution logs with timestamps, rule IDs, auto-fix decisions, and evidence links. Forward logs to a centralized system (Splunk, Elastic) for retention policies.</li>
 <li>Use the <code>--format json</code> option to store machine-readable results that can be cross-referenced with ticketing systems.</li>
 <li>Leverage the <code>docs/includes/copilot-prompts.md</code> prompts to ensure human reviewers mention rule IDs and contract versions in review comments, improving traceability.</li>
+</ul>
+<h2 id="documentation-standards">Documentation standards<a class="headerlink" href="#documentation-standards" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep contracts and documentation tightly coupled by updating the <a href="../toolchain/">Toolchain Matrix</a> and AI prompt include whenever enforcement rules change.</li>
+<li>Use the repository’s documentation CI (<code>mkdocs build --strict</code>, <code>markdownlint-cli2</code>, <code>lychee</code>) to fail fast on broken links or style regressions.</li>
+<li>Mirror CI checks locally via <code>npx markdownlint-cli2 "docs/**/*.md"</code> and <code>lychee --config .lychee.toml docs</code> so contributors catch issues before opening a pull request.</li>
+</ul>
+<h2 id="language-owners">Language owners<a class="headerlink" href="#language-owners" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Assign a steward for each language/platform (Python, JVM, JS/TS, Go, Rust, Infrastructure) to review new rules and formatter changes.</li>
+<li>Document ownership in the Project Contract metadata and reference it from team onboarding guides, ensuring contributors know who approves rule updates.</li>
+<li>Schedule quarterly syncs between language owners and product security to evaluate lint noise, codemod quality, and roadmap adjustments.</li>
 </ul>
 <h2 id="compliance-checklist">Compliance checklist<a class="headerlink" href="#compliance-checklist" title="Permanent link">&para;</a></h2>
 <ol>

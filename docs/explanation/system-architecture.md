@@ -50,13 +50,20 @@ This structure maps cleanly to a C4 view: the CLI/LSP service acts as the primar
 - **Check engines:** Run Semgrep rules, CodeQL queries, and contract validators. Findings are tagged with severity, evidence confidence, and auto-fix eligibility. High-noise detections are triaged for manual review.
 - **Fix engines:** Apply deterministic codemods (LibCST, OpenRewrite, language-specific refactorers) for rules classified as safe. Complex migrations can be proposed as diffs rather than applied automatically.
 - **Scaffold & generate:** Templates in `contract/generators/` create handlers, tests, or migration stubs based on contract deltas (e.g., new OpenAPI endpoints). Generated code is re-checked before acceptance.
-- **Formatters:** Invoke battle-tested formatters such as Ruff, Black, Prettier, gofmt, or clang-format to ensure minimal diffs that match team conventions.
+- **Formatters:** Invoke battle-tested formatters such as Ruff, Black, Prettier, gofmt, or clang-format to ensure minimal diffs that match team conventions (see the [Toolchain Matrix](../reference/toolchain.md#recommended-lint-and-formatter-stacks) for language-specific pairings).
 - **Safety gate:** Categorizes each change into tiers (formatting, low-risk refactor, complex migration) and enforces validation. After a fix, Emperator re-runs the relevant checks and optional property-based tests before marking the issue resolved. Failures result in automatic rollback and a detailed report.
 
 ## Extensibility and performance
 
 - **Plugin interfaces:** New languages integrate by implementing parser adapters, analyzer hooks, and codemod providers. Policy plug-ins can introduce specialized analyzers (e.g., MISRA checkers) without altering the core orchestrator.
 - **Performance budgets:** Emperator differentiates between fast interactive checks and exhaustive CI runs. Users can opt into deeper analyses (full CodeQL packs, fuzz tests) in pipelines while keeping pre-commit execution under a few seconds.
+<a id="offline-operation"></a>
 - **Offline operation:** All components run locally, ensuring suitability for air-gapped environments. Optional AI assistance uses on-prem models only (see the AI-assisted how-to guide for details).
 
 With this architecture, Emperator ensures contracts remain executable, analyses stay coherent across languages, and automated changes land safely under rigorous validation.
+
+## Related references
+
+- Map contract rules to analyzers in the [Toolchain Matrix](../reference/toolchain.md).
+- Follow the rollout stages in the [Implementation Roadmap](implementation-roadmap.md).
+- Align governance levers with the [Governance and Compliance reference](../reference/governance.md).

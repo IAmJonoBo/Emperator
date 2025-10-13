@@ -1,0 +1,12 @@
+// Markdown linting defaults for Emperator docs
+{
+  "default": true,
+  // Allow long lines for tables and front-matter blocks handled by MkDocs
+  "MD013": false,
+  // Allow inline HTML for Mermaid containers and badge markup
+  "MD033": false,
+  // Enforce heading style consistency
+  "MD003": { "style": "atx" },
+  // Encourage unordered list markers to use hyphen for consistency
+  "MD004": { "style": "dash" }
+}

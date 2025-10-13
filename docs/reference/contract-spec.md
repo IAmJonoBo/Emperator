@@ -13,6 +13,12 @@ Use this page to look up the canonical structure, rule metadata fields, severity
 | `contract/exemptions.yaml` | Optional registry of approved waivers with owner, expiry, and mitigation notes. |
 | `contract/README.md` | Human-readable change log, review checklist, and links to external standards. |
 
+## Protobuf schemas {#protobuf-schemas}
+
+- Store `.proto` files either under `contract/api/` or the service repository’s source tree and reference them from the contract via relative paths.
+- Run `buf format` and `buf lint` as part of contract validation so code generation and API compatibility checks stay aligned with the [Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks).
+- Version generated language bindings (Go, Java, C#) through Emperator scaffolds to maintain parity between the canonical schema and downstream usage.
+
 ## Rule metadata schema
 
 Each rule compiled from the contract exposes the following fields in Emperator outputs and reports:

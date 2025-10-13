@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/explanation/security-safety/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/explanation/security-safety/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Security and Safety Envelope - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/explanation/security-safety.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/explanation/security-safety.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -164,7 +164,7 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#safety-tiers-for-automation" class="nav-link">Safety tiers for automation</a>
+            <li class="nav-item" data-bs-level="2"><a href="#static-analysis-tiers" class="nav-link">Safety tiers for automation</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -177,6 +177,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#threat-aware-operations" class="nav-link">Threat-aware operations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#container-hardening" class="nav-link">Container hardening</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -195,7 +199,7 @@
 <li>Uses taint tracking to detect untrusted data flows from external inputs to dangerous sinks (e.g., <code>os.system</code>, raw SQL execution).</li>
 <li>Integrates secret scanning patterns to block credentials, tokens, and keys from entering source control.</li>
 </ul>
-<h2 id="safety-tiers-for-automation">Safety tiers for automation<a class="headerlink" href="#safety-tiers-for-automation" title="Permanent link">&para;</a></h2>
+<h2 id="static-analysis-tiers">Safety tiers for automation<a class="headerlink" href="#static-analysis-tiers" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Classifies rules into tiers (formatting, low, medium, high) so only low-risk fixes auto-apply; higher tiers surface reviewable diffs.</li>
 <li>Re-runs static analysis and optional unit/property tests after every automated change, rolling back any patch that fails validation.</li>
@@ -216,6 +220,12 @@
 <li>Runs entirely offline by default, avoiding data exfiltration risks and supporting air-gapped environments.</li>
 <li>Executes optional dynamic checks inside hardened temporary sandboxes to minimise exposure to adversarial code.</li>
 <li>Treats the contract as untrusted input, relying on vetted parsers for OpenAPI, CUE, and Rego to prevent injection attacks against the toolchain.</li>
+</ul>
+<h2 id="container-hardening">Container hardening<a class="headerlink" href="#container-hardening" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Provide hardened base images for developer containers and CI runners with pinned versions of formatters, linters, and Emperator binaries.</li>
+<li>Scan container layers with <code>hadolint</code> and follow the <a href="../../reference/toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a> to ensure Dockerfiles invoke vetted linters.</li>
+<li>Sign container images and publish SBOMs so downstream teams inherit the same provenance guarantees enforced upstream.</li>
 </ul>
 <p>By combining rigorous detection with a “first, do no harm” automation policy, Emperator raises the security baseline without eroding trust in automated refactors.</p></div>
             </div>

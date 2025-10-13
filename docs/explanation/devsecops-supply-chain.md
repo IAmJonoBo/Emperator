@@ -20,6 +20,12 @@ Emperator embeds compliance and supply chain security controls into everyday dev
 - Triangulate Semgrep, CodeQL, and Rego findings to reduce false positives and provide evidence-backed enforcement for security-critical policies.
 - Configure rule severities and safety tiers to phase in new mandates gradually (warn → block) without overwhelming legacy codebases.
 
+## Infrastructure-as-code guardrails {#infrastructure-as-code-guardrails}
+
+- Enforce Terraform best practices with `terraform fmt` and `tflint`, keeping configurations aligned with the [Toolchain Matrix](../reference/toolchain.md#recommended-lint-and-formatter-stacks).
+- Validate Kubernetes YAML and Helm charts using contract-aware OpenRewrite recipes plus Semgrep policies to prevent privilege escalation and drift.
+- Require SBOM and attestation artefacts for infrastructure modules so platform teams can track IaC provenance alongside application deployments.
+
 ## Sandbox-friendly execution
 
 - Package Emperator and its dependencies inside offline-friendly containers so classified or air-gapped environments can run the full pipeline with no external calls.

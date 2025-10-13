@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/explanation/system-architecture/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/explanation/system-architecture/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>System Architecture Deep Dive - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/explanation/system-architecture.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/explanation/system-architecture.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -177,6 +177,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#extensibility-and-performance" class="nav-link">Extensibility and performance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#related-references" class="nav-link">Related references</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -233,16 +237,23 @@
 <li><strong>Check engines:</strong> Run Semgrep rules, CodeQL queries, and contract validators. Findings are tagged with severity, evidence confidence, and auto-fix eligibility. High-noise detections are triaged for manual review.</li>
 <li><strong>Fix engines:</strong> Apply deterministic codemods (LibCST, OpenRewrite, language-specific refactorers) for rules classified as safe. Complex migrations can be proposed as diffs rather than applied automatically.</li>
 <li><strong>Scaffold &amp; generate:</strong> Templates in <code>contract/generators/</code> create handlers, tests, or migration stubs based on contract deltas (e.g., new OpenAPI endpoints). Generated code is re-checked before acceptance.</li>
-<li><strong>Formatters:</strong> Invoke battle-tested formatters such as Ruff, Black, Prettier, gofmt, or clang-format to ensure minimal diffs that match team conventions.</li>
+<li><strong>Formatters:</strong> Invoke battle-tested formatters such as Ruff, Black, Prettier, gofmt, or clang-format to ensure minimal diffs that match team conventions (see the <a href="../../reference/toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a> for language-specific pairings).</li>
 <li><strong>Safety gate:</strong> Categorizes each change into tiers (formatting, low-risk refactor, complex migration) and enforces validation. After a fix, Emperator re-runs the relevant checks and optional property-based tests before marking the issue resolved. Failures result in automatic rollback and a detailed report.</li>
 </ul>
 <h2 id="extensibility-and-performance">Extensibility and performance<a class="headerlink" href="#extensibility-and-performance" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Plugin interfaces:</strong> New languages integrate by implementing parser adapters, analyzer hooks, and codemod providers. Policy plug-ins can introduce specialized analyzers (e.g., MISRA checkers) without altering the core orchestrator.</li>
-<li><strong>Performance budgets:</strong> Emperator differentiates between fast interactive checks and exhaustive CI runs. Users can opt into deeper analyses (full CodeQL packs, fuzz tests) in pipelines while keeping pre-commit execution under a few seconds.</li>
+<li><strong>Performance budgets:</strong> Emperator differentiates between fast interactive checks and exhaustive CI runs. Users can opt into deeper analyses (full CodeQL packs, fuzz tests) in pipelines while keeping pre-commit execution under a few seconds.
+<a id="offline-operation"></a></li>
 <li><strong>Offline operation:</strong> All components run locally, ensuring suitability for air-gapped environments. Optional AI assistance uses on-prem models only (see the AI-assisted how-to guide for details).</li>
 </ul>
-<p>With this architecture, Emperator ensures contracts remain executable, analyses stay coherent across languages, and automated changes land safely under rigorous validation.</p></div>
+<p>With this architecture, Emperator ensures contracts remain executable, analyses stay coherent across languages, and automated changes land safely under rigorous validation.</p>
+<h2 id="related-references">Related references<a class="headerlink" href="#related-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Map contract rules to analyzers in the <a href="../../reference/toolchain/">Toolchain Matrix</a>.</li>
+<li>Follow the rollout stages in the <a href="../implementation-roadmap/">Implementation Roadmap</a>.</li>
+<li>Align governance levers with the <a href="../../reference/governance/">Governance and Compliance reference</a>.</li>
+</ul></div>
             </div>
         </div>
 

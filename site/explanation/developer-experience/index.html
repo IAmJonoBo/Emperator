@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/explanation/developer-experience/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/explanation/developer-experience/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Developer Experience Integration - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/explanation/developer-experience.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/explanation/developer-experience.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -173,6 +173,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#config-minimalism" class="nav-link">Config minimalism</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#language-tooling" class="nav-link">Language tooling</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -212,6 +216,12 @@
 <li>The Project Contract is the single source of configuration; Emperator infers tool settings (formatters, Semgrep rule packs, CodeQL queries) automatically.</li>
 <li>Profiles let teams roll out enforcement gradually—warn-only for newcomers, strict mode for protected branches.</li>
 <li>Verbose logs and dry-run modes help teams debug new rules before flipping them to blocking status.</li>
+</ul>
+<h2 id="language-tooling">Language tooling<a class="headerlink" href="#language-tooling" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Emperator installs formatter and lint stacks per language as defined in the <a href="../../reference/toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a>, keeping local editors and CI pipelines aligned.</li>
+<li>Contract metadata advertises which tools run automatically, so teams can configure editor integrations (e.g., Ruff or Prettier on save) without guessing.</li>
+<li>Language owners can enable experimental analyzers behind profiles, gradually rolling them out as developers provide feedback.</li>
 </ul>
 <h2 id="respecting-developer-time">Respecting developer time<a class="headerlink" href="#respecting-developer-time" title="Permanent link">&para;</a></h2>
 <ul>

@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/explanation/devsecops-supply-chain/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/explanation/devsecops-supply-chain/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>DevSecOps and Supply Chain - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/explanation/devsecops-supply-chain.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/explanation/devsecops-supply-chain.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -169,6 +169,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#policy-as-code-everywhere" class="nav-link">Policy as code everywhere</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#infrastructure-as-code-guardrails" class="nav-link">Infrastructure-as-code guardrails</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -206,6 +210,12 @@
 <li>Store compliance logic in <code>contract/policy/*.rego</code> so the same rules can gate commits, CI pipelines, and runtime environments.</li>
 <li>Triangulate Semgrep, CodeQL, and Rego findings to reduce false positives and provide evidence-backed enforcement for security-critical policies.</li>
 <li>Configure rule severities and safety tiers to phase in new mandates gradually (warn → block) without overwhelming legacy codebases.</li>
+</ul>
+<h2 id="infrastructure-as-code-guardrails">Infrastructure-as-code guardrails<a class="headerlink" href="#infrastructure-as-code-guardrails" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Enforce Terraform best practices with <code>terraform fmt</code> and <code>tflint</code>, keeping configurations aligned with the <a href="../../reference/toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a>.</li>
+<li>Validate Kubernetes YAML and Helm charts using contract-aware OpenRewrite recipes plus Semgrep policies to prevent privilege escalation and drift.</li>
+<li>Require SBOM and attestation artefacts for infrastructure modules so platform teams can track IaC provenance alongside application deployments.</li>
 </ul>
 <h2 id="sandbox-friendly-execution">Sandbox-friendly execution<a class="headerlink" href="#sandbox-friendly-execution" title="Permanent link">&para;</a></h2>
 <ul>

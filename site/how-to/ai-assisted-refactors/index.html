@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/how-to/ai-assisted-refactors/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/how-to/ai-assisted-refactors/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Use AI-Assisted Refactors Safely - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/how-to/ai-assisted-refactors.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/how-to/ai-assisted-refactors.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -177,6 +177,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="2"><a href="#5-test-before-trusting" class="nav-link">5. Test before trusting</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#lint-aware-fixes" class="nav-link">Lint-aware fixes</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -249,6 +253,12 @@ Return unified diff only.
 <ul>
 <li>Run <code>emperor test --scope touched-files</code> after each accepted AI patch. Emperator can synthesize property-based tests for marked functions, providing additional assurance.</li>
 <li>For migrations, pair AI-generated diffs with codemod regression tests to ensure idempotence (<code>emperor codemod verify path/to/recipe.py</code>).</li>
+</ul>
+<h2 id="lint-aware-fixes">Lint-aware fixes<a class="headerlink" href="#lint-aware-fixes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep the <a href="../../reference/toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a> handy so AI suggestions never fight formatter output. Apply formatters (<code>ruff format</code>, <code>prettier --write</code>, <code>gofmt</code>) immediately after accepting an AI diff to normalize style before review.</li>
+<li>Prefer codemod-plus-formatter combinations for deterministic cleanups; Emperator can chain Ruff/Prettier after AI changes to minimize noise in pull requests.</li>
+<li>When a team mandates a specific formatter (e.g., Black), configure Emperator’s safety tiers so AI fixes stop short of reformats and leave the existing formatter to resolve layout.</li>
 </ul>
 <h2 id="6-maintain-feedback-loops">6. Maintain feedback loops<a class="headerlink" href="#6-maintain-feedback-loops" title="Permanent link">&para;</a></h2>
 <ul>

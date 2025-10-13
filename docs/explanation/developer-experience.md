@@ -26,6 +26,12 @@ Emperator is designed to feel like a teammate that automates busywork while keep
 - Profiles let teams roll out enforcement gradually—warn-only for newcomers, strict mode for protected branches.
 - Verbose logs and dry-run modes help teams debug new rules before flipping them to blocking status.
 
+## Language tooling {#language-tooling}
+
+- Emperator installs formatter and lint stacks per language as defined in the [Toolchain Matrix](../reference/toolchain.md#recommended-lint-and-formatter-stacks), keeping local editors and CI pipelines aligned.
+- Contract metadata advertises which tools run automatically, so teams can configure editor integrations (e.g., Ruff or Prettier on save) without guessing.
+- Language owners can enable experimental analyzers behind profiles, gradually rolling them out as developers provide feedback.
+
 ## Respecting developer time
 
 - Incremental analysis daemons cache IR so routine runs complete in seconds even on large codebases.

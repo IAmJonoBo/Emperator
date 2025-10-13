@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         
-        <link rel="canonical" href="https://example.com/emperator-docs/reference/contract-spec/">
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/reference/contract-spec/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Project Contract Reference - Emperator Technical Brief</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
@@ -137,7 +137,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/example/emperator/edit/master/docs/reference/contract-spec.md" class="nav-link">Edit on Emperator
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/reference/contract-spec.md" class="nav-link">Edit on IAmJonoBo/Emperator
                                     </a>
                             </li>
                     </ul>
@@ -161,6 +161,10 @@
             <li class="nav-item" data-bs-level="1"><a href="#project-contract-reference" class="nav-link">Project Contract Reference</a>
               <ul class="nav flex-column">
             <li class="nav-item" data-bs-level="2"><a href="#directory-layout" class="nav-link">Directory layout</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#protobuf-schemas" class="nav-link">Protobuf schemas</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -224,6 +228,12 @@
 </tr>
 </tbody>
 </table>
+<h2 id="protobuf-schemas">Protobuf schemas<a class="headerlink" href="#protobuf-schemas" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Store <code>.proto</code> files either under <code>contract/api/</code> or the service repository’s source tree and reference them from the contract via relative paths.</li>
+<li>Run <code>buf format</code> and <code>buf lint</code> as part of contract validation so code generation and API compatibility checks stay aligned with the <a href="../toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a>.</li>
+<li>Version generated language bindings (Go, Java, C#) through Emperator scaffolds to maintain parity between the canonical schema and downstream usage.</li>
+</ul>
 <h2 id="rule-metadata-schema">Rule metadata schema<a class="headerlink" href="#rule-metadata-schema" title="Permanent link">&para;</a></h2>
 <p>Each rule compiled from the contract exposes the following fields in Emperator outputs and reports:</p>
 <table>

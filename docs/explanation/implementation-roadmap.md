@@ -12,13 +12,13 @@ The roadmap provides a pragmatic sequence for delivering Emperator, starting wit
 - **CLI experience:** Deliver `emperor apply` with diff output, summaries, and exit codes suitable for pre-commit and CI.
 - **Demo project:** Curate a sample repo exhibiting each violation type to showcase before/after results.
 
-## Phase 2: Developer feedback loop
+## Phase 2: Developer feedback loop {#phase-2-rollout}
 
 - Pilot the tool with real teams to gather usability data, measure runtime, and identify noisy rules.
 - Harden pre-commit and CI integrations, including SARIF uploads and provenance artefact capture.
 - Expand documentation and tutorials based on pilot feedback, especially around waiver workflows and troubleshooting.
 
-## Phase 3: Polyglot expansion
+## Phase 3: Polyglot expansion {#phase-3-organization-wide-enforcement}
 
 - Add Java/OpenRewrite support, then JavaScript/TypeScript with ESLint or TypeScript AST integrations.
 - Broaden Semgrep and CodeQL rule packs, including organization-specific security checks.

@@ -31,7 +31,7 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
   - Deny merges when contract exemptions exceed a predefined count or expiry window.
 - Evaluate policies both locally (`opa eval`) and in CI to ensure consistent decisions across environments.
 
-## Exemption governance
+## Exemption governance {#managing-exemptions}
 
 - Collect all approved waivers in `contract/exemptions.yaml` with owner, expiry, and mitigation plan.
 - Schedule a recurring review (e.g., monthly) where compliance leads confirm whether exemptions can be retired.
@@ -43,6 +43,18 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 - Retain Emperator execution logs with timestamps, rule IDs, auto-fix decisions, and evidence links. Forward logs to a centralized system (Splunk, Elastic) for retention policies.
 - Use the `--format json` option to store machine-readable results that can be cross-referenced with ticketing systems.
 - Leverage the `docs/includes/copilot-prompts.md` prompts to ensure human reviewers mention rule IDs and contract versions in review comments, improving traceability.
+
+## Documentation standards {#documentation-standards}
+
+- Keep contracts and documentation tightly coupled by updating the [Toolchain Matrix](toolchain.md) and AI prompt include whenever enforcement rules change.
+- Use the repository’s documentation CI (`mkdocs build --strict`, `markdownlint-cli2`, `lychee`) to fail fast on broken links or style regressions.
+- Mirror CI checks locally via `npx markdownlint-cli2 "docs/**/*.md"` and `lychee --config .lychee.toml docs` so contributors catch issues before opening a pull request.
+
+## Language owners {#language-owners}
+
+- Assign a steward for each language/platform (Python, JVM, JS/TS, Go, Rust, Infrastructure) to review new rules and formatter changes.
+- Document ownership in the Project Contract metadata and reference it from team onboarding guides, ensuring contributors know who approves rule updates.
+- Schedule quarterly syncs between language owners and product security to evaluate lint noise, codemod quality, and roadmap adjustments.
 
 ## Compliance checklist
 

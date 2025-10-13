@@ -1,8 +1,8 @@
 site_name: Emperator Technical Brief
 site_description: Frontier-grade development orchestration documentation organized with the Diátaxis framework.
-site_url: https://example.com/emperator-docs
-repo_url: https://github.com/example/emperator
-repo_name: Emperator
+site_url: https://IAmJonoBo.github.io/Emperator/
+repo_url: https://github.com/IAmJonoBo/Emperator
+repo_name: IAmJonoBo/Emperator
 
 nav:
   - Home: index.md

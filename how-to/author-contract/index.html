@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://example.com/emperator-docs/how-to/author-contract/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Author the Project Contract - Emperator Technical Brief</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../assets/styles/extra.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Emperator Technical Brief</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Tutorial</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../tutorial/getting-started/" class="dropdown-item">Bootstrapping Emperator in a Repository</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">How-to Guides</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Author the Project Contract</a>
+</li>
+                                    
+<li>
+    <a href="../ci-integration/" class="dropdown-item">Integrate with CI/CD Pipelines</a>
+</li>
+                                    
+<li>
+    <a href="../ai-assisted-refactors/" class="dropdown-item">Use AI-Assisted Refactors Safely</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Explanation</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../explanation/executive-summary/" class="dropdown-item">Executive Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/system-architecture/" class="dropdown-item">System Architecture Deep Dive</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/devsecops-supply-chain/" class="dropdown-item">DevSecOps and Supply Chain</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/developer-experience/" class="dropdown-item">Developer Experience Integration</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/security-safety/" class="dropdown-item">Security and Safety Envelope</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/ai-orchestration/" class="dropdown-item">AI-Orchestrated Refactoring</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/implementation-roadmap/" class="dropdown-item">Implementation Roadmap</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Reference</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../reference/contract-spec/" class="dropdown-item">Project Contract Reference</a>
+</li>
+                                    
+<li>
+    <a href="../../reference/toolchain/" class="dropdown-item">Toolchain Matrix</a>
+</li>
+                                    
+<li>
+    <a href="../../reference/governance/" class="dropdown-item">Governance and Compliance Controls</a>
+</li>
+                                    
+<li>
+    <a href="../../includes/copilot-prompts/" class="dropdown-item">Copilot Prompt Patterns</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../../tutorial/getting-started/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../ci-integration/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/example/emperator/edit/master/docs/how-to/author-contract.md" class="nav-link">Edit on Emperator
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#authoring-and-evolving-the-project-contract" class="nav-link">Authoring and Evolving the Project Contract</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-scaffold-the-contract-directory" class="nav-link">1. Scaffold the contract directory</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-define-structural-conventions-with-cue" class="nav-link">2. Define structural conventions with CUE</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-capture-policies-with-opa-rego" class="nav-link">3. Capture policies with OPA Rego</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-model-api-surfaces-with-openapi-or-graphql" class="nav-link">4. Model API surfaces with OpenAPI or GraphQL</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-create-deterministic-codemod-recipes" class="nav-link">5. Create deterministic codemod recipes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-review-and-version-the-contract" class="nav-link">6. Review and version the contract</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-manage-exemptions-deliberately" class="nav-link">7. Manage exemptions deliberately</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8-automate-contract-validation-in-ci" class="nav-link">8. Automate contract validation in CI</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="authoring-and-evolving-the-project-contract">Authoring and Evolving the Project Contract<a class="headerlink" href="#authoring-and-evolving-the-project-contract" title="Permanent link">&para;</a></h1>
+<p>The Project Contract is the single source of truth for Emperator’s standards. This guide shows how to structure the contract repository, encode rules with open standards, validate changes, and stage rollouts safely.</p>
+<h2 id="1-scaffold-the-contract-directory">1. Scaffold the contract directory<a class="headerlink" href="#1-scaffold-the-contract-directory" title="Permanent link">&para;</a></h2>
+<p>Place the contract in a top-level <code>contract/</code> folder so Emperator can discover it automatically.</p>
+<div class="highlight"><pre><span></span><code>contract/
+├── api/            # OpenAPI or GraphQL interface specs
+├── conventions.cue # CUE constraints for naming, layout, metadata
+├── policy/         # OPA Rego policies for security and governance
+├── generators/     # Templates and codemod recipes
+└── README.md       # Change log and review checklist
+</code></pre></div>
+<p>Best practices:</p>
+<ul>
+<li>Keep contract artefacts close to the code they govern. Co-locating the contract eliminates drift between documentation and implementation.</li>
+<li>Document intent in <code>README.md</code>; include reviewer checklists and links to upstream standards (OWASP, SLSA, internal policies).</li>
+<li>Group generators by language or domain (<code>generators/python/</code>, <code>generators/devsecops/</code>) to simplify maintenance.</li>
+</ul>
+<h2 id="2-define-structural-conventions-with-cue">2. Define structural conventions with CUE<a class="headerlink" href="#2-define-structural-conventions-with-cue" title="Permanent link">&para;</a></h2>
+<p>CUE expresses schema-like constraints succinctly and supports rich validation.</p>
+<div class="highlight"><span class="filename">contract/conventions.cue</span><pre><span></span><code>package contract
+
+controllers: {
+  files: [...string] &amp; =~&quot;^[a-z0-9_]+\.py$&quot;
+  allowImports: [...string] | *[&quot;services&quot;, &quot;logging&quot;]
+}
+
+formatting: {
+  python: {
+    formatter: &quot;ruff&quot;
+    lineLength: 100
+  }
+}
+</code></pre></div>
+<ul>
+<li>The regex ensures controller filenames stay in <code>snake_case</code>.</li>
+<li>The <code>allowImports</code> array drives layering rules (hooked into Semgrep and CodeQL queries).</li>
+<li>Formatting settings flow into Emperator’s formatter adapters so generated code matches expectations.</li>
+</ul>
+<p>Validate CUE edits with <code>cue vet</code> or <code>cue export</code> during contract review.</p>
+<h2 id="3-capture-policies-with-opa-rego">3. Capture policies with OPA Rego<a class="headerlink" href="#3-capture-policies-with-opa-rego" title="Permanent link">&para;</a></h2>
+<p>Use Rego to codify security and governance rules that span multiple analyses.</p>
+<div class="highlight"><span class="filename">contract/policy/rules.rego</span><pre><span></span><code><span class="k">package</span><span class="w"> </span><span class="n">contract</span><span class="p">.</span><span class="n">security</span>
+
+<span class="n">deny</span><span class="p">[</span><span class="n">msg</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nb">input</span><span class="p">.</span><span class="n">findings</span><span class="p">[</span><span class="n">_</span><span class="p">].</span><span class="n">rule</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;SecretDetection&quot;</span>
+<span class="w">  </span><span class="n">msg</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s2">&quot;Hardcoded secret detected&quot;</span>
+<span class="p">}</span>
+
+<span class="n">warn</span><span class="p">[</span><span class="n">msg</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">some</span><span class="w"> </span><span class="n">finding</span>
+<span class="w">  </span><span class="n">finding</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nb">input</span><span class="p">.</span><span class="n">findings</span><span class="p">[</span><span class="n">_</span><span class="p">]</span>
+<span class="w">  </span><span class="n">finding</span><span class="p">.</span><span class="n">rule</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;LayeringPolicy&quot;</span>
+<span class="w">  </span><span class="n">finding</span><span class="p">.</span><span class="n">severity</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span>
+<span class="w">  </span><span class="n">msg</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="n">sprintf</span><span class="p">(</span><span class="s2">&quot;Layering violation (%s) requires review&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">finding</span><span class="p">.</span><span class="n">location</span><span class="p">])</span>
+<span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>Feed Emperator’s findings JSON into OPA to aggregate, suppress, or escalate alerts.</li>
+<li>Use <code>deny</code> for blocking issues, <code>warn</code> for advisory or transitional policies.</li>
+<li>Keep policies composable; break complex rules into helper modules and import them.</li>
+</ul>
+<p>Evaluate policies locally with <code>opa eval -i findings.json -d contract/policy 'data.contract'</code>.</p>
+<h2 id="4-model-api-surfaces-with-openapi-or-graphql">4. Model API surfaces with OpenAPI or GraphQL<a class="headerlink" href="#4-model-api-surfaces-with-openapi-or-graphql" title="Permanent link">&para;</a></h2>
+<p>Interface specifications enable Emperator to scaffold handlers, tests, and clients consistently.</p>
+<div class="highlight"><span class="filename">contract/api/openapi.yaml</span><pre><span></span><code><span class="nt">openapi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.1.0</span>
+<span class="nt">info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Emperator Reference Contract</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2.0</span>
+<span class="nt">paths</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">/healthz</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">get</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">operationId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">getHealth</span>
+<span class="w">            </span><span class="nt">responses</span><span class="p">:</span>
+<span class="w">                </span><span class="s">&#39;200&#39;</span><span class="p p-Indicator">:</span>
+<span class="w">                    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">OK</span>
+</code></pre></div>
+<ul>
+<li>Align operation IDs with code generation templates in <code>contract/generators/</code>.</li>
+<li>Use shared schemas to enforce DTO structure. Emperator compares schemas against model code using the IR.</li>
+<li>Treat OpenAPI version bumps as contract releases; annotate the change log with migration guidance.</li>
+</ul>
+<h2 id="5-create-deterministic-codemod-recipes">5. Create deterministic codemod recipes<a class="headerlink" href="#5-create-deterministic-codemod-recipes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Write LibCST-based Python codemods or OpenRewrite recipes and store them under <code>contract/generators/</code>.</li>
+<li>Annotate each recipe with a <code>safety</code> tier (<code>format</code>, <code>low</code>, <code>medium</code>, <code>high</code>) so the Safety Gate knows whether to auto-apply or require review.</li>
+<li>Include unit tests for codemods where practical (e.g., <code>tests/generators/test_logging_migration.py</code>).</li>
+</ul>
+<h2 id="6-review-and-version-the-contract">6. Review and version the contract<a class="headerlink" href="#6-review-and-version-the-contract" title="Permanent link">&para;</a></h2>
+<p>Follow a lightweight but disciplined review loop:</p>
+<pre class="mermaid"><code>flowchart LR
+    P[Draft rule change] --&gt; R[Peer review
+    (code + policy experts)]
+    R --&gt; V[Validate locally
+    (cue vet, opa eval, emperor dry-run)]
+    V --&gt; D[Decide release tier
+    (warn-only or enforce)]
+    D --&gt; T[Tag contract version]
+    T --&gt; B[Broadcast change
+    (docs, release notes, Copilot prompts)]</code></pre>
+<ul>
+<li><strong>Warn-only rollouts:</strong> Introduce new rules in advisory mode first (<code>severity: info</code> or <code>auto_apply: false</code>) and flip to blocking once noise is under control.</li>
+<li><strong>Version tags:</strong> Use semantic versioning (<code>contract@1.3.0</code>). Emperator logs the active version with every fix, giving auditors traceability.</li>
+<li><strong>Broadcast:</strong> Update <code>docs/reference/contract-spec.md</code> and Copilot prompt packs so automated assistants surface the new expectations.</li>
+</ul>
+<h2 id="7-manage-exemptions-deliberately">7. Manage exemptions deliberately<a class="headerlink" href="#7-manage-exemptions-deliberately" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Allow explicit overrides via inline comments such as <code># emperator:ignore LayeringPolicy -- justification</code>. Reject exemptions without a justification string.</li>
+<li>Track approved exemptions in a dedicated file (<code>contract/exemptions.yaml</code>) including owner, expiry, and mitigation plan.</li>
+<li>Periodically audit and retire exemptions; Emperator’s governance reports list outstanding waivers.</li>
+</ul>
+<h2 id="8-automate-contract-validation-in-ci">8. Automate contract validation in CI<a class="headerlink" href="#8-automate-contract-validation-in-ci" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Add a job that runs <code>emperor check --strict --no-fix</code> against the latest contract to ensure it compiles and that generated rules are lint-free.</li>
+<li>Fail fast if <code>cue fmt</code> or <code>opa fmt</code> detect formatting issues—consistency keeps diffs minimal.</li>
+<li>Publish generated documentation (mkdocs, SARIF summaries) as build artefacts for reviewers.</li>
+</ul>
+<p>With these practices the Project Contract becomes a living, executable specification that guides every code change while remaining auditable and adaptable.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+        <script src="../../assets/js/mermaid-theme.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

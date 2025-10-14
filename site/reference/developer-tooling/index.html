@@ -192,17 +192,20 @@
 <ul>
 <li>Use <a href="https://docs.astral.sh/uv/">uv</a> for package management and virtual environments. It is a drop-in <code>pip</code> replacement that produces a universal lockfile and delivers order-of-magnitude speedups.</li>
 <li>Run <a href="https://docs.astral.sh/ruff/">Ruff</a> for both linting and formatting, aligning with the <a href="../toolchain/#recommended-lint-and-formatter-stacks">Python entry in the Toolchain Matrix</a>. Pair it with <code>pytest</code> and <code>coverage</code> for fast unit feedback.</li>
+<li>Keep project environments self-contained. Export <code>UV_VENV_IN_PROJECT=1</code> (or equivalent <code>PIPENV_VENV_IN_PROJECT=1</code> / <code>poetry config virtualenvs.in-project true</code>) so your virtual environments live under <code>.venv/</code> inside the repository and can be pruned with a single <code>rm -rf</code>.</li>
 </ul>
 <h3 id="typescript-javascript">3. TypeScript and JavaScript<a class="headerlink" href="#typescript-javascript" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Prefer <a href="https://pnpm.io/">pnpm</a> workspaces for installs; they keep disk usage low and caching predictable across Dev Containers and CI.</li>
 <li>Reach for <a href="https://biomejs.dev/">Biome</a> when a single binary can handle lint and format. If framework plugins or bespoke rules are required, fall back to the ESLint plus Prettier combo referenced in the <a href="../toolchain/#recommended-lint-and-formatter-stacks">Toolchain Matrix</a>.</li>
+<li>Use the repo-scoped <code>.npmrc</code> (sets <code>store-dir=./.pnpm-store</code>) so pnpm’s content-addressable store remains under version control boundaries. Run <code>pnpm store prune</code> periodically if you need to reclaim disk space.</li>
 </ul>
 <h3 id="git-hygiene">4. Git hooks, commit hygiene, and PR UX<a class="headerlink" href="#git-hygiene" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Wire up <a href="https://pre-commit.com/"><code>pre-commit</code></a> (or <a href="https://github.com/evilmartians/lefthook">Lefthook</a>) to run Ruff, Biome, ShellCheck, yamllint, and other fast checks before code reaches CI.</li>
 <li>Guard commit history with <a href="https://www.conventionalcommits.org/">Conventional Commits</a> and <a href="https://commitlint.js.org/"><code>commitlint</code></a> so releases and changelog automation remain deterministic.</li>
 <li>Upload SARIF artefacts during CI (see the <a href="../../how-to/ci-integration/#3-github-actions-template">CI integration playbook</a>) so findings annotate GitHub pull requests inline.</li>
+<li>Point <code>PRE_COMMIT_HOME</code> at <code>${REPO_ROOT}/.cache/pre-commit</code> (or use <code>.envrc</code>) to keep hook environments alongside the repo. The <code>.gitignore</code> already excludes <code>.cache/</code>, so caches never show up as dirty files.</li>
 </ul>
 <h3 id="terminal-ergonomics">5. Terminal ergonomics (pleasant, practical)<a class="headerlink" href="#terminal-ergonomics" title="Permanent link">&para;</a></h3>
 <ul>
@@ -222,7 +225,13 @@
 <li>Expose Ruff and Biome quick-fixes through the LSP code action menu so deterministic auto-fixes feel instant while staying under the safety gate described in the <a href="../../how-to/ai-assisted-refactors/#lint-aware-fixes">AI-assisted refactors guide</a>.</li>
 <li>Publish PR check summaries with deep links and SARIF annotations so reviewers can jump from dashboards directly to highlighted code in GitHub.</li>
 </ul>
-<p>Keep this reference close when setting up new workstations, codifying pre-commit hooks, or refreshing Dev Container definitions. Every recommendation keeps velocity high without compromising the guardrails enforced elsewhere in the Emperator stack.</p></div>
+<p>Keep this reference close when setting up new workstations, codifying pre-commit hooks, or refreshing Dev Container definitions. Every recommendation keeps velocity high without compromising the guardrails enforced elsewhere in the Emperator stack.</p>
+<h3 id="local-cache-hygiene">Local cache hygiene<a class="headerlink" href="#local-cache-hygiene" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>.pnpm-store/</code> holds pnpm’s shared packages for this project; delete the folder to force a clean reinstall.</li>
+<li><code>.cache/pre-commit/</code> retains hook environments; run <code>PRE_COMMIT_HOME=$PWD/.cache/pre-commit pre-commit clean</code> to reclaim space.</li>
+<li><code>.cache/pip/</code> (or UV’s cache) can be relocated alongside the project with <code>PIP_CACHE_DIR=$PWD/.cache/pip</code>, ensuring global home directories stay lean.</li>
+</ul></div>
             </div>
         </div>
 

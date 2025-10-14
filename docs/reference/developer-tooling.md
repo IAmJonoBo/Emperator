@@ -14,17 +14,20 @@ Document the baseline workstation setup that keeps Emperator contributors fast, 
 
 - Use [uv](https://docs.astral.sh/uv/) for package management and virtual environments. It is a drop-in `pip` replacement that produces a universal lockfile and delivers order-of-magnitude speedups.
 - Run [Ruff](https://docs.astral.sh/ruff/) for both linting and formatting, aligning with the [Python entry in the Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks). Pair it with `pytest` and `coverage` for fast unit feedback.
+- Keep project environments self-contained. Export `UV_VENV_IN_PROJECT=1` (or equivalent `PIPENV_VENV_IN_PROJECT=1` / `poetry config virtualenvs.in-project true`) so your virtual environments live under `.venv/` inside the repository and can be pruned with a single `rm -rf`.
 
 ### 3. TypeScript and JavaScript {#typescript-javascript}
 
 - Prefer [pnpm](https://pnpm.io/) workspaces for installs; they keep disk usage low and caching predictable across Dev Containers and CI.
 - Reach for [Biome](https://biomejs.dev/) when a single binary can handle lint and format. If framework plugins or bespoke rules are required, fall back to the ESLint plus Prettier combo referenced in the [Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks).
+- Use the repo-scoped `.npmrc` (sets `store-dir=./.pnpm-store`) so pnpm’s content-addressable store remains under version control boundaries. Run `pnpm store prune` periodically if you need to reclaim disk space.
 
 ### 4. Git hooks, commit hygiene, and PR UX {#git-hygiene}
 
 - Wire up [`pre-commit`](https://pre-commit.com/) (or [Lefthook](https://github.com/evilmartians/lefthook)) to run Ruff, Biome, ShellCheck, yamllint, and other fast checks before code reaches CI.
 - Guard commit history with [Conventional Commits](https://www.conventionalcommits.org/) and [`commitlint`](https://commitlint.js.org/) so releases and changelog automation remain deterministic.
 - Upload SARIF artefacts during CI (see the [CI integration playbook](../how-to/ci-integration.md#3-github-actions-template)) so findings annotate GitHub pull requests inline.
+- Point `PRE_COMMIT_HOME` at `${REPO_ROOT}/.cache/pre-commit` (or use `.envrc`) to keep hook environments alongside the repo. The `.gitignore` already excludes `.cache/`, so caches never show up as dirty files.
 
 ### 5. Terminal ergonomics (pleasant, practical) {#terminal-ergonomics}
 
@@ -45,3 +48,9 @@ Document the baseline workstation setup that keeps Emperator contributors fast, 
 - Publish PR check summaries with deep links and SARIF annotations so reviewers can jump from dashboards directly to highlighted code in GitHub.
 
 Keep this reference close when setting up new workstations, codifying pre-commit hooks, or refreshing Dev Container definitions. Every recommendation keeps velocity high without compromising the guardrails enforced elsewhere in the Emperator stack.
+
+### Local cache hygiene {#local-cache-hygiene}
+
+- `.pnpm-store/` holds pnpm’s shared packages for this project; delete the folder to force a clean reinstall.
+- `.cache/pre-commit/` retains hook environments; run `PRE_COMMIT_HOME=$PWD/.cache/pre-commit pre-commit clean` to reclaim space.
+- `.cache/pip/` (or UV’s cache) can be relocated alongside the project with `PIP_CACHE_DIR=$PWD/.cache/pip`, ensuring global home directories stay lean.

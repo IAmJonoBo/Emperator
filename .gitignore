@@ -29,6 +29,10 @@ htmlcov/
 
 # Node / TypeScript
 node_modules/
+.pnpm-store/
 dist/
 build/
 *.log
+
+# Tool caches
+.cache/

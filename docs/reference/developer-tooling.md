@@ -25,9 +25,162 @@ Terminal --> CLI[Fast CLI toolbelt]
 Extras --> VSCode[VS Code extensions]
 ```
 
+## Dependency orchestration (Python-first) {#dependency-orchestration}
+
+### Executive setup (TL;DR)
+
+- **Python** &mdash; Declare compatible release ranges with PEP 440’s `~=` operator in `pyproject.toml`, lock with `uv lock`, and keep `.venv/` aligned via `uv sync --frozen`. Schedule (or approve) upgrades to track the newest safe releases and commit `uv.lock`.
+- **Node** &mdash; Continue using pnpm with a committed `pnpm-lock.yaml`. In CI run `pnpm install --frozen-lockfile` and prime the store with `pnpm fetch` for deterministic, cache-friendly installs.
+- **CI acceleration** &mdash; Cache package-manager stores with GitHub Actions cache entries keyed by the lockfiles. For offline/air-gapped paths, publish a wheelhouse (Python) or vendored store snapshot that cold-start runners can consume without hitting the public registries.
+
+### Python (primary lane)
+
+1. **Declare “latest compatible” correctly** &mdash; use `~=` in `pyproject.toml`:
+
+   ```toml
+   [project]
+   name = "emperator"
+   requires-python = ">=3.11"
+   dependencies = [
+    "fastapi ~= 0.119",
+    "pydantic ~= 2.12",
+    "ruff ~= 0.14",
+   ]
+   ```
+
+   The compatible release operator expresses the intent (“give me the newest patch/minor in this line”) while preserving forwards compatibility guarantees.
+
+2. **Lock and sync the virtual environment with uv**:
+
+   ```bash
+   uv lock            # resolves to uv.lock with the latest releases inside the compatible ranges
+   uv sync --frozen   # ensures .venv matches the lock exactly
+   ```
+
+   `uv` manages `.venv/`, keeps the lock and environment in sync, and ships with offline-friendly, Rust-fast resolution.
+
+3. **CI flow (newest compatible, reproducible)**:
+
+   - Nightly or PR automation: `uv lock --upgrade` (or adjust constraints) to refresh `uv.lock` and commit the result once CI passes.
+   - Build/test: skip resolution and run `uv sync --frozen` so ephemeral runners reproduce exactly what the lock declares.
+
+4. **Ephemeral runners and offline/air-gapped installs**:
+
+   - **Cache the store** &mdash; use GitHub Actions cache keyed by `uv.lock` to persist `~/.cache/uv` and `.venv/` across runs.
+   - **Ship a wheelhouse** for true offline operation:
+
+     ```bash
+     # Build wheelhouse (Linux runner)
+     pip wheel --requirement <(uv export --format requirements.txt) -w wheelhouse
+     # Later / offline install
+     pip install --no-index --find-links=wheelhouse -r <(uv export --format requirements.txt)
+     ```
+
+     Repair native wheels with `auditwheel` so the artefacts remain portable. For private mirrors, publish a PEP 503 simple index via devpi, Nexus, or Artifactory.
+
+5. **Keep ranges fresh safely** &mdash; enable Dependabot/Renovate or schedule a `uv lock --upgrade` workflow to capture new releases inside the compatible range, gate them with CI, and merge once green.
+
+6. **Why it works** &mdash; PEP 440 ranges capture intent, `uv.lock` captures reality, and `uv sync --frozen` reproduces it precisely on every runner.
+
+### Node (secondary, but common)
+
+- Commit `pnpm-lock.yaml` and treat it as the single source of truth.
+- In CI run:
+
+  ```bash
+  pnpm fetch                 # pre-populate the store from the lockfile
+  pnpm install --frozen-lockfile
+  ```
+
+  `pnpm fetch` primes Docker layers and GitHub caches so installs become almost instant.
+
+- Cache the store keyed by the lockfile:
+
+  ```yaml
+  - run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+  - uses: actions/cache@v4
+   with:
+    path: ${{ env.STORE_PATH }}
+    key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+  ```
+
+### Other ecosystems (parity)
+
+- **Go** &mdash; rely on modules, commit `go.sum`, cache the module + build caches, and run `go mod vendor` (or serve a module proxy) for offline work.
+- **Rust** &mdash; commit `Cargo.lock`, cache the Cargo registry, and generate a `vendor/` directory with `cargo vendor` when air-gapped operation is required.
+- **Java** &mdash; with Gradle, enable dependency locking (`./gradlew dependencies --write-locks`) and cache `~/.gradle`; with Maven, pre-fetch via `mvn dependency:go-offline` then build with `-o` and cache `~/.m2`.
+
+### CI building blocks
+
+**Python (uv) with cache + wheelhouse fallback**:
+
+```yaml
+name: ci-python
+on: [push, pull_request]
+jobs:
+ test:
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v4
+   - name: Install uv
+    run: curl -LsSf https://astral.sh/uv/install.sh | sh
+   - name: Cache uv (by lockfile)
+    uses: actions/cache@v4
+    with:
+     path: |
+      ~/.cache/uv
+      .venv
+     key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+   - name: Sync venv (reproducible)
+    run: ~/.cargo/bin/uv sync --frozen
+   - name: Run tests
+    run: ~/.cargo/bin/uv run -m pytest -q
+   - name: Build wheelhouse
+    run: |
+     pip wheel -r <(~/.cargo/bin/uv export --format requirements.txt) -w wheelhouse
+   - uses: actions/upload-artifact@v4
+    with:
+     name: wheelhouse
+     path: wheelhouse/
+```
+
+**Node (pnpm)**:
+
+```yaml
+name: ci-node
+on: [push, pull_request]
+jobs:
+ build:
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v4
+   - uses: pnpm/action-setup@v4
+    with: { version: 9, run_install: false }
+   - name: Get pnpm store path
+    run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+   - name: Cache pnpm store
+    uses: actions/cache@v4
+    with:
+     path: ${{ env.STORE_PATH }}
+     key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+   - run: pnpm fetch
+   - run: pnpm install --frozen-lockfile
+   - run: pnpm test
+```
+
+### Private mirrors and provenance
+
+- Front PyPI through a devpi/Nexus/Artifactory mirror to stabilise supply, optionally paired with the wheelhouse artefact for full offline coverage.
+- Document why this approach is trustworthy:
+  - **Data** &mdash; uv project/lock/sync documentation, the PEP 440 specifier table, and GitHub Actions cache guidance.
+  - **Methods** &mdash; compatible release ranges → lockfile → frozen sync in CI; cache the store; fall back to wheelhouse/mirror for cold or offline starts.
+  - **Key result** &mdash; newest compatible versions on every update without breaking reproducibility; instant installs on ephemeral runners; offline-capable workflows.
+  - **Uncertainty** &mdash; building universal wheels for native packages may require CI images with the right system libraries (use `auditwheel` to repair them).
+  - **Safer alternative** &mdash; start with caching only; add wheelhouse or mirror once the critical native dependencies are identified and tested.
+
 ### Quick bootstrap (all tooling) {#quick-bootstrap}
 
-- Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) after cloning. It creates or refreshes the `.venv/` virtual environment, installs Python dev extras including `pre-commit`, fetches Node dependencies, and then defers to `setup-linting.sh` for formatter/linter checks. Pass `--ci` inside automation to skip hook installation while still running the lint pipeline.
+- Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) after cloning. It generates/refreshes `uv.lock`, runs `uv sync --group dev` so `.venv/` aligns with the lockfile, fetches pnpm dependencies (with `pnpm fetch` + `pnpm install --frozen-lockfile` in CI), and then defers to `setup-linting.sh` for formatter/linter checks. Pass `--ci` inside automation to skip hook installation while still running the lint pipeline.
 
 ### 1. Editor workflow (reproducible, LSP-centred) {#editor-workflow}
 
@@ -48,6 +201,7 @@ Extras --> VSCode[VS Code extensions]
 - Use the repo-scoped `.npmrc` (sets `store-dir=./.pnpm-store`) so pnpm’s content-addressable store remains under version control boundaries. Run `pnpm store prune` periodically if you need to reclaim disk space.
 - Biome is configured to auto-organise imports, clamp line width to 100 characters, enforce two-space indentation, and prefer double quotes with required semicolons. These defaults are applied globally via the `formatter` block so any Biome-supported language inherits the same layout conventions and aligns with the contract examples in [Authoring and Evolving the Project Contract](../how-to/author-contract.md#2-define-structural-conventions-with-cue).
 - Bootstrap or re-run the full lint/format toolchain with `pnpm run setup:lint`. The script installs dependencies, installs the `pre-commit` and commit-msg hooks, formats the tree with Biome, and then executes the combined `pnpm lint` pipeline (Biome check + ESLint). In CI or deployment environments, call `pnpm run setup:lint -- --ci` to skip hook installation and avoid write operations while still running the gate checks.
+- Reach for `pnpm fmt --all` when you want a single command to rewrite YAML, Biome-managed assets, and Python files (`ruff format` + `ruff check --fix` via uv). Without flags, `pnpm fmt` limits itself to YAML + Biome.
 - ESLint remains in place for rules Biome does not yet cover (module boundary policies, import hygiene beyond ordering, etc.). Keep both tools wired into `pre-commit` so contributors see the same failures locally that CI enforces.
 
 ### 4. Git hooks, commit hygiene, and PR UX {#git-hygiene}

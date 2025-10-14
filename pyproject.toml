@@ -16,6 +16,9 @@ dependencies = [
   "fastapi ~= 0.119",
   "uvicorn[standard] ~= 0.37",
   "pyyaml ~= 6.0",
+  "typer ~= 0.19",
+  "rich ~= 14.0",
+  "shellingham ~= 1.5",
 ]
 
 [project.optional-dependencies]
@@ -62,3 +65,6 @@ addopts = "-q -ra --strict-markers"
 python_version = "3.11"
 warn_unused_configs = true
 ignore_missing_imports = true
+
+[project.scripts]
+emperator = "emperator.cli:run"

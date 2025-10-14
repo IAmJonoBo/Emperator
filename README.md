@@ -11,3 +11,24 @@ This repository contains the specification assets under `emperator_specs/` and t
 5. Populate the contract, source, and infrastructure directories with real assets as development progresses.
 
 Refer to the documentation in `emperor/docs/` for deeper guidance once authored.
+
+## Developer CLI
+
+Use the bundled `emperator` CLI to audit the scaffold, diagnose local environments, and run auto-remediation helpers:
+
+```
+# Preview the expected directory tree and TODO placeholders.
+emperator scaffold audit
+
+# Materialise missing directories/files defined in the Project Contract.
+emperator scaffold ensure
+
+# Run health checks against your workstation without making changes.
+emperator doctor env
+
+# List available remediation tasks and execute them (dry-run by default).
+emperator fix plan
+emperator fix run --apply
+```
+
+Pass `--root <path>` if you need to operate on a different checkout (the default is the current working directory).

@@ -173,14 +173,14 @@ Emperator v1.0 - Applying project contract...
 ❗ LayeringPolicy: orders.py:45 - Direct DB call in controller.
 Suggestion: create service layer function for DB access (see diff below).
 
-## [Output] Diff of suggestions:
+## [Output] Diff of suggestions
 
 @@ orders.py @@
 
 - results = db.query("SELECT \* FROM orders...")
 
-* # TODO: move DB call to OrderService
-* results = OrderService.fetch_all_orders(...)
+- TODO: move DB call to OrderService
+- results = OrderService.fetch_all_orders(...)
 
 ---
 

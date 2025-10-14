@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Remove macOS cruft
-        run: scripts/cleanup-macos-cruft.sh
+        run: scripts/cleanup-macos-cruft.sh --include-git
       - name: Fail if cleanup changed tracked files
         run: |
           if [ -n "$(git status --short)" ]; then

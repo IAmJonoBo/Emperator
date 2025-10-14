@@ -3,7 +3,7 @@ name: Apple Cruft Shield
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
 
 permissions:
   contents: read

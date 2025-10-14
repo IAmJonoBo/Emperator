@@ -9,14 +9,14 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [ --fix ]
       - id: ruff-format
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
-    hooks: [{ id: yamllint }]
+    hooks: [ { id: yamllint } ]
   - repo: https://github.com/mvdan/sh
     rev: v3.10.0
-    hooks: [{ id: shfmt, args: ["-w", "-i", "2", "-bn", "-ci"] }]
+    hooks: [ { id: shfmt, args: [ "-w", "-i", "2", "-bn", "-ci" ] } ]
   - repo: local
     hooks:
       - id: cleanup-apple-cruft
@@ -38,4 +38,4 @@ repos:
         name: commitlint
         entry: pnpm commitlint --edit
         language: system
-        stages: [commit-msg]
+        stages: [ commit-msg ]

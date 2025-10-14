@@ -21,11 +21,12 @@ nav:
       - AI-Orchestrated Refactoring: explanation/ai-orchestration.md
       - Implementation Roadmap: explanation/implementation-roadmap.md
   - Reference:
-    - Project Contract Reference: reference/contract-spec.md
-    - Toolchain Matrix: reference/toolchain.md
-    - Developer Tooling Reference: reference/developer-tooling.md
-    - Governance and Compliance Controls: reference/governance.md
-    - Copilot Prompt Patterns: includes/copilot-prompts.md
+      - Project Contract Reference: reference/contract-spec.md
+      - Toolchain Matrix: reference/toolchain.md
+      - Linting and Formatting Reference: reference/linting-formatting.md
+      - Developer Tooling Reference: reference/developer-tooling.md
+      - Governance and Compliance Controls: reference/governance.md
+      - Copilot Prompt Patterns: includes/copilot-prompts.md
 
 theme:
   name: mkdocs

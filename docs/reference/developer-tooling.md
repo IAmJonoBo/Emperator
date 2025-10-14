@@ -4,6 +4,27 @@ Document the baseline workstation setup that keeps Emperator contributors fast, 
 
 ## Baseline stack {#baseline-stack}
 
+```mermaid
+flowchart TB
+Root((Workstation Setup))
+Root --> Editors[Editor workflow]
+Root --> Python[Python lane]
+Root --> Web[TypeScript & JavaScript]
+Root --> GitOps[Git hygiene]
+Root --> Terminal[Terminal ergonomics]
+Root --> Extras[Optional add-ons]
+Editors --> DevContainers[Dev Container bootstraps]
+Editors --> LSP[LSP diagnostics & quick fixes]
+Python --> uv[uv-managed environments]
+Python --> Ruff[Ruff lint + format]
+Web --> pnpm[pnpm workspace cache]
+Web --> Biome[Biome or ESLint+Prettier]
+GitOps --> Hooks[pre-commit automation]
+GitOps --> Provenance[Provenance-aware commits]
+Terminal --> CLI[Fast CLI toolbelt]
+Extras --> VSCode[VS Code extensions]
+```
+
 ### 1. Editor workflow (reproducible, LSP-centred) {#editor-workflow}
 
 - Rely on Language Server Protocol integrations in VS Code, Neovim, or any LSP-capable editor to surface completion, diagnostics, and codemod-ready code actions.

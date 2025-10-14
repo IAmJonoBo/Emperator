@@ -14,6 +14,22 @@ Emperator is designed to feel like a teammate that automates busywork while keep
 - CI pipelines can run fast (`--fast`) or full (`--strict`) modes and upload SARIF for inline review comments.
 - Auto-applied fixes carry provenance markers (rule id, contract version) in commit messages, making audit trails obvious.
 
+```mermaid
+sequenceDiagram
+participant Dev as Developer
+participant Hook as Git Hooks
+participant CI as CI Pipeline
+participant Emp as Emperator
+Dev->>Hook: Commit changes
+Hook->>Emp: Run emperor apply --diff
+Emp-->>Dev: Report diffs + rule IDs
+Dev->>Hook: Amend or proceed
+Hook->>CI: Push branch
+CI->>Emp: Run emperor apply --strict
+Emp-->>CI: Return SARIF + provenance
+CI-->>Dev: Surface checks in PR
+```
+
 ## Editor feedback loops
 
 - The optional LSP server surfaces contract violations as diagnostics and offers quick fixes when codemods are available.

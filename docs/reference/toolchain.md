@@ -2,6 +2,21 @@
 
 Reference chart for the analyzers, codemods, formatters, and CLI options Emperator orchestrates. Use it alongside the [Getting Started tutorial](../tutorial/getting-started.md), the [Developer Tooling reference](developer-tooling.md), and the [System Architecture deep dive](../explanation/system-architecture.md) to map from contract capabilities to the concrete tooling each team needs.
 
+```mermaid
+graph LR
+Contract[Project Contract]
+Analyzer[Static analyzers<br/>(Tree-sitter, Semgrep, CodeQL)]
+Codemods[Deterministic codemods]
+Formatters[Formatter integrations]
+Reports[SBOMs & Attestations]
+Contract --> Analyzer
+Analyzer --> Codemods
+Codemods --> Formatters
+Analyzer --> Reports
+Formatters --> Reports
+Reports --> Feedback[Developer & CI feedback loops]
+```
+
 ## Static analysis support
 
 | Language | Tree-sitter | CodeQL | Semgrep | Notes |

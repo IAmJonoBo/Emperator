@@ -182,6 +182,24 @@
 <h1 id="developer-tooling-reference">Developer Tooling Reference<a class="headerlink" href="#developer-tooling-reference" title="Permanent link">&para;</a></h1>
 <p>Document the baseline workstation setup that keeps Emperator contributors fast, consistent, and offline-friendly. Pair this page with the <a href="../toolchain/">Toolchain Matrix</a> and the <a href="../../explanation/developer-experience/">Developer Experience overview</a> when onboarding new teammates or refreshing local environments.</p>
 <h2 id="baseline-stack">Baseline stack<a class="headerlink" href="#baseline-stack" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+Root((Workstation Setup))
+Root --&gt; Editors[Editor workflow]
+Root --&gt; Python[Python lane]
+Root --&gt; Web[TypeScript &amp; JavaScript]
+Root --&gt; GitOps[Git hygiene]
+Root --&gt; Terminal[Terminal ergonomics]
+Root --&gt; Extras[Optional add-ons]
+Editors --&gt; DevContainers[Dev Container bootstraps]
+Editors --&gt; LSP[LSP diagnostics &amp; quick fixes]
+Python --&gt; uv[uv-managed environments]
+Python --&gt; Ruff[Ruff lint + format]
+Web --&gt; pnpm[pnpm workspace cache]
+Web --&gt; Biome[Biome or ESLint+Prettier]
+GitOps --&gt; Hooks[pre-commit automation]
+GitOps --&gt; Provenance[Provenance-aware commits]
+Terminal --&gt; CLI[Fast CLI toolbelt]
+Extras --&gt; VSCode[VS Code extensions]</code></pre>
 <h3 id="editor-workflow">1. Editor workflow (reproducible, LSP-centred)<a class="headerlink" href="#editor-workflow" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Rely on Language Server Protocol integrations in VS Code, Neovim, or any LSP-capable editor to surface completion, diagnostics, and codemod-ready code actions.</li>

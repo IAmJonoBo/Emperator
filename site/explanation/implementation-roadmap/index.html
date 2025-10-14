@@ -193,6 +193,13 @@
 
 <h1 id="implementation-roadmap">Implementation Roadmap<a class="headerlink" href="#implementation-roadmap" title="Permanent link">&para;</a></h1>
 <p>The roadmap provides a pragmatic sequence for delivering Emperator, starting with a focused Python slice and expanding once the core pipeline proves reliable.</p>
+<pre class="mermaid"><code>flowchart LR
+Phase1[Phase 1&lt;br/&gt;Python slice ready]
+Phase2[Phase 2&lt;br/&gt;Feedback loop hardened]
+Phase3[Phase 3&lt;br/&gt;Polyglot coverage]
+Phase4[Phase 4&lt;br/&gt;AI augmentation]
+Phase5[Phase 5&lt;br/&gt;Governance &amp; reporting]
+Phase1 --&gt; Phase2 --&gt; Phase3 --&gt; Phase4 --&gt; Phase5</code></pre>
 <h2 id="phase-1-python-focused-slice-68-weeks">Phase 1: Python-focused slice (6–8 weeks)<a class="headerlink" href="#phase-1-python-focused-slice-68-weeks" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Contract parsing:</strong> Support CUE-based naming and layering rules, a small Rego policy for security, and an OpenAPI snippet to drive scaffold generation.</li>

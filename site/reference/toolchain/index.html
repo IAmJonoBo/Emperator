@@ -205,6 +205,18 @@
 
 <h1 id="toolchain-matrix">Toolchain Matrix<a class="headerlink" href="#toolchain-matrix" title="Permanent link">&para;</a></h1>
 <p>Reference chart for the analyzers, codemods, formatters, and CLI options Emperator orchestrates. Use it alongside the <a href="../../tutorial/getting-started/">Getting Started tutorial</a>, the <a href="../developer-tooling/">Developer Tooling reference</a>, and the <a href="../../explanation/system-architecture/">System Architecture deep dive</a> to map from contract capabilities to the concrete tooling each team needs.</p>
+<pre class="mermaid"><code>graph LR
+Contract[Project Contract]
+Analyzer[Static analyzers&lt;br/&gt;(Tree-sitter, Semgrep, CodeQL)]
+Codemods[Deterministic codemods]
+Formatters[Formatter integrations]
+Reports[SBOMs &amp; Attestations]
+Contract --&gt; Analyzer
+Analyzer --&gt; Codemods
+Codemods --&gt; Formatters
+Analyzer --&gt; Reports
+Formatters --&gt; Reports
+Reports --&gt; Feedback[Developer &amp; CI feedback loops]</code></pre>
 <h2 id="static-analysis-support">Static analysis support<a class="headerlink" href="#static-analysis-support" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

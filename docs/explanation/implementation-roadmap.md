@@ -2,6 +2,16 @@
 
 The roadmap provides a pragmatic sequence for delivering Emperator, starting with a focused Python slice and expanding once the core pipeline proves reliable.
 
+```mermaid
+flowchart LR
+Phase1[Phase 1<br/>Python slice ready]
+Phase2[Phase 2<br/>Feedback loop hardened]
+Phase3[Phase 3<br/>Polyglot coverage]
+Phase4[Phase 4<br/>AI augmentation]
+Phase5[Phase 5<br/>Governance & reporting]
+Phase1 --> Phase2 --> Phase3 --> Phase4 --> Phase5
+```
+
 ## Phase 1: Python-focused slice (6–8 weeks)
 
 - **Contract parsing:** Support CUE-based naming and layering rules, a small Rego policy for security, and an OpenAPI snippet to drive scaffold generation.

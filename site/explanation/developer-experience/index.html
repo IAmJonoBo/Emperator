@@ -209,6 +209,19 @@
 <li>CI pipelines can run fast (<code>--fast</code>) or full (<code>--strict</code>) modes and upload SARIF for inline review comments.</li>
 <li>Auto-applied fixes carry provenance markers (rule id, contract version) in commit messages, making audit trails obvious.</li>
 </ul>
+<pre class="mermaid"><code>sequenceDiagram
+participant Dev as Developer
+participant Hook as Git Hooks
+participant CI as CI Pipeline
+participant Emp as Emperator
+Dev-&gt;&gt;Hook: Commit changes
+Hook-&gt;&gt;Emp: Run emperor apply --diff
+Emp--&gt;&gt;Dev: Report diffs + rule IDs
+Dev-&gt;&gt;Hook: Amend or proceed
+Hook-&gt;&gt;CI: Push branch
+CI-&gt;&gt;Emp: Run emperor apply --strict
+Emp--&gt;&gt;CI: Return SARIF + provenance
+CI--&gt;&gt;Dev: Surface checks in PR</code></pre>
 <h2 id="editor-feedback-loops">Editor feedback loops<a class="headerlink" href="#editor-feedback-loops" title="Permanent link">&para;</a></h2>
 <ul>
 <li>The optional LSP server surfaces contract violations as diagnostics and offers quick fixes when codemods are available.</li>

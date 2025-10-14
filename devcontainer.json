@@ -1,0 +1,15 @@
+{
+  "name": "emperor-dev",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "postCreateCommand": "pipx install uv || true && pnpm -v || corepack enable pnpm",
+  "customizations": {
+    "vscode": {
+      "extensions": ["charliermarsh.ruff", "usernamehw.errorlens", "eamodio.gitlens"]
+    }
+  }
+}

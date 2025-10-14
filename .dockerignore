@@ -1,0 +1,13 @@
+# Ignore git metadata and IDE clutter
+git
+.git
+.vscode
+.idea
+.DS_Store
+
+# Ignore specification-only content and local tooling not required in runtime image
+emperator_specs
+scripts
+node_modules
+.devcontainer
+*.log

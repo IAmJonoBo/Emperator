@@ -22,41 +22,17 @@ __pycache__/
 *.cover
 coverage.xml
 htmlcov/
-.coverage
-.hypothesis/
-.pytest_cache/
-.ruff_cache/
-.venv/
 .mypy_cache/
-.tox/
-
-# Python packaging artifacts
-build/
-dist/
-*.egg-info/
-*.egg
-pip-wheel-metadata/
-
-# Virtual environment indicators
-.env
-.env.*
-.python-version
+.pytest_cache/
+.venv/
+.ruff_cache/
 
 # Node / TypeScript
 node_modules/
 .pnpm-store/
+dist/
+build/
 *.log
-*.tsbuildinfo
-*.swp
 
 # Tool caches
 .cache/
-
-# MkDocs static output
-emperator_specs/site/
-site/
-
-# Editors & IDEs
-.idea/
-.vscode/
-```

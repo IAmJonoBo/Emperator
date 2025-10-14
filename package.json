@@ -1,0 +1,31 @@
+{
+  "packageManager": "pnpm@10.18.3",
+  "type": "module",
+  "scripts": {
+    "check": "biome check .",
+    "fmt": "node ./scripts/run-format.mjs",
+    "fmt:yaml": "node ./scripts/format-yaml.mjs",
+    "fmt:biome": "biome format --write .",
+    "commitlint": "commitlint",
+    "lint:eslint": "eslint --max-warnings=0 .",
+    "lint": "pnpm check && pnpm lint:eslint",
+    "setup:lint": "bash scripts/setup-linting.sh",
+    "setup:tooling": "bash scripts/setup-tooling.sh"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.6",
+    "@commitlint/cli": "20.1.0",
+    "@commitlint/config-conventional": "20.0.0",
+    "@eslint/js": "9.37.0",
+    "eslint": "9.37.0",
+    "eslint-plugin-import": "2.32.0",
+    "globals": "16.4.0",
+    "typescript-eslint": "8.46.1",
+    "yaml": "2.6.0"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
+}

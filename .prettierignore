@@ -1,0 +1,9 @@
+# Ignore generated or vendored bundles
+**/*.min.js
+/dist
+/build
+/vendor
+/public
+/site
+/emperator_specs/site
+site/js/bootstrap.bundle.min.js

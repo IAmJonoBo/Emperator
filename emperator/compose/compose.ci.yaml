@@ -1,0 +1,5 @@
+services:
+  api:
+    command: [ "pytest", "tests" ]
+    env_file:
+      - ../env/ci.env.example

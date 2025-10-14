@@ -1,13 +1,3 @@
-exclude: |
-  (?x)^(
-    emperator_specs/site/|
-    node_modules/|
-    dist/|
-    build/|
-    \.cache/|
-    \.venv/
-  )
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -23,26 +13,16 @@ repos:
       - id: ruff-format
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
-    hooks:
-      - id: yamllint
-        args: [ "-c", ".yamllint" ]
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.10.0-1
-    hooks:
-      - id: shfmt
-        args: [ "-w", "-i", "2", "-bn", "-ci" ]
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.1
-    hooks:
-      - id: actionlint
-        args: [ "-color=never" ]
+    hooks: [ { id: yamllint } ]
+  - repo: https://github.com/mvdan/sh
+    rev: v3.10.0
+    hooks: [ { id: shfmt, args: [ "-w", "-i", "2", "-bn", "-ci" ] } ]
   - repo: local
     hooks:
       - id: cleanup-apple-cruft
         name: cleanup apple cruft
         entry: scripts/cleanup-macos-cruft.sh
         language: system
-        args: [ "--include-git" ]
         pass_filenames: false
       - id: ban-apple-cruft
         name: ban apple cruft
@@ -53,13 +33,7 @@ repos:
         name: biome check (JS/TS)
         entry: pnpm biome check --write
         language: system
-        files: '\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$'
-        pass_filenames: false
-      - id: eslint
-        name: eslint (JS/TS)
-        entry: pnpm lint:eslint
-        language: system
-        pass_filenames: true
+        files: "\\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$"
       - id: commitlint
         name: commitlint
         entry: pnpm commitlint --edit

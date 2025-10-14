@@ -1,0 +1,9 @@
+services:
+  api:
+    environment:
+      HOT_RELOAD: "true"
+    command: [ "uvicorn", "emperator.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    volumes:
+      - ../src:/app/emperor/src:delegated
+      - ../contract:/app/emperor/contract:delegated
+      - ../tests:/app/tests:delegated

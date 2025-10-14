@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://IAmJonoBo.github.io/Emperator/reference/governance/">
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Governance and Compliance Controls - Emperator Technical Brief</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../assets/styles/extra.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Emperator Technical Brief</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Tutorial</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../tutorial/getting-started/" class="dropdown-item">Bootstrapping Emperator in a Repository</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">How-to Guides</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../how-to/author-contract/" class="dropdown-item">Author the Project Contract</a>
+</li>
+                                    
+<li>
+    <a href="../../how-to/ci-integration/" class="dropdown-item">Integrate with CI/CD Pipelines</a>
+</li>
+                                    
+<li>
+    <a href="../../how-to/ai-assisted-refactors/" class="dropdown-item">Use AI-Assisted Refactors Safely</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Explanation</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../../explanation/executive-summary/" class="dropdown-item">Executive Summary</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/system-architecture/" class="dropdown-item">System Architecture Deep Dive</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/devsecops-supply-chain/" class="dropdown-item">DevSecOps and Supply Chain</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/developer-experience/" class="dropdown-item">Developer Experience Integration</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/security-safety/" class="dropdown-item">Security and Safety Envelope</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/ai-orchestration/" class="dropdown-item">AI-Orchestrated Refactoring</a>
+</li>
+                                    
+<li>
+    <a href="../../explanation/implementation-roadmap/" class="dropdown-item">Implementation Roadmap</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Reference</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../contract-spec/" class="dropdown-item">Project Contract Reference</a>
+</li>
+                                    
+<li>
+    <a href="../toolchain/" class="dropdown-item">Toolchain Matrix</a>
+</li>
+                                    
+<li>
+    <a href="../developer-tooling/" class="dropdown-item">Developer Tooling Reference</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">Governance and Compliance Controls</a>
+</li>
+                                    
+<li>
+    <a href="../../includes/copilot-prompts/" class="dropdown-item">Copilot Prompt Patterns</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../developer-tooling/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../includes/copilot-prompts/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/IAmJonoBo/Emperator/edit/master/docs/reference/governance.md" class="nav-link">Edit on IAmJonoBo/Emperator
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#governance-and-compliance-controls" class="nav-link">Governance and Compliance Controls</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#sbom-production-and-validation" class="nav-link">SBOM production and validation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#provenance-and-attestations" class="nav-link">Provenance and attestations</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#policy-enforcement-with-opa" class="nav-link">Policy enforcement with OPA</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#managing-exemptions" class="nav-link">Exemption governance</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#audit-ready-logging" class="nav-link">Audit-ready logging</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#documentation-standards" class="nav-link">Documentation standards</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#language-owners" class="nav-link">Language owners</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#compliance-checklist" class="nav-link">Compliance checklist</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="governance-and-compliance-controls">Governance and Compliance Controls<a class="headerlink" href="#governance-and-compliance-controls" title="Permanent link">&para;</a></h1>
+<p>Emperator reinforces software governance by generating auditable artefacts, enforcing policy-as-code, and keeping a verifiable trail of every automated change. This reference outlines the key mechanisms teams rely on during audits and compliance reviews.</p>
+<h2 id="sbom-production-and-validation">SBOM production and validation<a class="headerlink" href="#sbom-production-and-validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Run <code>emperor sbom --format cyclonedx --output sbom/app.json</code> in CI after successful checks.</li>
+<li>Merge application SBOMs with base image or infrastructure SBOMs to achieve full-stack visibility.</li>
+<li>Feed generated SBOMs into vulnerability management platforms (Dependency-Track, Azure Defender, etc.) for continuous monitoring.</li>
+<li>Configure contract policies to block disallowed licenses or aged dependencies by querying SBOM metadata in OPA.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Artefact</th>
+<th>Format</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application SBOM</td>
+<td>CycloneDX JSON</td>
+<td>Documents runtime dependencies for audit trails and CVE scans.</td>
+</tr>
+<tr>
+<td>Contract SBOM</td>
+<td>SPDX</td>
+<td>Captures tools, codemod recipes, and templates used in enforcement.</td>
+</tr>
+<tr>
+<td>Combined SBOM</td>
+<td>CycloneDX BOM-Link</td>
+<td>Links application and infrastructure SBOMs for end-to-end provenance.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="provenance-and-attestations">Provenance and attestations<a class="headerlink" href="#provenance-and-attestations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Use <code>emperor attest --out provenance/intoto.jsonl</code> to emit in-toto statements describing the contract version, Emperator release, and rule outcomes.</li>
+<li>Sign attestations with Sigstore Cosign (<code>cosign attest --predicate provenance/intoto.jsonl image:tag</code>) or an internal PKI for regulated environments.</li>
+<li>Store signed attestations alongside release artefacts so auditors can verify origin and integrity.</li>
+<li>Include hashes of generated reports (SARIF, SBOM) inside the attestation payload for tamper evidence.</li>
+</ul>
+<h2 id="policy-enforcement-with-opa">Policy enforcement with OPA<a class="headerlink" href="#policy-enforcement-with-opa" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Maintain a dedicated policy package (e.g., <code>contract/policy/compliance.rego</code>) that evaluates Emperator findings and SBOM data for compliance thresholds.</li>
+<li>Example rules:</li>
+<li>Fail builds when critical security findings remain unresolved.</li>
+<li>Require justification tags for auto-fixes applied to <code>high</code> or <code>critical</code> rules.</li>
+<li>Deny merges when contract exemptions exceed a predefined count or expiry window.</li>
+<li>Evaluate policies both locally (<code>opa eval</code>) and in CI to ensure consistent decisions across environments.</li>
+</ul>
+<h2 id="managing-exemptions">Exemption governance<a class="headerlink" href="#managing-exemptions" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Collect all approved waivers in <code>contract/exemptions.yaml</code> with owner, expiry, and mitigation plan.</li>
+<li>Schedule a recurring review (e.g., monthly) where compliance leads confirm whether exemptions can be retired.</li>
+<li>Set <code>emperor check --strict --enforce-expiry</code> in protected branch pipelines to prevent stale waivers from slipping through.</li>
+<li>Export exemption reports via <code>emperor explain --format json</code> and feed them into dashboards for executive visibility.</li>
+</ul>
+<h2 id="audit-ready-logging">Audit-ready logging<a class="headerlink" href="#audit-ready-logging" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Retain Emperator execution logs with timestamps, rule IDs, auto-fix decisions, and evidence links. Forward logs to a centralized system (Splunk, Elastic) for retention policies.</li>
+<li>Use the <code>--format json</code> option to store machine-readable results that can be cross-referenced with ticketing systems.</li>
+<li>Leverage the <code>docs/includes/copilot-prompts.md</code> prompts to ensure human reviewers mention rule IDs and contract versions in review comments, improving traceability.</li>
+</ul>
+<h2 id="documentation-standards">Documentation standards<a class="headerlink" href="#documentation-standards" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep contracts and documentation tightly coupled by updating the <a href="../toolchain/">Toolchain Matrix</a> and AI prompt include whenever enforcement rules change.</li>
+<li>Use the repository’s documentation CI (<code>mkdocs build --strict</code>, <code>markdownlint-cli2</code>, <code>lychee</code>) to fail fast on broken links or style regressions.</li>
+<li>Mirror CI checks locally via <code>npx markdownlint-cli2 "docs/**/*.md"</code> and <code>lychee --config .lychee.toml docs</code> so contributors catch issues before opening a pull request.</li>
+</ul>
+<h2 id="language-owners">Language owners<a class="headerlink" href="#language-owners" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Assign a steward for each language/platform (Python, JVM, JS/TS, Go, Rust, Infrastructure) to review new rules and formatter changes.</li>
+<li>Document ownership in the Project Contract metadata and reference it from team onboarding guides, ensuring contributors know who approves rule updates.</li>
+<li>Schedule quarterly syncs between language owners and product security to evaluate lint noise, codemod quality, and roadmap adjustments.</li>
+</ul>
+<h2 id="compliance-checklist">Compliance checklist<a class="headerlink" href="#compliance-checklist" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Contract change log updated with rationale and reviewer approvals.</li>
+<li>Latest SBOMs generated, signed, and archived per release.</li>
+<li>Attestations attached to build artefacts with verifiable signatures.</li>
+<li>Exemptions reviewed within SLA and annotated with next steps.</li>
+<li>SARIF/SAST reports stored for the required compliance retention window.</li>
+<li>Evidence pack (contract, prompts, test results) bundled for external audits.</li>
+</ol>
+<p>Following these practices ensures Emperator’s automation not only keeps codebases healthy but also provides the documentation and traceability auditors expect.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+        <script src="../../assets/js/mermaid-theme.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

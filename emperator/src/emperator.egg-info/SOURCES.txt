@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+emperator/src/emperator/__init__.py
+emperator/src/emperator/api.py
+emperator/src/emperator/contract.py
+emperator/src/emperator.egg-info/PKG-INFO
+emperator/src/emperator.egg-info/SOURCES.txt
+emperator/src/emperator.egg-info/dependency_links.txt
+emperator/src/emperator.egg-info/requires.txt
+emperator/src/emperator.egg-info/top_level.txt

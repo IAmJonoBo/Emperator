@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: emperator
+Version: 0.1.0
+Summary: Canonical implementation scaffold for the Emperator platform.
+Author: Emperator Contributors
+License: Apache-2.0
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi~=0.119
+Requires-Dist: uvicorn[standard]~=0.37
+Requires-Dist: pyyaml~=6.0
+Provides-Extra: dev
+Requires-Dist: pytest~=8.4; extra == "dev"
+Requires-Dist: pytest-cov~=7.0; extra == "dev"
+Requires-Dist: ruff~=0.7.0; extra == "dev"
+Requires-Dist: mypy~=1.18; extra == "dev"
+Requires-Dist: httpx~=0.28; extra == "dev"
+Requires-Dist: pre-commit~=4.0; extra == "dev"
+
+# Emperator Monorepo
+
+This repository contains the specification assets under `emperator_specs/` and the implementation scaffold under `emperator/`. The scaffold follows the canonical structure defined in `directory_structure.md` and is ready for application code, infrastructure, and contract artifacts.
+
+## Getting Started
+
+1. Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) to create the `.venv/` virtual environment, install Python dev extras, fetch Node tooling, and wire up the shared lint hooks. Pass `--ci` when running in automation so the script avoids workspace writes.
+2. Activate the virtual environment: `source .venv/bin/activate`.
+3. Run the test suite: `pytest emperor/tests`.
+4. Start the local API: `uvicorn emperator.api:app --reload`.
+5. Populate the contract, source, and infrastructure directories with real assets as development progresses.
+
+Refer to the documentation in `emperor/docs/` for deeper guidance once authored.

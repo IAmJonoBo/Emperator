@@ -1,0 +1,41 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-case-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks: [{ id: yamllint }]
+  - repo: https://github.com/mvdan/sh
+    rev: v3.10.0
+    hooks: [{ id: shfmt, args: ["-w", "-i", "2", "-bn", "-ci"] }]
+  - repo: local
+    hooks:
+      - id: cleanup-apple-cruft
+        name: cleanup apple cruft
+        entry: scripts/cleanup-macos-cruft.sh
+        language: system
+        pass_filenames: false
+      - id: ban-apple-cruft
+        name: ban apple cruft
+        entry: scripts/ban-apple-cruft.sh
+        language: system
+        pass_filenames: false
+      - id: biome
+        name: biome check (JS/TS)
+        entry: pnpm biome check --write
+        language: system
+        files: "\\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$"
+      - id: commitlint
+        name: commitlint
+        entry: pnpm commitlint --edit
+        language: system
+        stages: [commit-msg]

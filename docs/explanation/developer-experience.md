@@ -38,4 +38,4 @@ Emperator is designed to feel like a teammate that automates busywork while keep
 - Idempotent codemods and formatter passes prevent noisy diffs, keeping pull requests focused on substantive changes.
 - Clear waiver workflows and rule ownership metadata ensure developers know exactly whom to involve when they need exceptions.
 
-A smooth developer experience is foundational to adoption; Emperator’s tooling aims to reduce friction so teams can spend energy on product work rather than policing standards manually.
+A smooth developer experience is foundational to adoption; Emperator’s tooling aims to reduce friction so teams can spend energy on product work rather than policing standards manually. Consult the [Developer Tooling reference](../reference/developer-tooling.md#baseline-stack) when provisioning workstations or Dev Containers.

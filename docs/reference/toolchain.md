@@ -1,6 +1,6 @@
 # Toolchain Matrix
 
-Reference chart for the analyzers, codemods, formatters, and CLI options Emperator orchestrates. Use it alongside the [Getting Started tutorial](../tutorial/getting-started.md) and the [System Architecture deep dive](../explanation/system-architecture.md) to map from contract capabilities to the concrete tooling each team needs.
+Reference chart for the analyzers, codemods, formatters, and CLI options Emperator orchestrates. Use it alongside the [Getting Started tutorial](../tutorial/getting-started.md), the [Developer Tooling reference](developer-tooling.md), and the [System Architecture deep dive](../explanation/system-architecture.md) to map from contract capabilities to the concrete tooling each team needs.
 
 ## Static analysis support
 

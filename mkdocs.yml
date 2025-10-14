@@ -23,6 +23,7 @@ nav:
   - Reference:
     - Project Contract Reference: reference/contract-spec.md
     - Toolchain Matrix: reference/toolchain.md
+    - Developer Tooling Reference: reference/developer-tooling.md
     - Governance and Compliance Controls: reference/governance.md
     - Copilot Prompt Patterns: includes/copilot-prompts.md
 

@@ -1,0 +1,24 @@
+name: Apple Cruft Shield
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove macOS cruft
+        run: scripts/cleanup-macos-cruft.sh
+      - name: Fail if cleanup changed tracked files
+        run: |
+          if [ -n "$(git status --short)" ]; then
+            echo "::error::Apple metadata artifacts were removed. Run scripts/cleanup-macos-cruft.sh locally and commit the results."
+            git status --short
+            exit 1
+          fi

@@ -141,7 +141,15 @@ flowchart LR
 
 Re-run `emperor apply` until the summary shows `✅ Standards satisfied`.
 
-## Step 5 — Add a pre-commit hook
+## Step 5 — Align linting and install the pre-commit hook
+
+If you are working inside this documentation repository, run the helper script so the JavaScript and TypeScript tooling matches the documented defaults:
+
+```bash
+pnpm run setup:lint
+```
+
+The script installs Node dependencies, wires the `pre-commit` and commit-msg hooks, formats sources with Biome, and then performs the full lint suite (Biome + ESLint). Use `pnpm run setup:lint -- --ci` when running inside CI or on machines where you cannot modify the working tree.
 
 Integrate Emperator with `pre-commit` so every developer receives the same enforcement locally.
 
@@ -164,6 +172,8 @@ pre-commit install
 ```
 
 Now any commit that breaks the contract will fail fast with actionable diagnostics.
+
+If you are working directly on the Emperator repository, `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) orchestrates the Python virtual environment, installs dev dependencies, and then runs this lint bootstrap end-to-end.
 
 ## Next steps
 

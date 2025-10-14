@@ -25,6 +25,10 @@ Terminal --> CLI[Fast CLI toolbelt]
 Extras --> VSCode[VS Code extensions]
 ```
 
+### Quick bootstrap (all tooling) {#quick-bootstrap}
+
+- Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) after cloning. It creates or refreshes the `.venv/` virtual environment, installs Python dev extras including `pre-commit`, fetches Node dependencies, and then defers to `setup-linting.sh` for formatter/linter checks. Pass `--ci` inside automation to skip hook installation while still running the lint pipeline.
+
 ### 1. Editor workflow (reproducible, LSP-centred) {#editor-workflow}
 
 - Rely on Language Server Protocol integrations in VS Code, Neovim, or any LSP-capable editor to surface completion, diagnostics, and codemod-ready code actions.

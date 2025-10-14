@@ -1,0 +1,6 @@
+rules:
+  # TODO: Capture Semgrep checks compiled from the Project Contract.
+  - id: emperator.todo.example
+    patterns: []
+    message: TODO describe the rule
+    severity: INFO

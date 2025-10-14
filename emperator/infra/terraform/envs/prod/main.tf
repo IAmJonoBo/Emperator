@@ -1,4 +1,5 @@
 // Production environment root module.
+// TODO: Harden production state management and integrate monitoring modules.
 
 terraform {
   required_version = ">= 1.6.0"

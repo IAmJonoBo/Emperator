@@ -10,8 +10,10 @@
 - [x] Ship analysis planning CLI (inspect + wizard) with developer hints (Owner: AI, Due: Current pass)
 - [x] Extend doctor checks for uv CLI and harden remediation execution failures (Owner: AI, Due: Current pass)
 - [x] Prototype Semgrep/CodeQL invocation flow using new analysis scaffolding (Owner: AI, Due: Current pass)
+- [x] Harden YAML formatter + formatter check mode (`pnpm fmt -- --check`) to stabilise CI (Owner: AI, Due: Current pass)
 - [ ] Track SPDX license string remediation for `pyproject.toml` (Owner: Maintainers, Due: Future release)
 - [ ] Model analyzer execution telemetry + caching strategy for follow-up automation (Owner: AI, Due: Next pass)
+- [ ] Evaluate automated guardrails for regenerated YAML assets (contract + compose) to prevent accidental churn (Owner: Maintainers, Due: Upcoming sprint)
 
 ## Steps
 
@@ -21,6 +23,7 @@
 - Completed: produced end-to-end delivery plan and sprint playbook to steer execution.
 - Completed: elevated `emperator.contract` helpers with cached OpenAPI loader, typed metadata surface, and doc references.
 - Completed: hardened doctor checks (uv detection, remediation error capture) and surfaced analyzer execution plans.
+- Completed: expanded formatter pipeline with YAML multi-document support, configurable indentation/width, and `pnpm fmt --check` dry-run.
 - Pending: remediate packaging metadata before setuptools deprecates table syntax.
 - Pending: capture analyzer run outputs for historical telemetry and CLI caching.
 
@@ -33,15 +36,17 @@
 - ✅ Repository assets populated with TODO placeholders for policy, conventions, rules, and infra blueprints.
 - ✅ Delivery blueprint (`emperator_specs/Project_Plan.md`) and sprint playbook (`emperator_specs/Sprint_Playbook.md`).
 - ✅ Analyzer execution plans for Semgrep and CodeQL surfaced via CLI (`analysis plan`) with defensive doctor integrations.
+- ✅ Formatter regression tests (`tests/test_formatting.py`) covering YAML multi-docs, environment tuning, and `pnpm fmt --check` flow.
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (40 passed, 100% coverage).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (54 passed, 100% coverage).
 - ✅ Lint: `uv run ruff check --no-fix .`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠ Build: `uv run --with build python -m build` (succeeds with setuptools SPDX license deprecation warning).
 - 🔁 Telemetry caching: Pending design for analyzer execution history (target next pass).
+- ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
 
 ## Links
 
@@ -58,3 +63,4 @@
 - Contract metadata helpers cache the OpenAPI document; clear the cache (`load_contract_spec.cache_clear()`) if tests need to observe on-disk edits within a single process.
 - Follow up on packaging metadata warning before setuptools deadline.
 - Monitor future work to hook Semgrep/CodeQL execution into the new analysis pipeline without regressing UX; next sprint will explore telemetry capture and caching.
+- Keep `FORMAT_YAML_INCLUDE_LOCKS=1` escape hatch documented before enabling lockfile formatting globally; default skip prevents inadvertent churn.

@@ -254,9 +254,7 @@ def plan_tool_invocations(
     if semgrep_status is not None:
         location = semgrep_status.location or 'system PATH'
         reason = (
-            semgrep_status.hint
-            if not semgrep_status.available
-            else f'Semgrep ready at {location}.'
+            semgrep_status.hint if not semgrep_status.available else f'Semgrep ready at {location}.'
         )
         semgrep_command = (
             'semgrep',
@@ -274,8 +272,7 @@ def plan_tool_invocations(
                     AnalyzerCommand(
                         command=semgrep_command,
                         description=(
-                            'Run Semgrep with the selected configuration over the '
-                            'repository.'
+                            'Run Semgrep with the selected configuration over the repository.'
                         ),
                     ),
                 ),

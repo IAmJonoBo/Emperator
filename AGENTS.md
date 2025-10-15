@@ -41,6 +41,7 @@ change.
 3. **Use official bootstrap commands:**
    - `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) prepares both Python and Node lanes.
    - `pnpm run setup:lint` installs JS tooling and runs the formatter/lint suite.
+   - `pnpm run sync` (wrapper around `scripts/sync-environments.sh`) quickly re-aligns uv and pnpm dependencies without the full formatter/lint pass.
 4. **Implement with guardrails.** Keep diffs minimal, add succinct comments only when the intent
    would otherwise be unclear, and respect the 100-character guideline where practical.
 5. **Sync contract + docs.** When a rule, generator, or policy changes, update:

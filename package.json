@@ -11,7 +11,8 @@
     "lint:eslint": "eslint --max-warnings=0 --no-warn-ignored .",
     "lint": "pnpm lint:ruff && pnpm check && pnpm lint:eslint",
     "setup:lint": "bash scripts/setup-linting.sh",
-    "setup:tooling": "bash scripts/setup-tooling.sh"
+    "setup:tooling": "bash scripts/setup-tooling.sh",
+    "sync": "bash scripts/sync-environments.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.6",

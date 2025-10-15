@@ -6,10 +6,26 @@ import sys
 from pathlib import Path
 
 try:
-    from emperator.analysis import AnalysisHint, AnalysisReport, detect_languages, gather_analysis
+    from emperator.analysis import (
+        AnalysisHint,
+        AnalysisReport,
+        LanguageSummary,
+        ToolStatus,
+        detect_languages,
+        gather_analysis,
+        plan_tool_invocations,
+    )
 except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
     sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
-    from emperator.analysis import AnalysisHint, AnalysisReport, detect_languages, gather_analysis
+    from emperator.analysis import (
+        AnalysisHint,
+        AnalysisReport,
+        LanguageSummary,
+        ToolStatus,
+        detect_languages,
+        gather_analysis,
+        plan_tool_invocations,
+    )
 
 
 def _touch(path: Path, content: str = 'pass') -> None:
@@ -82,3 +98,117 @@ def test_gather_analysis_handles_empty_repository(tmp_path: Path) -> None:
     report = gather_analysis(tmp_path)
     assert report.languages == ()
     assert any(hint.topic == 'Sources' for hint in report.hints)
+
+
+def test_plan_tool_invocations_semgrep_ready(tmp_path: Path) -> None:
+    """Semgrep should produce a ready plan when the tool is available."""
+
+    report = AnalysisReport(
+        languages=(
+            LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),
+        ),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+
+    plans = plan_tool_invocations(report)
+    semgrep_plan = next(plan for plan in plans if plan.tool == 'Semgrep')
+    assert semgrep_plan.ready is True
+    assert semgrep_plan.steps
+    assert semgrep_plan.steps[0].command[-1] == str(tmp_path)
+
+
+def test_plan_tool_invocations_codeql_languages(tmp_path: Path) -> None:
+    """CodeQL plans should include language flags and SARIF outputs."""
+
+    report = AnalysisReport(
+        languages=(
+            LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),
+            LanguageSummary(language='TypeScript', file_count=1, sample_files=('ui/app.tsx',)),
+        ),
+        tool_statuses=(
+            ToolStatus(
+                name='CodeQL',
+                available=True,
+                location='/opt/codeql',
+                hint='Available at /opt/codeql',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+
+    plans = plan_tool_invocations(report)
+    codeql_plan = next(plan for plan in plans if plan.tool == 'CodeQL')
+    assert codeql_plan.ready is True
+    create_command = codeql_plan.steps[0].command
+    assert '--language=python' in create_command
+    assert '--language=javascript' in create_command
+    analyze_steps = [
+        step
+        for step in codeql_plan.steps
+        if 'codeql/javascript-queries' in step.command
+    ]
+    assert analyze_steps
+    output_flag = str(Path('artifacts') / 'codeql-javascript.sarif')
+    assert any(output_flag in step.command for step in analyze_steps)
+
+
+def test_plan_tool_invocations_handles_missing_tool(tmp_path: Path) -> None:
+    """Plans should surface hints when analyzers are unavailable."""
+
+    report = AnalysisReport(
+        languages=(
+            LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),
+        ),
+        tool_statuses=(
+            ToolStatus(
+                name='CodeQL',
+                available=False,
+                location=None,
+                hint='Install the CodeQL CLI.',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+
+    plans = plan_tool_invocations(report)
+    codeql_plan = next(plan for plan in plans if plan.tool == 'CodeQL')
+    assert codeql_plan.ready is False
+    assert 'Install the CodeQL CLI.' in codeql_plan.reason
+    assert codeql_plan.steps
+
+
+def test_plan_tool_invocations_handles_no_supported_languages(tmp_path: Path) -> None:
+    """CodeQL plans should reflect when no supported languages are present."""
+
+    report = AnalysisReport(
+        languages=(
+            LanguageSummary(language='Markdown', file_count=2, sample_files=('docs/guide.md',)),
+        ),
+        tool_statuses=(
+            ToolStatus(
+                name='CodeQL',
+                available=True,
+                location='/opt/codeql',
+                hint='Available at /opt/codeql',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+
+    plans = plan_tool_invocations(report)
+    codeql_plan = next(plan for plan in plans if plan.tool == 'CodeQL')
+    assert codeql_plan.ready is False
+    assert 'No CodeQL-supported languages' in codeql_plan.reason
+    assert codeql_plan.steps == ()

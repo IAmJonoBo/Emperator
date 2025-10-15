@@ -13,7 +13,7 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
 
 ## Environment doctor
 
-- `emperator doctor env [--apply]`: run workstation diagnostics (Python version, virtualenv, pnpm, helper scripts). Pass `--apply` to execute the recommended remediation actions sequentially.
+- `emperator doctor env [--apply]`: run workstation diagnostics (Python version, uv CLI, virtualenv, pnpm, helper scripts). Pass `--apply` to execute the recommended remediation actions sequentially.
 
 ## Auto-remediation helpers
 
@@ -26,3 +26,4 @@ Outputs are rendered with Rich progress spinners and colour-coded tables for qui
 
 - `emperator analysis inspect`: build an at-a-glance report that highlights detected languages, example files, and whether Semgrep, CodeQL, and the Tree-sitter CLI are installed. The command renders progress bars while collecting the data and concludes with actionable hints.
 - `emperator analysis wizard`: guide developers (and copilots) through the steps required to bring the IR pipeline online, highlighting missing tooling with friendly reminders and celebrating ready-to-use analyzers.
+- `emperator analysis plan`: synthesise an execution plan for supported analyzers, including the exact Semgrep and CodeQL commands to run and whether the tools are ready to execute.

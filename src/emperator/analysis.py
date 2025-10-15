@@ -12,9 +12,12 @@ __all__ = [
     'AnalysisHint',
     'AnalysisReport',
     'LanguageSummary',
+    'AnalyzerCommand',
+    'AnalyzerPlan',
     'ToolStatus',
     'detect_languages',
     'gather_analysis',
+    'plan_tool_invocations',
 ]
 
 
@@ -53,6 +56,24 @@ class AnalysisReport:
     tool_statuses: tuple[ToolStatus, ...]
     hints: tuple[AnalysisHint, ...]
     project_root: Path | None = None
+
+
+@dataclass(frozen=True)
+class AnalyzerCommand:
+    """Concrete command developers can execute for an analyzer."""
+
+    command: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
+class AnalyzerPlan:
+    """Execution plan for a specific analyzer tool."""
+
+    tool: str
+    ready: bool
+    reason: str
+    steps: tuple[AnalyzerCommand, ...]
 
 
 _LANGUAGE_MAP: dict[str, str] = {
@@ -112,6 +133,12 @@ _TOOL_REQUIREMENTS: tuple[_ToolRequirement, ...] = (
         guidance='Install the Tree-sitter CLI to compile grammars for incremental parsing.',
     ),
 )
+
+_CODEQL_LANGUAGE_SLUGS: dict[str, str] = {
+    'Python': 'python',
+    'JavaScript': 'javascript',
+    'TypeScript': 'javascript',
+}
 
 
 def _iter_files(project_root: Path) -> Iterable[Path]:
@@ -202,3 +229,123 @@ def gather_analysis(project_root: Path) -> AnalysisReport:
         hints=tuple(hints),
         project_root=project_root,
     )
+
+
+def _get_tool_status(report: AnalysisReport, tool_name: str) -> ToolStatus | None:
+    for status in report.tool_statuses:
+        if status.name.lower() == tool_name.lower():
+            return status
+    return None
+
+
+def plan_tool_invocations(
+    report: AnalysisReport,
+    *,
+    semgrep_config: str = 'auto',
+    codeql_database: Path | str = Path('artifacts') / 'codeql-db',
+    codeql_output_dir: Path | str = Path('artifacts'),
+) -> tuple[AnalyzerPlan, ...]:
+    """Construct a recommended execution plan for supported analyzers."""
+
+    plans: list[AnalyzerPlan] = []
+    root = (report.project_root or Path('.')).resolve()
+
+    semgrep_status = _get_tool_status(report, 'Semgrep')
+    if semgrep_status is not None:
+        location = semgrep_status.location or 'system PATH'
+        reason = (
+            semgrep_status.hint
+            if not semgrep_status.available
+            else f'Semgrep ready at {location}.'
+        )
+        semgrep_command = (
+            'semgrep',
+            'scan',
+            f'--config={semgrep_config}',
+            '--metrics=off',
+            str(root),
+        )
+        plans.append(
+            AnalyzerPlan(
+                tool='Semgrep',
+                ready=semgrep_status.available,
+                reason=reason,
+                steps=(
+                    AnalyzerCommand(
+                        command=semgrep_command,
+                        description=(
+                            'Run Semgrep with the selected configuration over the '
+                            'repository.'
+                        ),
+                    ),
+                ),
+            )
+        )
+
+    codeql_status = _get_tool_status(report, 'CodeQL')
+    if codeql_status is not None:
+        languages = sorted(
+            {
+                _CODEQL_LANGUAGE_SLUGS[summary.language]
+                for summary in report.languages
+                if summary.language in _CODEQL_LANGUAGE_SLUGS
+            }
+        )
+        db_path = Path(codeql_database)
+        output_dir = Path(codeql_output_dir)
+        steps: list[AnalyzerCommand] = []
+        if languages:
+            create_command: list[str] = [
+                'codeql',
+                'database',
+                'create',
+                str(db_path),
+                '--source-root',
+                str(root),
+            ]
+            create_command.extend(f'--language={language}' for language in languages)
+            steps.append(
+                AnalyzerCommand(
+                    command=tuple(create_command),
+                    description='Create or update the CodeQL database for the detected languages.',
+                )
+            )
+            for language in languages:
+                query_pack = f'codeql/{language}-queries'
+                output_path = output_dir / f'codeql-{language}.sarif'
+                steps.append(
+                    AnalyzerCommand(
+                        command=(
+                            'codeql',
+                            'database',
+                            'analyze',
+                            str(db_path),
+                            query_pack,
+                            '--format=sarifv2.1.0',
+                            '--output',
+                            str(output_path),
+                        ),
+                        description=(
+                            'Analyze the CodeQL database with the '
+                            f'{language} query pack and emit a SARIF report.'
+                        ),
+                    )
+                )
+        ready = codeql_status.available and bool(languages)
+        if not codeql_status.available:
+            reason = codeql_status.hint
+        elif not languages:
+            reason = 'No CodeQL-supported languages detected. Add code or adjust mappings.'
+        else:
+            location = codeql_status.location or 'system PATH'
+            reason = f'CodeQL ready at {location}.'
+        plans.append(
+            AnalyzerPlan(
+                tool='CodeQL',
+                ready=ready,
+                reason=reason,
+                steps=tuple(steps),
+            )
+        )
+
+    return tuple(plans)

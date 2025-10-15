@@ -7,10 +7,9 @@ from pathlib import Path
 from typing import Any
 
 import tree_sitter_python as tspython
-from tree_sitter import Language, Parser, Tree
+from tree_sitter import Language, Node, Parser, Tree
 
 from emperator.ir.symbols import Symbol, SymbolExtractor
-
 
 # Language mapping from file extensions
 _LANGUAGE_MAP = {
@@ -74,6 +73,7 @@ class IRBuilder:
 
         Args:
             cache_dir: Optional cache directory. If None, uses .emperator/ir-cache/
+
         """
         self.cache_dir = cache_dir
         self._parsers: dict[str, Parser] = {}
@@ -96,6 +96,7 @@ class IRBuilder:
 
         Returns:
             SHA-256 hash of the content
+
         """
         return hashlib.sha256(content).hexdigest()
 
@@ -107,6 +108,7 @@ class IRBuilder:
 
         Returns:
             Language name or None if not supported
+
         """
         return _LANGUAGE_MAP.get(path.suffix.lower())
 
@@ -118,18 +120,21 @@ class IRBuilder:
 
         Returns:
             Tuple of error dictionaries
+
         """
         errors = []
 
-        def visit_node(node: Any) -> None:
+        def visit_node(node: Node) -> None:
             """Visit tree nodes recursively."""
             if node.type == 'ERROR' or node.is_missing:
-                errors.append({
-                    'type': node.type,
-                    'start': node.start_point,
-                    'end': node.end_point,
-                    'text': node.text.decode('utf-8') if node.text else '',
-                })
+                errors.append(
+                    {
+                        'type': node.type,
+                        'start': node.start_point,
+                        'end': node.end_point,
+                        'text': node.text.decode('utf-8') if node.text else '',
+                    }
+                )
             for child in node.children:
                 visit_node(child)
 
@@ -147,6 +152,7 @@ class IRBuilder:
 
         Raises:
             ValueError: If language is not supported or file cannot be read
+
         """
         language = self._detect_language(path)
         if language is None:
@@ -199,6 +205,7 @@ class IRBuilder:
 
         Returns:
             IRSnapshot with parse results
+
         """
         start_time = time.time()
         parsed_files = []
@@ -212,7 +219,7 @@ class IRBuilder:
             extensions = list(_LANGUAGE_MAP.keys())
 
         # Find all matching files
-        all_files = []
+        all_files: list[Path] = []
         for ext in extensions:
             all_files.extend(root.rglob(f'*{ext}'))
 
@@ -250,6 +257,7 @@ class IRBuilder:
 
         Returns:
             Updated IRSnapshot
+
         """
         start_time = time.time()
         parsed_files = []

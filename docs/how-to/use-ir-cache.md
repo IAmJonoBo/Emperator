@@ -13,6 +13,7 @@ emperator ir parse --language python
 ```
 
 Expected output:
+
 ```
 Parsing python files in /path/to/project
 ✓ Parsed 1523 files in 12.34s
@@ -28,6 +29,7 @@ emperator ir cache info
 ```
 
 Output:
+
 ```
 IR Cache Statistics
   Location: /path/to/project/.emperator/ir-cache
@@ -44,6 +46,7 @@ emperator ir parse --language python
 ```
 
 Expected output with cache hits:
+
 ```
 Parsing python files in /path/to/project
 ✓ Parsed 1523 files in 0.89s
@@ -123,6 +126,7 @@ emperator ir cache prune --older-than 90
 ```
 
 Expected output:
+
 ```
 ✓ Removed 42 old cache entries
 ```
@@ -136,6 +140,7 @@ emperator ir cache clear
 ```
 
 Use cases:
+
 - After Emperator version upgrade
 - When debugging cache issues
 - To reclaim disk space
@@ -150,6 +155,7 @@ du -sh .emperator/ir-cache
 ```
 
 Typical sizes:
+
 - Small project (100 files): ~100 KB
 - Medium project (1K files): ~1 MB
 - Large project (10K files): ~10 MB
@@ -159,41 +165,44 @@ Typical sizes:
 ### When Cache Helps Most
 
 ✅ **High benefit:**
+
 - Large codebases (>1000 files)
 - Frequent small changes
 - CI/CD with cache persistence
 - Development with hot reload
 
 ❌ **Limited benefit:**
+
 - Single file analysis
 - Complete repository rewrites
 - First-time setup
-- Very small projects (<100 files)
+- Very small projects (\<100 files)
 
 ### Optimizing Cache Hit Rate
 
 **Best practices:**
 
 1. **Parse before major changes**: Build cache on stable state
-2. **Commit .gitignore for cache**: Add `.emperator/ir-cache/` to `.gitignore`
-3. **Use in CI**: Share cache across runs
-4. **Prune regularly**: Remove stale entries weekly
+1. **Commit .gitignore for cache**: Add `.emperator/ir-cache/` to `.gitignore`
+1. **Use in CI**: Share cache across runs
+1. **Prune regularly**: Remove stale entries weekly
 
 **Factors affecting hit rate:**
 
-| Factor                  | Impact on Hit Rate |
-| ----------------------- | ------------------ |
-| File modifications      | ❌ Lower (expected) |
-| Git branch switching    | ❌ Lower (expected) |
-| Code generation         | ❌ Lower            |
-| Documentation changes   | ✅ Higher           |
-| Test-only changes       | ✅ Higher           |
+| Factor                | Impact on Hit Rate  |
+| --------------------- | ------------------- |
+| File modifications    | ❌ Lower (expected) |
+| Git branch switching  | ❌ Lower (expected) |
+| Code generation       | ❌ Lower            |
+| Documentation changes | ✅ Higher           |
+| Test-only changes     | ✅ Higher           |
 
 ### Storage Location
 
 **Default:** `.emperator/ir-cache/`
 
 **Custom location:**
+
 ```python
 from emperator.ir import IRBuilder
 
@@ -201,6 +210,7 @@ builder = IRBuilder(cache_dir=Path('/tmp/ir-cache'))
 ```
 
 **Considerations:**
+
 - Use fast SSD for cache storage
 - Avoid network filesystems (high latency)
 - Ensure sufficient disk space
@@ -211,6 +221,7 @@ builder = IRBuilder(cache_dir=Path('/tmp/ir-cache'))
 ### Cache Not Being Used
 
 **Symptoms:**
+
 - Cache hit rate always 0%
 - Parse time doesn't improve on re-run
 
@@ -227,9 +238,9 @@ cat .emperator/ir-cache/manifest.json | jq
 **Common causes:**
 
 1. **Files modified**: Content hash changed (expected)
-2. **Cache cleared**: Manual or automatic cleanup
-3. **Permissions**: Cache directory not writable
-4. **Schema mismatch**: Emperator version changed
+1. **Cache cleared**: Manual or automatic cleanup
+1. **Permissions**: Cache directory not writable
+1. **Schema mismatch**: Emperator version changed
 
 **Solutions:**
 
@@ -248,6 +259,7 @@ emperator ir parse --language python
 ### Slow Cache Operations
 
 **Symptoms:**
+
 - Cache save/load takes seconds
 - Disk I/O spikes during parse
 
@@ -264,8 +276,8 @@ find .emperator/ir-cache/files -name "*.msgpack" | wc -l
 **Common causes:**
 
 1. **Slow disk**: HDD or network filesystem
-2. **Many files**: >10K cached files
-3. **Large files**: Individual files >1MB
+1. **Many files**: >10K cached files
+1. **Large files**: Individual files >1MB
 
 **Solutions:**
 
@@ -284,6 +296,7 @@ echo "generated/*" >> .gitignore
 ### Cache Corruption
 
 **Symptoms:**
+
 - Error reading cache manifest
 - MessagePack deserialization failures
 - Incomplete symbol data
@@ -318,6 +331,7 @@ emperator ir parse --language python
 ### High Memory Usage
 
 **Symptoms:**
+
 - Python process using >1GB RAM
 - Out of memory errors on large codebases
 
@@ -331,8 +345,8 @@ emperator ir parse --language python
 **Common causes:**
 
 1. **Many concurrent parses**: Parallel parsing (planned)
-2. **Large parse trees**: Files >10K lines
-3. **Memory leak**: Report bug if grows unbounded
+1. **Large parse trees**: Files >10K lines
+1. **Memory leak**: Report bug if grows unbounded
 
 **Solutions:**
 

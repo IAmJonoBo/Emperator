@@ -17,6 +17,10 @@ try:
         AnalysisReport,
         AnalyzerCommand,
         AnalyzerPlan,
+        CodeQLDatabase,
+        CodeQLFinding,
+        CodeQLManagerError,
+        CodeQLUnavailableError,
         JSONLTelemetryStore,
         TelemetryEvent,
         TelemetryRun,
@@ -33,6 +37,10 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
         AnalysisReport,
         AnalyzerCommand,
         AnalyzerPlan,
+        CodeQLDatabase,
+        CodeQLFinding,
+        CodeQLManagerError,
+        CodeQLUnavailableError,
         JSONLTelemetryStore,
         TelemetryEvent,
         TelemetryRun,
@@ -1385,3 +1393,543 @@ def test_cli_no_command_shows_message() -> None:
     assert result.exit_code == 0, result.stdout
     assert 'No command specified' in result.stdout
     assert 'Use --help' in result.stdout
+
+
+def test_cli_analysis_codeql_list_empty(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Listing databases should handle empty caches gracefully."""
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(list_databases=lambda: ()),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'list'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'No cached CodeQL databases' in result.stdout
+
+
+def test_cli_analysis_codeql_list_populated(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Listing databases should render metadata for cached entries."""
+    databases = (
+        CodeQLDatabase(
+            language='python',
+            path=tmp_path / '.emperator' / 'codeql-cache' / 'python-1',
+            source_root=tmp_path,
+            created_at=datetime.now(tz=UTC),
+            size_bytes=512,
+            fingerprint='fingerprint1',
+        ),
+        CodeQLDatabase(
+            language='javascript',
+            path=tmp_path / '.emperator' / 'codeql-cache' / 'js-1',
+            source_root=tmp_path,
+            created_at=datetime.now(tz=UTC),
+            size_bytes=1024,
+            fingerprint='fingerprint2',
+        ),
+    )
+
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(list_databases=lambda: databases),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'list'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'Cached CodeQL Databases' in result.stdout
+    assert 'python' in result.stdout
+    assert 'javascript' in result.stdout
+
+
+def test_cli_analysis_codeql_create_reports_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """CodeQL database creation should surface success metadata."""
+    db_path = tmp_path / '.emperator' / 'codeql-cache' / 'python-test'
+    db_path.mkdir(parents=True)
+
+    async def fake_create_database(**_: object) -> CodeQLDatabase:
+        return CodeQLDatabase(
+            language='python',
+            path=db_path,
+            source_root=tmp_path,
+            created_at=datetime.now(tz=UTC),
+            size_bytes=1024,
+            fingerprint='testfingerprint',
+        )
+
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(create_database=fake_create_database),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'create'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'Database ready' in result.stdout
+    assert 'testfingerprint' in result.stdout
+
+
+def test_cli_analysis_codeql_create_with_source_and_force(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    custom_root = tmp_path / 'custom'
+    custom_root.mkdir()
+
+    observed: dict[str, object] = {}
+
+    async def fake_create_database(
+        *,
+        source_root: Path,
+        language: str,
+        force: bool,
+        extra_args: tuple[str, ...] = (),
+        **_: object,
+    ) -> CodeQLDatabase:
+        observed['source_root'] = source_root
+        observed['language'] = language
+        observed['force'] = force
+        observed['extra_args'] = extra_args
+        return CodeQLDatabase(
+            language=language,
+            path=tmp_path / '.emperator' / 'codeql-cache' / 'python-test',
+            source_root=source_root,
+            created_at=datetime.now(tz=UTC),
+            size_bytes=256,
+            fingerprint='forcefingerprint',
+        )
+
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(create_database=fake_create_database),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'create',
+            '--source',
+            str(custom_root.relative_to(tmp_path)),
+            '--language',
+            'python',
+            '--force',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert observed['source_root'] == custom_root
+    assert observed['language'] == 'python'
+    assert observed['force'] is True
+
+
+def test_cli_analysis_codeql_create_handles_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    async def fake_create_database(**_: object) -> CodeQLDatabase:
+        raise CodeQLManagerError('create failed')
+
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(create_database=fake_create_database),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'create'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 1
+    assert 'create failed' in result.stdout
+
+
+def test_cli_analysis_codeql_query_defaults(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Query execution should discover default queries when none provided."""
+    queries_dir = tmp_path / 'rules' / 'codeql'
+    queries_dir.mkdir(parents=True)
+    default_query = queries_dir / 'security.ql'
+    default_query.write_text('predicate dummy() { true }', encoding='utf-8')
+
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+    database_dir.mkdir(parents=True)
+    database = CodeQLDatabase(
+        language='python',
+        path=database_dir,
+        source_root=tmp_path,
+        created_at=datetime.now(tz=UTC),
+        size_bytes=128,
+        fingerprint='db',
+    )
+
+    def fake_load_database(path: Path) -> CodeQLDatabase:
+        assert path == database_dir
+        return database
+
+    async def fake_run_queries(
+        database: CodeQLDatabase,
+        queries: tuple[Path, ...],
+        sarif_output: Path | None = None,
+        **_: object,
+    ) -> tuple[CodeQLFinding, ...]:
+        assert default_query.resolve() in queries
+        return (
+            CodeQLFinding(
+                rule_id='security.test',
+                message='Issue',
+                severity='error',
+                file_path=tmp_path / 'module.py',
+                start_line=5,
+                start_column=1,
+                sarif={},
+            ),
+        )
+
+    manager = SimpleNamespace(load_database=fake_load_database, run_queries=fake_run_queries)
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'security.test' in result.stdout
+    assert 'module.py' in result.stdout
+
+
+def test_cli_analysis_codeql_query_custom_output(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+    database_dir.mkdir(parents=True)
+    database = CodeQLDatabase(
+        language='python',
+        path=database_dir,
+        source_root=tmp_path,
+        created_at=datetime.now(tz=UTC),
+        size_bytes=128,
+        fingerprint='db',
+    )
+
+    def fake_load_database(path: Path) -> CodeQLDatabase:
+        assert path == database_dir
+        return database
+
+    async def fake_run_queries(
+        database: CodeQLDatabase,
+        queries: tuple[Path, ...],
+        sarif_output: Path | None = None,
+        **_: object,
+    ) -> tuple[CodeQLFinding, ...]:
+        assert sarif_output == tmp_path / 'reports' / 'custom.sarif'
+        return ()
+
+    queries_dir = tmp_path / 'rules' / 'codeql'
+    queries_dir.mkdir(parents=True)
+    query_path = queries_dir / 'security.ql'
+    query_path.write_text('predicate dummy() { true }', encoding='utf-8')
+
+    manager = SimpleNamespace(load_database=fake_load_database, run_queries=fake_run_queries)
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+            '--query',
+            str(query_path),
+            '--output',
+            str(Path('reports') / 'custom.sarif'),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'SARIF output' in result.stdout
+    assert 'reports/custom.sarif' in result.stdout
+
+
+def test_cli_analysis_codeql_query_requires_database(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'query'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 2
+    output = result.stdout + (result.stderr or '')
+    assert 'A database path is required.' in output
+
+
+def test_cli_analysis_codeql_query_handles_load_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+
+    def fake_load_database(path: Path) -> CodeQLDatabase:
+        del path
+        raise CodeQLManagerError('load failed')
+
+    manager = SimpleNamespace(load_database=fake_load_database)
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 1
+    assert 'load failed' in result.stdout
+
+
+def test_cli_analysis_codeql_query_handles_missing_queries(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+    database_dir.mkdir(parents=True)
+    database = CodeQLDatabase(
+        language='python',
+        path=database_dir,
+        source_root=tmp_path,
+        created_at=datetime.now(tz=UTC),
+        size_bytes=128,
+        fingerprint='db',
+    )
+
+    manager = SimpleNamespace(load_database=lambda path: database)
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 1
+    assert 'No queries specified' in result.stdout
+
+
+def test_cli_analysis_codeql_query_handles_execution_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    queries_dir = tmp_path / 'rules' / 'codeql'
+    queries_dir.mkdir(parents=True)
+    query_path = queries_dir / 'rule.ql'
+    query_path.write_text('predicate dummy() { true }', encoding='utf-8')
+
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+    database_dir.mkdir(parents=True)
+    database = CodeQLDatabase(
+        language='python',
+        path=database_dir,
+        source_root=tmp_path,
+        created_at=datetime.now(tz=UTC),
+        size_bytes=128,
+        fingerprint='db',
+    )
+
+    def fake_load_database(path: Path) -> CodeQLDatabase:
+        assert path == database_dir
+        return database
+
+    async def fake_run_queries(
+        database: CodeQLDatabase,
+        queries: tuple[Path, ...],
+        sarif_output: Path | None = None,
+        **_: object,
+    ) -> tuple[CodeQLFinding, ...]:
+        del database, queries, sarif_output
+        raise CodeQLUnavailableError('missing binary')
+
+    manager = SimpleNamespace(
+        load_database=fake_load_database,
+        run_queries=fake_run_queries,
+    )
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+            '--query',
+            str(query_path),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 1
+    assert 'missing binary' in result.stdout
+
+
+def test_cli_analysis_codeql_query_reports_no_findings(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    queries_dir = tmp_path / 'rules' / 'codeql'
+    queries_dir.mkdir(parents=True)
+    query_path = queries_dir / 'rule.ql'
+    query_path.write_text('predicate dummy() { true }', encoding='utf-8')
+
+    database_dir = tmp_path / '.emperator' / 'codeql-cache' / 'python-db'
+    database_dir.mkdir(parents=True)
+    database = CodeQLDatabase(
+        language='python',
+        path=database_dir,
+        source_root=tmp_path,
+        created_at=datetime.now(tz=UTC),
+        size_bytes=128,
+        fingerprint='db',
+    )
+
+    async def fake_run_queries(*args, **kwargs) -> tuple[CodeQLFinding, ...]:  # type: ignore[no-untyped-def]
+        del args, kwargs
+        return ()
+
+    manager = SimpleNamespace(load_database=lambda path: database, run_queries=fake_run_queries)
+    monkeypatch.setattr(cli_module, '_get_codeql_manager', lambda state: manager)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            'analysis',
+            'codeql',
+            'query',
+            '--database',
+            str(database_dir),
+            '--query',
+            str(query_path),
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'did not report any findings' in result.stdout
+
+
+def test_cli_analysis_codeql_prune_reports(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Prune command should display removed databases."""
+    removed_path = tmp_path / '.emperator' / 'codeql-cache' / 'python-old'
+
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(prune=lambda **_: (removed_path,)),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'prune', '--older-than', '1'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert str(removed_path) in result.stdout
+
+
+def test_cli_analysis_codeql_prune_when_no_matches(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        cli_module,
+        '_get_codeql_manager',
+        lambda state: SimpleNamespace(prune=lambda **_: ()),
+    )
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'prune', '--older-than', '1'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0
+    assert 'No cached databases matched the prune criteria' in result.stdout
+
+
+def test_cli_analysis_codeql_prune_requires_arguments(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'prune'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 2
+    output = result.stdout + (result.stderr or '')
+    assert 'Provide --older-than or --max-bytes' in output
+
+
+def test_cli_analysis_codeql_prune_validates_negative_values(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'codeql', 'prune', '--older-than', '-1'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 2
+    output = result.stdout + (result.stderr or '')
+    assert 'older-than must be non-negative' in output

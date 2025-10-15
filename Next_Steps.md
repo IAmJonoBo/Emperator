@@ -2,7 +2,7 @@
 
 ## Tasks
 
-> **Status snapshot:** Sprint 4 Weeks 1-2 now complete with IR builder and Semgrep rule generation operational. Week 3 (CodeQL) and Week 4 (Correlation) remain pending. Sprint 5 safety envelope work is queued after Sprint 4 completion.
+> **Status snapshot:** Sprint 4 Weeks 1-3 now complete with IR builder, Semgrep rule generation, and the CodeQL pipeline operational. Week 4 (Correlation) remains pending. Sprint 5 safety envelope work is queued after Sprint 4 completion.
 
 ### Sprint 4 – IR & Analysis Integration (per `docs/explanation/sprint-4-ir-analysis.md`)
 
@@ -24,10 +24,10 @@
 
 **Week 3: CodeQL Pipeline (T+10 to T+15 days)**
 
-- [ ] Implement CodeQL database manager with lifecycle commands (Owner: Maintainers, Due: 2025-10-26)
-- [ ] Create query library for security checks in `rules/codeql/` (Owner: Maintainers, Due: 2025-10-27)
-- [ ] Add CLI commands: `emperator analysis codeql create/query/list/prune` (Owner: Maintainers, Due: 2025-10-27)
-- [ ] Document query development workflow in `docs/how-to/develop-codeql-queries.md` (Owner: Maintainers, Due: 2025-10-27)
+- [x] Implement CodeQL database manager with lifecycle commands (Owner: Maintainers, Completed: Current pass)
+- [x] Create query library for security checks in `rules/codeql/` (Owner: Maintainers, Completed: Current pass)
+- [x] Add CLI commands: `emperator analysis codeql create/query/list/prune` (Owner: Maintainers, Completed: Current pass)
+- [x] Document query development workflow in `docs/how-to/develop-codeql-queries.md` (Owner: Maintainers, Completed: Current pass)
 
 **Week 4: Correlation & Benchmarks (T+15 to T+20 days)**
 
@@ -42,8 +42,8 @@
 
 - [x] Create `docs/explanation/ir-architecture.md` (Owner: AI, Completed: 2025-10-15)
 - [x] Create `docs/how-to/use-ir-cache.md` (Owner: AI, Completed: 2025-10-15)
-- [ ] Update `docs/reference/toolchain.md` with Tree-sitter/CodeQL requirements (Owner: AI, Due: 2025-10-22)
-- [ ] Update `docs/explanation/system-architecture.md` with IR layer details (Owner: AI, Due: 2025-10-23)
+- [x] Update `docs/reference/toolchain.md` with Tree-sitter/CodeQL requirements (Owner: AI, Completed: Current pass)
+- [x] Update `docs/explanation/system-architecture.md` with IR layer details (Owner: AI, Completed: Current pass)
 
 ### Sprint 5 – Automated Fix & Safety Envelope (per `docs/explanation/sprint-5-safety-envelope.md`)
 
@@ -137,6 +137,7 @@
 
 - Current focus: executing the remediation program (docs/explanation/implementation-roadmap.md#integrated-remediation-plan) starting with IR builder scaffolding, dependency bootstrapping, and CLI entry points.
 - In progress: documenting how Semgrep, CodeQL, and IR caches must integrate once the generators and correlation engine exist, using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` to steer contributions.
+- Completed: restored CodeQL manager + CLI test coverage (≥91% overall) and re-ran full lint/format/test/build/security suite post-additions.
 - Planned: codifying Sprint 5 safety envelope requirements (rollback workflow, telemetry, documentation) informed by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
 - Completed: shipped `pnpm lint:changed` for quick Ruff/Biome/ESLint passes on changed files to complement the full lint suite.
 - Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.

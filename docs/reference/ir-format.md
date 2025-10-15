@@ -88,9 +88,9 @@ Each `.msgpack` file contains serialized parse results:
 Cache entries are invalidated when:
 
 1. **Content changes**: File content hash differs from cached hash
-2. **File deleted**: Referenced file no longer exists
-3. **Age threshold**: Entry older than specified duration (default: 30 days)
-4. **Manual clear**: User explicitly clears cache
+1. **File deleted**: Referenced file no longer exists
+1. **Age threshold**: Entry older than specified duration (default: 30 days)
+1. **Manual clear**: User explicitly clears cache
 
 ### Content Hashing
 
@@ -102,6 +102,7 @@ content_hash = hashlib.sha256(file_bytes).hexdigest()
 ```
 
 This ensures:
+
 - Platform-independent hashing
 - Detection of any content change
 - Fast comparison without re-parsing
@@ -123,12 +124,12 @@ This ensures:
 
 ### Benchmark Targets
 
-| Operation                    | Small (100 files) | Medium (1K files) | Large (10K files) |
-| ---------------------------- | ----------------- | ----------------- | ----------------- |
-| Initial parse (cold cache)   | ≤5s               | ≤30s              | ≤5min             |
-| Incremental update (10 files)| ≤200ms            | ≤500ms            | ≤1s               |
-| Cache save                   | ≤100ms            | ≤1s               | ≤10s              |
-| Cache load                   | ≤50ms             | ≤500ms            | ≤5s               |
+| Operation                     | Small (100 files) | Medium (1K files) | Large (10K files) |
+| ----------------------------- | ----------------- | ----------------- | ----------------- |
+| Initial parse (cold cache)    | ≤5s               | ≤30s              | ≤5min             |
+| Incremental update (10 files) | ≤200ms            | ≤500ms            | ≤1s               |
+| Cache save                    | ≤100ms            | ≤1s               | ≤10s              |
+| Cache load                    | ≤50ms             | ≤500ms            | ≤5s               |
 
 ## CLI Commands
 
@@ -163,12 +164,14 @@ emperator ir cache clear
 ### When to Use Cache
 
 ✅ **Good use cases:**
+
 - Large codebases (>1000 files)
 - Frequent incremental analysis
 - CI/CD pipelines with cache persistence
 - Development watch modes
 
 ❌ **Not recommended:**
+
 - Single-file analysis
 - One-off scripts
 - Very small projects (\<100 files)
@@ -177,23 +180,26 @@ emperator ir cache clear
 ### Cache Maintenance
 
 1. **Regular pruning**: Run `emperator ir cache prune` weekly to remove stale entries
-2. **Monitor size**: Check cache disk usage periodically
-3. **Clear on schema changes**: Clear cache after Emperator upgrades that change IR format
-4. **CI caching**: Share IR cache across CI runs using build system cache
+1. **Monitor size**: Check cache disk usage periodically
+1. **Clear on schema changes**: Clear cache after Emperator upgrades that change IR format
+1. **CI caching**: Share IR cache across CI runs using build system cache
 
 ### Troubleshooting
 
 **Cache not being used:**
+
 - Ensure cache directory is writable
 - Check that content hashes match (files haven't changed)
 - Verify no permission issues on cache files
 
 **Slow cache operations:**
+
 - Disk I/O bottleneck (use faster storage)
 - Large number of cached files (prune old entries)
 - Network filesystem latency (use local cache)
 
 **Cache corruption:**
+
 - Clear cache with `emperator ir cache clear`
 - Rebuild with `emperator ir parse`
 - Check for disk space issues
@@ -210,11 +216,13 @@ emperator ir cache clear
 ### Future Considerations
 
 **Version 1.1** (planned):
+
 - Compressed cache files (zstd)
 - Dependency tracking for transitive invalidation
 - Parallel cache I/O
 
 **Version 2.0** (future):
+
 - Incremental Tree-sitter tree serialization
 - Memory-mapped cache access
 - Remote cache support
@@ -224,9 +232,9 @@ emperator ir cache clear
 When cache format changes:
 
 1. Detect version mismatch in manifest
-2. Log warning to user
-3. Automatically clear old cache
-4. Rebuild with new format
+1. Log warning to user
+1. Automatically clear old cache
+1. Rebuild with new format
 
 ## Security Considerations
 

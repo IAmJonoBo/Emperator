@@ -1,10 +1,11 @@
 """Symbol extraction from Tree-sitter parse trees."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from tree_sitter import Tree
+from tree_sitter import Node, Tree
 
 
 class SymbolKind(Enum):
@@ -29,7 +30,7 @@ class Location:
     end_column: int
 
     @classmethod
-    def from_node(cls, node: Any) -> 'Location':
+    def from_node(cls, node: Node) -> 'Location':
         """Create location from Tree-sitter node.
 
         Args:
@@ -37,6 +38,7 @@ class Location:
 
         Returns:
             Location object
+
         """
         return cls(
             line=node.start_point[0],
@@ -75,6 +77,7 @@ class SymbolExtractor:
 
         Returns:
             Tuple of extracted symbols
+
         """
         if language == 'python':
             return self._extract_python_symbols(tree)
@@ -88,84 +91,97 @@ class SymbolExtractor:
 
         Returns:
             Tuple of Python symbols
+
         """
         symbols = []
 
-        def visit_node(node: Any, scope: str = '') -> None:
-            """Visit tree nodes recursively to extract symbols.
-
-            Args:
-                node: Current tree node
-                scope: Current scope path
-            """
-            # Function definitions
-            if node.type == 'function_definition':
-                name_node = node.child_by_field_name('name')
-                if name_node:
-                    name = name_node.text.decode('utf-8')
-                    symbols.append(
-                        Symbol(
-                            name=name,
-                            kind=SymbolKind.FUNCTION,
-                            location=Location.from_node(node),
-                            scope=scope,
-                        )
-                    )
-                    # Visit function body with new scope
-                    new_scope = f'{scope}.{name}' if scope else name
-                    for child in node.children:
-                        visit_node(child, new_scope)
-                    return
-
-            # Class definitions
-            if node.type == 'class_definition':
-                name_node = node.child_by_field_name('name')
-                if name_node:
-                    name = name_node.text.decode('utf-8')
-                    symbols.append(
-                        Symbol(
-                            name=name,
-                            kind=SymbolKind.CLASS,
-                            location=Location.from_node(node),
-                            scope=scope,
-                        )
-                    )
-                    # Visit class body with new scope
-                    new_scope = f'{scope}.{name}' if scope else name
-                    for child in node.children:
-                        visit_node(child, new_scope)
-                    return
-
-            # Import statements
-            if node.type in ('import_statement', 'import_from_statement'):
-                # Extract imported names
-                for child in node.children:
-                    if child.type == 'dotted_name':
-                        name = child.text.decode('utf-8')
-                        symbols.append(
-                            Symbol(
-                                name=name,
-                                kind=SymbolKind.IMPORT,
-                                location=Location.from_node(child),
-                                scope=scope,
-                            )
-                        )
-                    elif child.type == 'aliased_import':
-                        name_node = child.child_by_field_name('name')
-                        if name_node:
-                            name = name_node.text.decode('utf-8')
-                            symbols.append(
-                                Symbol(
-                                    name=name,
-                                    kind=SymbolKind.IMPORT,
-                                    location=Location.from_node(name_node),
-                                    scope=scope,
-                                )
-                            )
-
-            # Continue visiting children
+        def visit_node(node: Node, scope: str = '') -> None:
+            if self._handle_function(node, scope, symbols, visit_node):
+                return
+            if self._handle_class(node, scope, symbols, visit_node):
+                return
+            self._handle_import(node, scope, symbols)
             for child in node.children:
                 visit_node(child, scope)
 
         visit_node(tree.root_node)
         return tuple(symbols)
+
+    def _handle_function(
+        self,
+        node: Node,
+        scope: str,
+        symbols: list[Symbol],
+        visit: Callable[[Node, str], None],
+    ) -> bool:
+        if node.type != 'function_definition':
+            return False
+        name_node = node.child_by_field_name('name')
+        if name_node is None:
+            return False
+        name = name_node.text.decode('utf-8')
+        symbols.append(
+            Symbol(
+                name=name,
+                kind=SymbolKind.FUNCTION,
+                location=Location.from_node(node),
+                scope=scope,
+            )
+        )
+        new_scope = f'{scope}.{name}' if scope else name
+        for child in node.children:
+            visit(child, new_scope)
+        return True
+
+    def _handle_class(
+        self,
+        node: Node,
+        scope: str,
+        symbols: list[Symbol],
+        visit: Callable[[Node, str], None],
+    ) -> bool:
+        if node.type != 'class_definition':
+            return False
+        name_node = node.child_by_field_name('name')
+        if name_node is None:
+            return False
+        name = name_node.text.decode('utf-8')
+        symbols.append(
+            Symbol(
+                name=name,
+                kind=SymbolKind.CLASS,
+                location=Location.from_node(node),
+                scope=scope,
+            )
+        )
+        new_scope = f'{scope}.{name}' if scope else name
+        for child in node.children:
+            visit(child, new_scope)
+        return True
+
+    def _handle_import(self, node: Node, scope: str, symbols: list[Symbol]) -> None:
+        if node.type not in {'import_statement', 'import_from_statement'}:
+            return
+        for child in node.children:
+            if child.type == 'dotted_name':
+                name = child.text.decode('utf-8')
+                symbols.append(
+                    Symbol(
+                        name=name,
+                        kind=SymbolKind.IMPORT,
+                        location=Location.from_node(child),
+                        scope=scope,
+                    )
+                )
+            if child.type == 'aliased_import':
+                name_node = child.child_by_field_name('name')
+                if name_node:
+                    name = name_node.text.decode('utf-8')
+                    symbols.append(
+                        Symbol(
+                            name=name,
+                            kind=SymbolKind.IMPORT,
+                            location=Location.from_node(name_node),
+                            scope=scope,
+                        )
+                    )

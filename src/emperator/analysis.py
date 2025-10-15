@@ -76,6 +76,7 @@ class AnalyzerCommand:
 
     command: tuple[str, ...]
     description: str
+    severity: str | None = None
 
 
 @dataclass(frozen=True)
@@ -325,7 +326,14 @@ def fingerprint_analysis(
             'tool': plan.tool,
             'ready': plan.ready,
             'reason': plan.reason,
-            'steps': [list(step.command) for step in plan.steps],
+            'steps': [
+                {
+                    'command': list(step.command),
+                    'description': step.description,
+                    'severity': step.severity,
+                }
+                for step in plan.steps
+            ],
         }
         for plan in sorted(plans, key=lambda plan: plan.tool)
     ]
@@ -381,6 +389,55 @@ def _extract_exit_code(result: Any) -> int:
     raise TypeError('Runner result must expose an exit code via returncode or exit_code.')
 
 
+def _severity_execution_decision(
+    step: AnalyzerCommand,
+    severity_filter: tuple[str, ...] | None,
+    tool: str,
+) -> tuple[bool, str | None]:
+    """Determine whether a step should be skipped under the severity filter."""
+
+    if not severity_filter:
+        return False, None
+    severity = step.severity
+    if severity is None:
+        return False, f"{tool} step '{step.description}' lacks severity metadata; executed."
+    if severity.lower() not in severity_filter:
+        return True, f"Skipped {tool} step '{step.description}' due to severity filter."
+    return False, None
+
+
+def _prepare_plan_steps(
+    plan: AnalyzerPlan,
+    include_unready: bool,
+    severity_filter: tuple[str, ...] | None,
+) -> tuple[tuple[AnalyzerCommand, ...], tuple[str, ...]]:
+    """Return executable steps for a plan along with explanatory notes."""
+
+    notes: list[str] = []
+    if not plan.ready:
+        if include_unready:
+            notes.append(f'Forced execution for {plan.tool}: {plan.reason}')
+        else:
+            notes.append(f'Skipped {plan.tool}: {plan.reason}')
+            return tuple(), tuple(notes)
+    if not plan.steps:
+        notes.append(f'No steps defined for {plan.tool}.')
+        return tuple(), tuple(notes)
+
+    executable: list[AnalyzerCommand] = []
+    for step in plan.steps:
+        skip_step, severity_note = _severity_execution_decision(step, severity_filter, plan.tool)
+        if severity_note is not None:
+            notes.append(severity_note)
+        if skip_step:
+            continue
+        executable.append(step)
+
+    if not executable:
+        notes.append(f'All steps skipped for {plan.tool} after applying filters.')
+    return tuple(executable), tuple(notes)
+
+
 def execute_analysis_plan(
     report: AnalysisReport,
     plans: Iterable[AnalyzerPlan],
@@ -388,6 +445,7 @@ def execute_analysis_plan(
     telemetry_store: TelemetryStore | None = None,
     metadata: Mapping[str, Any] | None = None,
     include_unready: bool = False,
+    severity_filter: Iterable[str] | None = None,
     runner: AnalyzerRunner | None = None,
     time_source: Callable[[], datetime] | None = None,
     on_step_start: Callable[[AnalyzerPlan, AnalyzerCommand], None] | None = None,
@@ -404,17 +462,16 @@ def execute_analysis_plan(
     notes: list[str] = []
     started_at = time_fn()
 
+    normalised_filter = (
+        tuple(level.lower() for level in severity_filter) if severity_filter is not None else None
+    )
+
     for plan in materialised:
-        if not plan.ready:
-            if include_unready:
-                notes.append(f'Forced execution for {plan.tool}: {plan.reason}')
-            else:
-                notes.append(f'Skipped {plan.tool}: {plan.reason}')
-                continue
-        if not plan.steps:
-            notes.append(f'No steps defined for {plan.tool}.')
+        steps_to_run, plan_notes = _prepare_plan_steps(plan, include_unready, normalised_filter)
+        notes.extend(plan_notes)
+        if not steps_to_run:
             continue
-        for step in plan.steps:
+        for step in steps_to_run:
             if on_step_start is not None:
                 on_step_start(plan, step)
             step_started = time_fn()
@@ -422,13 +479,16 @@ def execute_analysis_plan(
             step_completed = time_fn()
             duration = max((step_completed - step_started).total_seconds(), 0.0)
             exit_code = _extract_exit_code(result)
+            event_metadata: dict[str, str] = {'description': step.description}
+            if step.severity is not None:
+                event_metadata['severity'] = step.severity
             event = TelemetryEvent(
                 tool=plan.tool,
                 command=step.command,
                 exit_code=exit_code,
                 duration_seconds=duration,
                 timestamp=step_completed,
-                metadata={'description': step.description},
+                metadata=event_metadata,
             )
             events.append(event)
             if on_step_complete is not None:

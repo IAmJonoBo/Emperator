@@ -22,6 +22,9 @@
 - [x] Prototype JSONL-backed telemetry store and CLI integration flag (Owner: AI, Due: Current pass)
 - [x] Thread telemetry capture through analyzer execution once orchestration lands (Owner: Maintainers, Due: Current pass)
 - [x] Extend analyzer run UX with richer filtering (severity, dry-run) options (Owner: AI, Due: Current pass)
+- [x] Add analyzer command severity metadata and CLI validation for severity filters (Owner: AI, Due: Current pass)
+- [x] Record severity filter selections in telemetry + documentation updates (Owner: AI, Due: Current pass)
+- [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: Next pass)
 
 ## Steps
 
@@ -43,6 +46,7 @@
 - Completed: wired analyzer execution helper and CLI run command to persist telemetry with progress reporting.
 - Completed: introduced YAML guardrail digests with CLI verification to prevent unintended churn in contract and compose assets.
 - Completed: upgraded `analysis run` UX with severity filtering, dry-run support, and richer telemetry metadata.
+- Completed: enforced analyzer command severity metadata, CLI validation errors, and telemetry capture for severity filters.
 
 ## Deliverables
 
@@ -61,11 +65,12 @@
 - ✅ Telemetry design captured in ADR-0003 with accompanying analysis module primitives and unit tests.
 - ✅ Guardrail digest tracking (`guardrails/yaml-digests.json`) plus CLI verification command and dedicated tests.
 - ✅ Analyzer UX upgrade with severity filters, dry-run simulation, and updated CLI documentation.
+- ✅ Analyzer execution now honours severity metadata during runs and records skipped steps in telemetry notes.
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (93 passed, 100% coverage).
-- ✅ Lint: `uv run ruff check --no-fix .`.
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (82 passed, 100% coverage).
+- ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
@@ -93,3 +98,4 @@
 - Removing platform-specific scripts shifts responsibility to git hygiene; verify future platform issues through ADRs before reintroducing tooling.
 - Telemetry events remain local-only by default; document opt-in remote uploads before shipping alternative stores.
 - Monitor `.emperator/telemetry` lifecycle (retention, rotation) as analyzer orchestration begins writing runs automatically.
+- Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.

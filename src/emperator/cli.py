@@ -49,6 +49,15 @@ app.add_typer(analysis_app, name='analysis')
 app.add_typer(fix_app, name='fix')
 
 
+_SUPPORTED_SEVERITIES: tuple[str, ...] = (
+    'info',
+    'low',
+    'medium',
+    'high',
+    'critical',
+)
+
+
 ROOT_OPTION = typer.Option(
     None,
     '--root',
@@ -77,6 +86,16 @@ ANALYSIS_TOOL_OPTION = typer.Option(
     '--tool',
     '-t',
     help='Execute only the specified analyzer (option can be repeated).',
+)
+
+ANALYSIS_SEVERITY_OPTION = typer.Option(
+    None,
+    '--severity',
+    '-s',
+    help=(
+        'Limit execution to analyzer steps that match the selected severities '
+        '(option can be repeated).'
+    ),
 )
 
 INCLUDE_UNREADY_ANALYZERS_OPTION = typer.Option(
@@ -552,6 +571,7 @@ def analysis_plan(ctx: typer.Context) -> None:
 def analysis_run(
     ctx: typer.Context,
     tool: list[str] | None = ANALYSIS_TOOL_OPTION,
+    severity: list[str] | None = ANALYSIS_SEVERITY_OPTION,
     include_unready: bool = INCLUDE_UNREADY_ANALYZERS_OPTION,
 ) -> None:
     """Execute analyzer plans, stream progress, and record telemetry."""
@@ -575,12 +595,29 @@ def analysis_run(
         state.console.print('[yellow]No analyzer plans matched the provided filters.[/]')
         return
 
+    severity_values = tuple(value.lower() for value in (severity or ()))
+    unique_severities = tuple(dict.fromkeys(severity_values))
+    invalid_severities = sorted(
+        {level for level in unique_severities if level not in _SUPPORTED_SEVERITIES}
+    )
+    if invalid_severities:
+        supported = ', '.join(_SUPPORTED_SEVERITIES)
+        raise typer.BadParameter(
+            (
+                f'Unsupported severity level(s): {", ".join(invalid_severities)}. '
+                f'Supported levels: {supported}.'
+            ),
+            param_hint='--severity',
+        )
+
     executable_steps = sum(
         len(plan.steps) for plan in selected_plans if plan.ready or include_unready
     )
     metadata: dict[str, Any] = {'command': 'analysis-run', 'include_unready': include_unready}
     if selected_tools:
         metadata['tools'] = sorted(selected_tools)
+    if unique_severities:
+        metadata['severity_filter'] = list(unique_severities)
 
     progress = Progress(
         SpinnerColumn(),
@@ -614,6 +651,7 @@ def analysis_run(
             telemetry_store=state.telemetry_store,
             metadata=metadata,
             include_unready=include_unready,
+            severity_filter=unique_severities or None,
             on_step_start=handle_start if executable_steps else None,
             on_step_complete=handle_complete if executable_steps else None,
         )

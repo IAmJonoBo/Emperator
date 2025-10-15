@@ -438,6 +438,7 @@ def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
                 AnalyzerCommand(
                     command=('semgrep', '--config=auto', str(tmp_path)),
                     description='Run Semgrep with the auto configuration.',
+                    severity='medium',
                 ),
             ),
         ),
@@ -456,6 +457,7 @@ def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
         metadata={'command': 'unit-test'},
         runner=fake_runner,
         time_source=fake_time,
+        severity_filter=('medium',),
     )
 
     fingerprint = fingerprint_analysis(report, plan, metadata={'command': 'unit-test'})
@@ -464,7 +466,10 @@ def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
     assert latest is not None and latest.events == run.events
     assert executed == [(plan[0].steps[0].command, tmp_path)]
     assert run.events[0].duration_seconds == 4.0
-    assert run.events[0].metadata == {'description': plan[0].steps[0].description}
+    assert run.events[0].metadata == {
+        'description': plan[0].steps[0].description,
+        'severity': 'medium',
+    }
 
 
 def test_execute_analysis_plan_skips_unready(tmp_path: Path) -> None:
@@ -505,6 +510,85 @@ def test_execute_analysis_plan_skips_unready(tmp_path: Path) -> None:
     assert called == []
     assert run.events == ()
     assert any('CodeQL' in note and 'Skipped' in note for note in run.notes)
+
+
+def test_execute_analysis_plan_notes_missing_severity_metadata(tmp_path: Path) -> None:
+    """Severity filters should note when steps lack severity metadata."""
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready to scan.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep with the auto configuration.',
+                ),
+            ),
+        ),
+    )
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        runner=lambda *args, **kwargs: SimpleNamespace(returncode=0),
+        severity_filter=('high',),
+        time_source=lambda: datetime.now(UTC),
+    )
+
+    assert run.events, 'Step lacking severity metadata should still execute.'
+    assert any('lacks severity metadata' in note for note in run.notes)
+
+
+def test_execute_analysis_plan_skips_steps_via_severity_filter(tmp_path: Path) -> None:
+    """Severity filters should prevent execution of non-matching steps."""
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready to scan.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep with the auto configuration.',
+                    severity='low',
+                ),
+            ),
+        ),
+    )
+    runner_called = False
+
+    def fail_if_called(*_args, **_kwargs) -> SimpleNamespace:
+        nonlocal runner_called
+        runner_called = True
+        return SimpleNamespace(returncode=0)
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        runner=fail_if_called,
+        severity_filter=('high',),
+        time_source=lambda: datetime.now(UTC),
+    )
+
+    assert runner_called is False
+    assert run.events == ()
+    assert any('Skipped' in note for note in run.notes)
+    assert any('All steps skipped' in note for note in run.notes)
 
 
 def test_execute_analysis_plan_honours_callbacks(tmp_path: Path) -> None:

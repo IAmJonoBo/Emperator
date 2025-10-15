@@ -48,41 +48,41 @@ flowchart TB
         Contract[Project Contract<br/>CUE + Rego + OpenAPI]
         Codebase[Source Files<br/>Multi-language]
     end
-    
+
     subgraph IR["IR Construction Layer"]
         TS[Tree-sitter Parser<br/>CST + Incremental Updates]
         SG[Semgrep Patterns<br/>Rule Matching]
         CQ[CodeQL Database<br/>Semantic Queries]
     end
-    
+
     subgraph Analysis["Analysis Orchestration"]
         RG[Rule Generator<br/>Contract → Rules]
         Exec[Execution Engine<br/>Query Runner]
         Corr[Correlation Engine<br/>Findings → Contract]
     end
-    
+
     subgraph Output["Output Layer"]
         Findings[Structured Findings<br/>SARIF + Telemetry]
         Cache[IR Cache<br/>Incremental State]
     end
-    
+
     Contract --> RG
     Codebase --> TS
     Codebase --> SG
     Codebase --> CQ
-    
+
     TS --> Exec
     SG --> Exec
     CQ --> Exec
     RG --> Exec
-    
+
     Exec --> Corr
     Corr --> Findings
-    
+
     TS --> Cache
     CQ --> Cache
     Exec --> Cache
-    
+
     style IR fill:#e1f5ff
     style Analysis fill:#fff4e1
 ```
@@ -111,16 +111,16 @@ class ParsedFile:
 
 class IRBuilder:
     """Manages polyglot IR construction and caching."""
-    
+
     def parse_file(self, path: Path) -> ParsedFile:
         """Parse single file into CST with error recovery."""
-        
+
     def parse_directory(self, root: Path, languages: tuple[str, ...]) -> IRSnapshot:
         """Batch parse with progress reporting."""
-        
+
     def incremental_update(self, changed_files: tuple[Path, ...]) -> IRDelta:
         """Re-parse only modified files and dependents."""
-        
+
     def get_cache_key(self, file_content: str) -> str:
         """Deterministic hash for cache lookup."""
 ```
@@ -148,7 +148,7 @@ class Symbol:
 
 class SymbolExtractor:
     """Extract symbols from Tree-sitter CSTs."""
-    
+
     def extract_symbols(self, tree: Tree, language: str) -> tuple[Symbol, ...]:
         """Use language-specific queries to find symbols."""
 ```
@@ -165,7 +165,7 @@ class SymbolExtractor:
 
 **Structure:**
 
-```
+```text
 .emperator/ir-cache/
 ├── manifest.json          # Cache version, schema, stats
 ├── files/
@@ -208,13 +208,13 @@ class SemgrepRule:
 
 class SemgrepRuleGenerator:
     """Compile contract conventions into Semgrep rules."""
-    
+
     def generate_from_convention(self, convention: CUEConvention) -> tuple[SemgrepRule, ...]:
         """Map CUE naming/structure rules to Semgrep patterns."""
-        
+
     def generate_from_policy(self, policy: RegoPolicy) -> tuple[SemgrepRule, ...]:
         """Extract pattern-matchable checks from Rego."""
-        
+
     def write_rule_pack(self, rules: tuple[SemgrepRule, ...], output: Path) -> None:
         """Serialize to Semgrep YAML format."""
 ```
@@ -277,7 +277,7 @@ rules:
 
 Regenerate rules with: `emperator contract compile --rules`
 
-````
+````text
 
 ### 3. CodeQL Database Pipeline
 
@@ -297,7 +297,7 @@ class CodeQLDatabase:
 
 class CodeQLManager:
     """Orchestrate CodeQL database lifecycle."""
-    
+
     async def create_database(
         self,
         source_root: Path,
@@ -305,17 +305,17 @@ class CodeQLManager:
         output: Path,
     ) -> CodeQLDatabase:
         """Generate CodeQL database with progress tracking."""
-        
+
     async def run_queries(
         self,
         database: CodeQLDatabase,
         queries: tuple[Path, ...],
     ) -> tuple[CodeQLFinding, ...]:
         """Execute queries and parse SARIF results."""
-        
+
     def cache_database(self, db: CodeQLDatabase) -> None:
         """Store database in .emperator/codeql-cache/."""
-        
+
     def invalidate_cache(self, source_root: Path, language: str) -> None:
         """Remove cached database when source changes significantly."""
 ````
@@ -401,14 +401,14 @@ class CorrelatedFinding:
 
 class CorrelationEngine:
     """Map findings to contract rules."""
-    
+
     def correlate(
         self,
         findings: tuple[AnalysisFinding, ...],
         contract: Contract,
     ) -> tuple[CorrelatedFinding, ...]:
         """Match findings to contract rules by ID and metadata."""
-        
+
     def suggest_remediation(
         self,
         finding: CorrelatedFinding,
@@ -736,19 +736,19 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 
 ### Technical Risks
 
-**Risk 1: Tree-sitter Performance on Large Files**
+#### Risk 1: Tree-sitter Performance on Large Files**
 
 - **Severity:** Medium
 - **Mitigation:** Implement file size threshold, chunk large files
 - **Contingency:** Fall back to simpler parsing for oversized files
 
-**Risk 2: CodeQL License Constraints**
+#### Risk 2: CodeQL License Constraints
 
 - **Severity:** Low
 - **Mitigation:** Document OSS vs Enterprise requirements clearly
 - **Contingency:** Make CodeQL optional, use Semgrep only
 
-**Risk 3: Cache Bloat**
+#### Risk 3: Cache Bloat**
 
 - **Severity:** Low
 - **Mitigation:** Implement automatic pruning, size limits
@@ -756,13 +756,13 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 
 ### Schedule Risks
 
-**Risk 4: CodeQL Integration Complexity**
+#### Risk 4: CodeQL Integration Complexity**
 
 - **Severity:** Medium
 - **Mitigation:** Start integration early, allocate buffer time
 - **Contingency:** Defer complex queries to Phase 3
 
-**Risk 5: Cross-Language Symbol Extraction**
+#### Risk 5: Cross-Language Symbol Extraction**
 
 - **Severity:** Medium
 - **Mitigation:** Focus on Python first, defer others

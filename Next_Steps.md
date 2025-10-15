@@ -7,12 +7,15 @@
 - [x] Resolve import-order lint failure in `tests/test_doctor.py` (`ruff check --no-fix .`) (Owner: AI, Due: Current pass)
 - [x] Install `types-PyYAML` or adjust contract loader to satisfy mypy (Owner: AI, Due: Current pass)
 - [x] Investigate pytest coverage warning (`No data was collected`) and ensure reports generate (Owner: AI, Due: Current pass)
+- [x] Ship analysis planning CLI (inspect + wizard) with developer hints (Owner: AI, Due: Current pass)
 - [ ] Track SPDX license string remediation for `pyproject.toml` (Owner: Maintainers, Due: Future release)
+- [ ] Prototype Semgrep/CodeQL invocation flow using new analysis scaffolding (Owner: AI, Due: Next pass)
 
 ## Steps
 
 - Completed: audited documentation, aligned structure with scaffold utilities, and seeded TODO-driven stubs.
 - Completed: delivered CLI with scaffold, doctor, and fix commands plus progress visualisation.
+- Completed: added analysis inspect/wizard workflows with progress bars and guided hints for IR readiness.
 - Completed: produced end-to-end delivery plan and sprint playbook to steer execution.
 - Completed: elevated `emperator.contract` helpers with cached OpenAPI loader, typed metadata surface, and doc references.
 - Pending: remediate packaging metadata before setuptools deprecates table syntax.
@@ -22,12 +25,13 @@
 - ✅ Developer CLI (`src/emperator/cli.py`) with scaffold/doctor/fix workflows and 100% coverage.
 - ✅ Scaffolding + doctor utility modules with TODO-stub generation and remediation metadata.
 - ✅ Documentation updates (`README.md`, `docs/index.md`, `docs/cli.md`) highlighting the workflow.
+- ✅ Expanded docs (`docs/cli.md`, `docs/explanation/*`) covering analysis planning wizard and progress feedback.
 - ✅ Repository assets populated with TODO placeholders for policy, conventions, rules, and infra blueprints.
 - ✅ Delivery blueprint (`emperator_specs/Project_Plan.md`) and sprint playbook (`emperator_specs/Sprint_Playbook.md`).
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (32 passed, 100% coverage). 
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (40 passed, 100% coverage).
 - ✅ Lint: `uv run ruff check --no-fix .`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
@@ -46,3 +50,4 @@
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.
 - Contract metadata helpers cache the OpenAPI document; clear the cache (`load_contract_spec.cache_clear()`) if tests need to observe on-disk edits within a single process.
 - Follow up on packaging metadata warning before setuptools deadline.
+- Monitor future work to hook Semgrep/CodeQL execution into the new analysis pipeline without regressing UX.

@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from typer.testing import CliRunner
 
 try:
@@ -22,6 +23,7 @@ try:
         fingerprint_analysis,
     )
     from emperator.cli import app
+    from emperator.contract import ContractValidationResult
     from emperator.doctor import RemediationAction
 except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
     sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
@@ -37,6 +39,7 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
         fingerprint_analysis,
     )
     from emperator.cli import app
+    from emperator.contract import ContractValidationResult
     from emperator.doctor import RemediationAction
 
 runner = CliRunner()
@@ -88,6 +91,51 @@ def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.stdout
     assert 'Environment Checks' in result.stdout
     assert 'Tooling bootstrap' in result.stdout
+
+
+def test_cli_contract_validate_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Contract validate should report success and surface warnings."""
+
+    monkeypatch.setattr(
+        cli_module,
+        'validate_contract_spec',
+        lambda strict=False: ContractValidationResult(errors=(), warnings=('Missing server',)),
+    )
+    result = runner.invoke(app, ['contract', 'validate'], env={'NO_COLOR': '1'})
+    assert result.exit_code == 0, result.stdout
+    assert 'Contract validation passed' in result.stdout
+    assert 'Missing server' in result.stdout
+
+
+def test_cli_contract_validate_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Contract validate should print errors and exit with status 1."""
+
+    def fake(strict: bool = False) -> ContractValidationResult:
+        del strict
+        return ContractValidationResult(errors=('Missing openapi',), warnings=('Missing server',))
+
+    monkeypatch.setattr(cli_module, 'validate_contract_spec', fake)
+    result = runner.invoke(app, ['contract', 'validate'], env={'NO_COLOR': '1'})
+    assert result.exit_code == 1
+    assert 'Missing openapi' in result.stdout
+    assert 'Missing server' in result.stdout
+
+
+def test_cli_contract_validate_strict(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Strict mode should forward the flag and hide warnings."""
+
+    calls: list[bool] = []
+
+    def fake(strict: bool = False) -> ContractValidationResult:
+        calls.append(strict)
+        return ContractValidationResult(errors=('Strict failure',), warnings=())
+
+    monkeypatch.setattr(cli_module, 'validate_contract_spec', fake)
+    result = runner.invoke(app, ['contract', 'validate', '--strict'], env={'NO_COLOR': '1'})
+    assert result.exit_code == 1
+    assert calls == [True]
+    assert 'Strict failure' in result.stdout
+    assert 'Missing server' not in result.stdout
 
 
 def test_cli_fix_plan_lists_actions() -> None:

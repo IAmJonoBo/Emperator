@@ -2,6 +2,11 @@
 
 ## Tasks
 
+- [x] Add contract validation CLI command with structural checks and strict mode (Owner: AI, Due: Current pass)
+- [x] Update CLI documentation to cover contract validation workflows (Owner: AI, Due: Current pass)
+- [ ] Groom Sprint 4 backlog for IR & analysis integration per `emperator_specs/Sprint_Playbook.md` (Owner: AI, Due: Next pass)
+- [ ] Outline Sprint 5 safety envelope milestones and dependencies from `emperator_specs/Project_Plan.md` (Owner: Maintainers, Due: Next pass)
+- [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: Next pass)
 - [x] Resolve CLI telemetry summary typing regression and severity deduplication (Owner: AI, Due: Current pass)
 - [x] Extend analysis run tests for severity filters, metadata capture, and validation errors (Owner: AI, Due: Current pass)
 - [x] Establish scaffolding CLI and environment doctor (Owner: AI, Due: T+0)
@@ -30,6 +35,9 @@
 
 ## Steps
 
+- Upcoming: align Sprint 4 backlog for IR/analyzer integration using `emperator_specs/Sprint_Playbook.md` as guidance and capture dependencies in backlog tooling.
+- Upcoming: draft Sprint 5 safety envelope milestones from `emperator_specs/Project_Plan.md` and identify telemetry/prerequisite workstreams.
+- Completed: established contract validation CLI with strict-mode escalation and tabled warnings in output.
 - Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
 - Completed: strengthened CLI severity flows with metadata capture and invalid-option coverage.
 - Completed: audited documentation, aligned structure with scaffold utilities, and seeded TODO-driven stubs.
@@ -54,6 +62,7 @@
 
 ## Deliverables
 
+- ✅ Contract validation CLI command with structural validation helpers and strict-mode coverage.
 - ✅ Additional CLI regression tests covering severity aggregation, metadata persistence, and invalid filter handling.
 - ✅ Developer CLI (`src/emperator/cli.py`) with scaffold/doctor/fix workflows and 100% coverage.
 - ✅ Scaffolding + doctor utility modules with TODO-stub generation and remediation metadata.
@@ -81,6 +90,7 @@
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠️ Security: `uv tool run pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
 - ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
+- ✅ Contract: `emperator contract validate --strict` to gate OpenAPI changes.
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
 - ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
 - ✅ Guardrails: `emperator guardrails verify` succeeds with digests tracked in `guardrails/yaml-digests.json`.
@@ -107,3 +117,4 @@
 - Monitor `.emperator/telemetry` lifecycle (retention, rotation) as analyzer orchestration begins writing runs automatically.
 - Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.
 - Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.
+- Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.

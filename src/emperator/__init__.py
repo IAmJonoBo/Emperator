@@ -11,16 +11,20 @@ __version__ = '0.1.0'
 from .api import create_app  # noqa: F401
 from .contract import (  # noqa: F401
     ContractInfo,
+    ContractValidationResult,
     get_contract_info,
     get_contract_path,
     load_contract_spec,
+    validate_contract_spec,
 )
 
 __all__: list[str] = [
     '__version__',
     'create_app',
     'ContractInfo',
+    'ContractValidationResult',
     'get_contract_info',
     'get_contract_path',
     'load_contract_spec',
+    'validate_contract_spec',
 ]

@@ -19,6 +19,12 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
 
 - `emperator doctor env [--apply]`: run workstation diagnostics (Python version, uv CLI, virtualenv, pnpm, helper scripts). Pass `--apply` to execute the recommended remediation actions sequentially.
 
+## Contract validation
+
+- `emperator contract validate [--strict]`: run structural checks against the canonical OpenAPI contract. The command reports
+  missing metadata, malformed path definitions, and schema issues in the `/contract` response. Pass `--strict` to treat
+  warnings (such as absent server entries) as errors.
+
 ## Auto-remediation helpers
 
 - `emperator fix plan`: list the curated remediation commands (tooling bootstrap, lint hook refresh, JS tooling install).

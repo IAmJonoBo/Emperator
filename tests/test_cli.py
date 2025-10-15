@@ -605,6 +605,121 @@ def test_cli_analysis_run_executes_plans(monkeypatch, tmp_path: Path) -> None:
     assert kwargs['metadata']['command'] == 'analysis-run'
 
 
+def test_cli_analysis_run_renders_unique_severities(monkeypatch, tmp_path: Path) -> None:
+    """The analysis run summary should render unique severities and notes."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path / 'src')),
+                description='Run Semgrep with auto configuration.',
+            ),
+        ),
+    )
+    start = datetime.now(UTC)
+    run = TelemetryRun(
+        fingerprint='severity-run',
+        project_root=tmp_path,
+        started_at=start,
+        completed_at=start,
+        events=(
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=0,
+                duration_seconds=1.0,
+                timestamp=start,
+                metadata={'severity': 'critical'},
+            ),
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=0,
+                duration_seconds=1.0,
+                timestamp=start,
+                metadata={'severity': 'high'},
+            ),
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=0,
+                duration_seconds=1.0,
+                timestamp=start,
+                metadata=None,
+            ),
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=0,
+                duration_seconds=1.0,
+                timestamp=start,
+                metadata={'description': 'No severity recorded'},
+            ),
+        ),
+        notes=(
+            'General guidance for the execution summary',
+            'Semgrep: review findings for high severity',
+        ),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'critical, high' in result.stdout
+    assert 'General guidance for the execution summary' in result.stdout
+    assert 'Semgrep: review findings for high severity' in result.stdout
+
+
+def test_cli_analysis_run_rejects_invalid_severity(monkeypatch, tmp_path: Path) -> None:
+    """Invalid severity selections should raise a helpful validation error."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path / 'src')),
+                description='Run Semgrep with auto configuration.',
+            ),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+
+    executed = False
+
+    def fail_if_executed(*args, **kwargs) -> TelemetryRun:
+        nonlocal executed
+        executed = True
+        raise AssertionError('execute_analysis_plan should not be invoked for invalid severities')
+
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fail_if_executed)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run', '--severity', 'unknown'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code != 0
+    assert 'Unsupported severity level(s): unknown' in result.stderr
+    assert executed is False
+
+
 def test_cli_analysis_run_filters_tools(monkeypatch, tmp_path: Path) -> None:
     """Tool filters should restrict which plans are executed."""
 
@@ -651,6 +766,52 @@ def test_cli_analysis_run_filters_tools(monkeypatch, tmp_path: Path) -> None:
     assert called['plans'] == (plans[1],)
     assert 'CodeQL' in result.stdout
     assert 'Semgrep' not in result.stdout
+
+
+def test_cli_analysis_run_records_severity_metadata(monkeypatch, tmp_path: Path) -> None:
+    """Severity filters should be captured in the telemetry metadata."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path)),
+                description='Run Semgrep with auto configuration.',
+                severity='high',
+            ),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+
+    captured: dict[str, object] = {}
+
+    def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
+        captured['metadata'] = kwargs.get('metadata')
+        return TelemetryRun(
+            fingerprint='severity-filter',
+            project_root=tmp_path,
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+            events=(),
+            notes=(),
+        )
+
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run', '--severity', 'high'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    metadata = captured['metadata']
+    assert metadata is not None
+    assert metadata['severity_filter'] == ['high']
 
 
 def test_cli_analysis_run_handles_no_plans(monkeypatch, tmp_path: Path) -> None:

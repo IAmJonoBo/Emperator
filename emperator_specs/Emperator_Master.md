@@ -2,22 +2,22 @@
 
 ## Objectives & Novelty of Emperator
 
-**Emperator’s Mission:**  
+**Emperator’s Mission:**
 Emperator is a platform-agnostic standards enforcement and orchestration tool designed to elevate software projects to frontier-grade quality. It treats “how we build” as an executable Project Contract—a single source of truth defining code standards, API schemas, dependency rules, security policies, and more. Emperator compiles this contract into checks, fixes, scaffolds, and gates that apply across multiple languages and ecosystems. The goal is to empower developers (and AI copilots) in any environment—from air-gapped enterprise networks to cloud CI/CD—to consistently produce A-grade, secure, and maintainable code without cumbersome manual processes.
 
-**What’s New:**  
+**What’s New:**
 Emperator’s approach moves beyond a “tool soup” of disconnected linters and scripts by unifying them under one Contract→IR→Action pipeline. The novelty lies in:
 
-- **Contract-Compiled Development:**  
+- **Contract-Compiled Development:**
   A versioned, declarative Project Contract (leveraging open standards like OpenAPI, CUE, Rego) that is executable. When the contract’s rules change, Emperator automatically re-compiles them into updated checks and migrations across the codebase. This prevents the usual drift between documentation and implementation.
 
-- **Single Polyglot IR:**  
+- **Single Polyglot IR:**
   Emperator builds one universal code intermediate representation (IR) for your project, combining fast concrete syntax trees from Tree-sitter with semantic graphs and dataflow from CodeQL, plus pattern rules from Semgrep. This unified view allows cross-cutting queries (“find all calls violating the layering policy”) across languages—a capability prior tools provided only in silos.
 
-- **Deterministic Yet Safe Automation:**  
+- **Deterministic Yet Safe Automation:**
   Emperator doesn’t just flag issues—it can fix and upgrade code safely. It applies proven codemod engines (like LibCST for Python and OpenRewrite for JVM) for auto-refactoring, but only after rigorous validation (static analysis checks, optional property-based tests) in a “safety envelope.” High-risk changes are proposed as suggestions (with inline diffs) rather than applied blindly. This blends automation with human oversight, avoiding the “too much magic” problem.
 
-**Summary:**  
+**Summary:**
 Emperator aims to raise the bar of software quality by making codebase standards enforceable and evolvable through automation. It targets everyone from solo maintainers to large teams, giving them “superpowers” to achieve top-tier code health and security without onerous effort. The following sections detail the system’s architecture and components, guided by expert perspectives in software architecture, static analysis, DevSecOps, developer experience, security engineering, AI integration, and governance.
 
 > _Influence note: The vision for Emperator is ambitious but grounded in existing technologies. We will cite industry standards and successful OSS tools to justify each design choice, and we’ll flag where uncertainty or complexity remains._
@@ -26,7 +26,7 @@ Emperator aims to raise the bar of software quality by making codebase standards
 
 ## Architecture & System Design (Chief Software Architect)
 
-**Overall Design:**  
+**Overall Design:**
 Emperator’s architecture follows a simple high-level flow—Contract → IR → Action Engines—all under a safety pipeline. It is composed of modular components that align with the C4 model’s layers: a Contract Layer (inputs), an IR/Analysis Layer (internal representation of code), and an Execution Layer (tools that check or modify code), orchestrated by a central CLI/LSP service. The diagram below illustrates this flow:
 
 ```mermaid
@@ -54,7 +54,7 @@ flowchart LR
   G --> H
 ```
 
-> **Figure: Emperator pipeline overview.**  
+> **Figure: Emperator pipeline overview.**
 > The Project Contract is compiled into a unified IR of the code. Check engines run queries and pattern rules on this IR to detect deviations from the contract. If violations are found, the Safety Gate decides how to handle them: some issues trigger automatic fixes via codemod engines, followed by formatting; others are surfaced as diff proposals for developer review. All changes or findings loop back into re-checking (and optional tests) to ensure nothing breaks contract rules. The process yields either a clean result or a set of diffs for the developer, and always logs what rules were enforced for audit. This loop can run continuously (in an editor or pre-commit) and in CI to prevent regressions.
 
 ### Contract Layer
@@ -71,13 +71,13 @@ Using these standards means the contract is itself testable and can be independe
 
 Emperator builds an Intermediate Representation (IR) that abstracts the codebase in a language-agnostic graph. This is key to enforcing rules uniformly across a polyglot project. The IR construction has multiple layers:
 
-- **Parsing with Tree-sitter:**  
+- **Parsing with Tree-sitter:**
   Tree-sitter is used to parse source files of many languages into Concrete Syntax Trees (CSTs) rapidly and incrementally. It supports parsing on every keystroke with error tolerance, which means Emperator’s IR can update near-real-time as code changes. Tree-sitter’s parser runtime is in C and can be embedded anywhere, ensuring Emperator’s core remains dependency-free and fast. Dozens of language grammars are available (C, C++, Python, Go, Java, JavaScript, etc.)—providing generality.
 
-- **Semantic Enrichment with CodeQL:**  
+- **Semantic Enrichment with CodeQL:**
   For deeper understanding, Emperator generates a CodeQL database of the code (for supported languages). CodeQL treats code as queryable data: it creates a relational representation of program elements (classes, functions, call graphs, data flows) and allows writing queries in a Datalog-like language to find patterns. By querying the IR rather than raw code, Emperator can ask complex questions like "which functions access the database layer" or "where is type X used across modules." CodeQL’s approach (used in GitHub’s security scanning) is powerful: you first generate a database from the code, then run queries to identify issues. It supports multiple languages (C/C++, C#, Go, Java/Kotlin, JS/TS, Python, Ruby, etc.), though not all (e.g. PHP isn’t supported by CodeQL as of 2025, which Emperator must handle via other means). The CodeQL integration enables semantic checks and enforcement of architectural constraints that go beyond regex or AST patterns—for example, ensuring no forbidden function call is reachable from certain modules, by analyzing the call graph.
 
-- **Pattern Rules with Semgrep:**  
+- **Pattern Rules with Semgrep:**
   Emperator integrates Semgrep to leverage its extensive rulesets and multi-language pattern matching. Semgrep is a fast, open-source static analysis tool that finds code snippets matching abstract patterns (with a syntax resembling the source code). It covers 30+ languages and can run in milliseconds on code diffs or files. Emperator uses Semgrep in two ways:
   1. To enforce coding conventions and simple safety rules as defined in the Contract (e.g. naming conventions, banned APIs) by compiling contract guidelines into Semgrep rules.
   2. To run vetted security rules (like those from OWASP checks or the Semgrep community rule library) as part of its check phase.
@@ -92,10 +92,10 @@ Together, these layers form a unified IR: Tree-sitter provides a lossless syntax
 
 With the IR available, Emperator “compiles” the Project Contract into actionable tasks. The main action types are:
 
-- **Check:**  
+- **Check:**
   Emperator enforces contract rules by running Semgrep patterns, CodeQL queries, and contract validators against the IR. For example, if the contract specifies that files in `controllers/` must use lower_snake_case, Emperator generates or uses a Semgrep rule to check filenames. If an OpenAPI spec defines a POST `/items` endpoint with a `price: number` field, Emperator checks that the handler’s data model matches. Rego policies are evaluated via OPA integration to catch higher-level logic or config violations. Findings are tagged by severity and fixability. Security issues—such as SQL injection, use of `eval`, or hardcoded credentials—are flagged using CodeQL’s security queries and Semgrep’s rulesets. Each key check is evidence-gated, backed by official standards (e.g., OWASP) and proven static rules, minimizing false positives.
 
-- **Fix (Auto-Remediation):**  
+- **Fix (Auto-Remediation):**
   For fixable violations, Emperator applies codemods using language-specific transformation engines:
 
   - _Python:_ Uses LibCST to parse and transform code while preserving formatting and comments. For example, it can replace `%`-style string formatting with f-strings, ensuring minimal diffs.
@@ -104,10 +104,10 @@ With the IR available, Emperator “compiles” the Project Contract into action
 
   After fixes, Emperator re-checks the code against the contract to ensure no new issues were introduced. If a fix causes a new violation, it is rolled back and flagged for manual review, following a “first, do no harm” principle.
 
-- **Scaffold & Generate:**  
+- **Scaffold & Generate:**
   Emperator can generate boilerplate or migration scaffolding based on the contract. For example, if a new API endpoint is added to the OpenAPI spec, Emperator can scaffold a handler function, data model, or test skeleton using templates from `contract/generators/`. Generation actions are controlled—they do not overwrite existing code without permission and all created files are logged for review.
 
-- **Format:**  
+- **Format:**
   After fixes or generation, Emperator runs language-native formatters for consistency:
   - _Python:_ Ruff (fast linter/formatter), Black for additional formatting.
   - _JavaScript:_ Prettier or ESLint.
@@ -123,13 +123,13 @@ Emperator is architected as a core orchestrator with plugin interfaces for langu
 
 To ensure smooth operation:
 
-- **Incremental Analysis Daemon:**  
+- **Incremental Analysis Daemon:**
   Emperator can run as a background daemon, watching the filesystem or integrating with IDEs via LSP. Tree-sitter re-parses only edited parts efficiently; CodeQL databases can be updated incrementally; Semgrep runs per file or diff. Caching the IR enables near-instant feedback.
 
-- **Batch and Async Execution:**  
-  In CI, analyses are batched and run in parallel to utilize multiple cores. Quick checks can fail fast, while longer checks run in the background. The CLI supports modes like `emperor check --fast` for interactive use and `--full` for CI.
+- **Batch and Async Execution:**
+  In CI, analyses are batched and run in parallel to utilize multiple cores. Quick checks can fail fast, while longer checks run in the background. The CLI supports modes like `emperator check --fast` for interactive use and `--full` for CI.
 
-- **Memory Management:**  
+- **Memory Management:**
   For large codebases, Emperator loads analyses on demand—e.g., running specific CodeQL queries via CLI rather than loading the entire database in memory. Initial implementations target moderately sized projects, with documented constraints.
 
 **C4 Model Mapping:**
@@ -219,11 +219,11 @@ This detects forbidden calls.
 - Emperator’s Contract is code that can generate code.
 - Contract compilation itself is tested; e.g., if a contract update provides a wrong Semgrep pattern, Emperator should catch it (by testing the rule on sample code or via dry-run).
 - Contract authors validate new rules in a staging area.
-- `emperor dry-run` prints what would change without modifying code, allowing review of a new rule’s impact.
+- `emperator dry-run` prints what would change without modifying code, allowing review of a new rule’s impact.
 
 ---
 
-**Summary:**  
+**Summary:**
 From the static analysis engineer’s perspective, Emperator combines multiple analysis techniques for high coverage and uses proven transformation frameworks to modify code safely. Each check and fix is evidence-backed (by standards or prior tools). Uncertainties (aliasing, dynamic typing) are mitigated by secondary checks or human review when confidence is low. This approach aligns with state-of-the-art research: blending static analysis with automated repair can significantly improve code quality. For example, recent studies show LLMs guided by static analysis reduce security issues and improve code quality by 3–5× versus unguided code—Emperator applies a similar “analyze then fix” loop.
 
 ---
@@ -290,7 +290,7 @@ repos:
     hooks:
       - id: emperator
         name: Emperator Standards Check
-        entry: emperor apply --diff --color
+        entry: emperator apply --diff --color
         language: system
         pass_filenames: false
 ```
@@ -315,7 +315,7 @@ Emperator can run in CI on pull requests, posting results as comments or reports
 ## Minimal Config & Adoption
 
 - Emperator is mostly config-free aside from the contract.
-- Easy to install and run: `emperor apply`.
+- Easy to install and run: `emperator apply`.
 - Integrates with existing formats (OpenAPI, CUE, etc.).
 - Platform-agnostic: works on Linux, macOS, Windows, and with any VCS or editor supporting LSP.
 
@@ -337,17 +337,17 @@ GitHub Actions snippet:
 ```yaml
 - name: Run Emperator (Standards Enforcement)
   run: |
-    emperor apply --format=sarif --out=emperor.sarif || true
+    emperator apply --format=sarif --out=emperator.sarif || true
 - name: Upload Emperator Results
   uses: github/codeql-action/upload-sarif@v2
   with:
-    sarif_file: emperor.sarif
+    sarif_file: emperator.sarif
 ```
 
 Alternatively, strict enforcement:
 
 ```yaml
-- run: emperor apply --strict
+- run: emperator apply --strict
 ```
 
 ---
@@ -361,7 +361,7 @@ Alternatively, strict enforcement:
   - **Tier 1:** Localized refactors (auto-apply, test-verified)
   - **Tier 2:** Complex refactors (suggestion only)
   - **Tier 3:** Large changes (manual review)
-- All changes are traceable and reversible (supports `emperor undo`).
+- All changes are traceable and reversible (supports `emperator undo`).
 
 ---
 
@@ -374,7 +374,7 @@ Alternatively, strict enforcement:
 
 ---
 
-**In summary:**  
+**In summary:**
 Emperator integrates seamlessly into developer workflows, automates standards enforcement, educates users, and maintains a rigorous safety model. Its outputs are clear, actionable, and backed by authoritative sources, making it a trusted assistant for code quality and security.
 
 ### Air-Gapped Operation
@@ -383,14 +383,14 @@ Emperator is designed to run fully offline. All rule packs (e.g., Semgrep rules)
 
 ### Hardening Example
 
-**Scenario:**  
+**Scenario:**
 A function `def get_user(input): return eval(input)` is detected. The contract bans `eval`.
 
 - **Check phase:** Semgrep flags the usage.
 - **Fix phase:** Emperator suggests replacing `eval` with `ast.literal_eval` if context allows, or recommends refactoring. Since `literal_eval` only covers a subset, Emperator outputs a suggestion rather than auto-fixing, blocking CI until addressed.
 - **Safety:** Automation defers to human judgment for risky changes, ensuring no half-baked fixes are applied.
 
-**Another example:**  
+**Another example:**
 If Emperator auto-replaces a deprecated function but the new function behaves differently, tests are run post-change. If a test fails, Emperator reverts the change and issues a warning, preserving code integrity.
 
 ### Continuous Security Updates
@@ -403,7 +403,7 @@ Emperator is expected to significantly reduce security bugs and improve code rob
 
 ### AI Integration & Automated Refactoring
 
-**Role of AI:**  
+**Role of AI:**
 Emperator uses rule-based static analysis and codemods for most tasks. For complex or context-dependent issues, optional AI/LLM integration provides:
 
 - Intelligent refactor suggestions
@@ -411,7 +411,7 @@ Emperator uses rule-based static analysis and codemods for most tasks. For compl
 - Ranking and refinement of multiple fixes
 - Natural language explanations of flagged issues
 
-**Local AI Models:**  
+**Local AI Models:**
 Emperator favors local, open-source LLMs (e.g., Code Llama, StarCoder) for privacy and offline use. Organizations can plug in their own fine-tuned models.
 
 **Propose-Rank-Validate Loop:**
@@ -426,53 +426,53 @@ Emperator favors local, open-source LLMs (e.g., Code Llama, StarCoder) for priva
 - Code generation from contract specs
 - Documentation and explanation generation
 
-**Privacy & Governance:**  
+**Privacy & Governance:**
 AI suggestions are clearly marked, traceable, and can be disabled. Only models with appropriate licensing are integrated.
 
-**Execution Constraints:**  
+**Execution Constraints:**
 AI-assisted refactoring is opt-in, not run on every commit. Developers can trigger AI suggestions via CLI or as part of scheduled jobs.
 
-**Validation:**  
+**Validation:**
 All AI outputs are validated by Emperator’s static analysis and test gates. Invalid or insecure suggestions are discarded.
 
-**Continuous Learning:**  
+**Continuous Learning:**
 Organizations may fine-tune models on their own code patterns for tailored assistance, though this is optional and subject to privacy controls.
 
-**Documentation Generation:**  
+**Documentation Generation:**
 AI can draft docstrings or comments when required by contract, subject to developer review.
 
-**Case Study:**  
+**Case Study:**
 For large upgrades (e.g., Python 2 to 3), AI can suggest migration patches for patterns not easily handled by codemods.
 
-**Risk Mitigation:**  
+**Risk Mitigation:**
 Multi-layered validation and clear marking of AI-generated code ensure safety. Organizations can disable AI features if desired.
 
 ### Compliance & Governance
 
 Emperator enforces organizational standards, regulatory requirements, and supports controlled change management.
 
-**Versioned Rule Sets:**  
+**Versioned Rule Sets:**
 The Project Contract is versioned and tracked in VCS. Every change is reviewable and traceable, with contract versions referenced in code changes and commit messages.
 
-**Audit Trail & Provenance:**  
+**Audit Trail & Provenance:**
 Emperator logs every issue, fix, and rule reference. Outputs can be machine-readable (JSON/SARIF) and include provenance metadata (e.g., in-toto attestations, SLSA provenance).
 
-**Deprecation & Migration Governance:**  
+**Deprecation & Migration Governance:**
 Deprecations are declared in the contract, with staged enforcement and migration recipes. Audit logs show when and how migrations occurred.
 
-**Policy & Regulatory Compliance:**  
+**Policy & Regulatory Compliance:**
 Emperator encodes standards like MISRA C, CERT Secure Coding, HIPAA, etc., in the contract. Unified reporting simplifies audits and compliance evidence.
 
-**Separation of Duties:**  
+**Separation of Duties:**
 Governance teams maintain the contract; developers implement via Emperator. Changes to the contract are reviewable and flow automatically to code enforcement.
 
-**Exemptions & Risk Acceptance:**  
+**Exemptions & Risk Acceptance:**
 Waivers require justification and are tracked. Emperator can report all active exemptions for risk management.
 
-**SBOM & License Compliance:**  
+**SBOM & License Compliance:**
 Emperator generates SBOMs (CycloneDX/SPDX) and checks license compliance per contract rules (e.g., flagging GPL-3.0 dependencies).
 
-**Change Control:**  
+**Change Control:**
 Emperator and contract updates are versioned and subject to review. Backward compatibility and release notes ensure controlled evolution.
 
 ### Provenance Summary

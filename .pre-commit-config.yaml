@@ -18,30 +18,40 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args:
+          - --fix
       - id: ruff-format
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
     hooks:
       - id: yamllint
-        args: [ "-c", ".yamllint" ]
+        args:
+          - "-c"
+          - ".yamllint"
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.10.0-1
     hooks:
       - id: shfmt
-        args: [ "-w", "-i", "2", "-bn", "-ci" ]
+        args:
+          - "-w"
+          - "-i"
+          - "2"
+          - "-bn"
+          - "-ci"
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.1
     hooks:
       - id: actionlint
-        args: [ "-color=never" ]
+        args:
+          - "-no-color"
   - repo: local
     hooks:
       - id: cleanup-apple-cruft
         name: cleanup apple cruft
         entry: scripts/cleanup-macos-cruft.sh
         language: system
-        args: [ "--include-git" ]
+        args:
+          - "--include-git"
         pass_filenames: false
       - id: ban-apple-cruft
         name: ban apple cruft
@@ -52,7 +62,7 @@ repos:
         name: biome check (JS/TS)
         entry: pnpm biome check --write
         language: system
-        files: '\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$'
+        files: '\\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$'
         pass_filenames: false
       - id: eslint
         name: eslint (JS/TS)
@@ -63,4 +73,5 @@ repos:
         name: commitlint
         entry: pnpm commitlint --edit
         language: system
-        stages: [ commit-msg ]
+        stages:
+          - commit-msg

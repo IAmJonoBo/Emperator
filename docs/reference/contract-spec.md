@@ -57,7 +57,7 @@ def legacy_handler():
 ```
 
 - Place ignore annotations on the minimal scope (line, block, or file). Emperator will record the exemption in reports.
-- Exemptions without `justification` or `expires` are rejected when `emperor check --strict --enforce-expiry` runs.
+- Exemptions without `justification` or `expires` are rejected when `emperator check --strict --enforce-expiry` runs.
 - Track long-lived waivers in `contract/exemptions.yaml`:
 
 ```yaml
@@ -72,7 +72,7 @@ def legacy_handler():
 
 1. Run `cue fmt` and `cue vet contract/conventions.cue` to ensure structural validity.
 2. Execute `opa check` on Rego modules and run `opa eval` against sample findings.
-3. Dry-run Emperator (`emperor apply --diff --no-commit --fast`) to see the impact of new rules.
+3. Dry-run Emperator (`emperator apply --diff --no-commit --fast`) to see the impact of new rules.
 4. Update `docs/includes/copilot-prompts.md` with new rule exemplars.
 5. Increment the contract version tag and note changes in `contract/README.md`.
 

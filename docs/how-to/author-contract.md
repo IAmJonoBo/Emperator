@@ -111,7 +111,7 @@ flowchart LR
 	P[Draft rule change] --> R[Peer review
 	(code + policy experts)]
 	R --> V[Validate locally
-	(cue vet, opa eval, emperor dry-run)]
+	(cue vet, opa eval, emperator dry-run)]
 	V --> D[Decide release tier
 	(warn-only or enforce)]
 	D --> T[Tag contract version]
@@ -131,7 +131,7 @@ flowchart LR
 
 ## 8. Automate contract validation in CI
 
-- Add a job that runs `emperor check --strict --no-fix` against the latest contract to ensure it compiles and that generated rules are lint-free.
+- Add a job that runs `emperator check --strict --no-fix` against the latest contract to ensure it compiles and that generated rules are lint-free.
 - Fail fast if `cue fmt` or `opa fmt` detect formatting issues—consistency keeps diffs minimal.
 - Publish generated documentation (mkdocs, SARIF summaries) as build artefacts for reviewers.
 

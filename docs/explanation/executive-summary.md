@@ -62,7 +62,7 @@ timeline
 ```
 
 !!! tip "Adopt Emperator Gradually"
-    1. **Start in check-only mode:** Run `emperor check --format sarif` in CI to surface gaps without blocking merges.
+    1. **Start in check-only mode:** Run `emperator check --format sarif` in CI to surface gaps without blocking merges.
     2. **Pilot auto-fixes on low-risk rules:** Enable formatting and trivial codemods in a staging repo; confirm tests stay green.
     3. **Expand coverage iteratively:** Promote rules to `--strict` once teams trust the output, then introduce higher-tier codemods with safety gating.
     4. **Instrument metrics:** Track violations resolved, runtime, and waiver trends to prove ROI and identify where to invest next.

@@ -55,12 +55,12 @@ Reports --> Feedback[Developer & CI feedback loops]
 
 | Command | Purpose | Notes |
 | --- | --- | --- |
-| `emperor apply` | Compile contract, run checks, apply safe fixes, and re-validate. | Use `--diff`, `--no-commit`, `--fast`, or `--strict` depending on context. |
-| `emperor check` | Run checks without applying fixes. | Pair with `--format sarif` for CI uploads. |
-| `emperor explain` | Show provenance of the last run (contract version, applied rules, AI model metadata). | Helpful when auditing AI-assisted changes or exemption usage. |
-| `emperor sbom` | Generate CycloneDX or SPDX SBOMs from dependency manifests and IR metadata. | Supports `--format cyclonedx\|spdx` and `--output` path options. |
-| `emperor attest` | Produce in-toto attestations capturing rule enforcement and tool versions. | Combine with Sigstore Cosign for signed provenance. |
-| `emperor ai suggest` | Request AI-generated fixes for a finding set. | Respects rule safety tiers and always triggers the validation loop. |
+| `emperator apply` | Compile contract, run checks, apply safe fixes, and re-validate. | Use `--diff`, `--no-commit`, `--fast`, or `--strict` depending on context. |
+| `emperator check` | Run checks without applying fixes. | Pair with `--format sarif` for CI uploads. |
+| `emperator explain` | Show provenance of the last run (contract version, applied rules, AI model metadata). | Helpful when auditing AI-assisted changes or exemption usage. |
+| `emperator sbom` | Generate CycloneDX or SPDX SBOMs from dependency manifests and IR metadata. | Supports `--format cyclonedx\|spdx` and `--output` path options. |
+| `emperator attest` | Produce in-toto attestations capturing rule enforcement and tool versions. | Combine with Sigstore Cosign for signed provenance. |
+| `emperator ai suggest` | Request AI-generated fixes for a finding set. | Respects rule safety tiers and always triggers the validation loop. |
 
 ## Environment variables
 

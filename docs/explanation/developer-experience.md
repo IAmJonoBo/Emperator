@@ -4,13 +4,13 @@ Emperator is designed to feel like a teammate that automates busywork while keep
 
 ## One-command ergonomics
 
-- `emperor apply` defaults to a dry run that lists checks, fixes, and suggestions so developers can review diffs before committing.
+- `emperator apply` defaults to a dry run that lists checks, fixes, and suggestions so developers can review diffs before committing.
 - Rich console output cites rule IDs, contract evidence, and remediation steps, turning enforcement into a learning moment instead of a cryptic failure.
 - Exit codes align with CI expectations (`0` clean, `1` violations remaining) so Emperator slots into existing automation easily.
 
 ## Git-native workflows
 
-- Pre-commit integration (`entry: emperor apply --diff --color`) keeps local commits compliant without manual linting.
+- Pre-commit integration (`entry: emperator apply --diff --color`) keeps local commits compliant without manual linting.
 - CI pipelines can run fast (`--fast`) or full (`--strict`) modes and upload SARIF for inline review comments.
 - Auto-applied fixes carry provenance markers (rule id, contract version) in commit messages, making audit trails obvious.
 
@@ -21,11 +21,11 @@ participant Hook as Git Hooks
 participant CI as CI Pipeline
 participant Emp as Emperator
 Dev->>Hook: Commit changes
-Hook->>Emp: Run emperor apply --diff
+Hook->>Emp: Run emperator apply --diff
 Emp-->>Dev: Report diffs + rule IDs
 Dev->>Hook: Amend or proceed
 Hook->>CI: Push branch
-CI->>Emp: Run emperor apply --strict
+CI->>Emp: Run emperator apply --strict
 Emp-->>CI: Return SARIF + provenance
 CI-->>Dev: Surface checks in PR
 ```

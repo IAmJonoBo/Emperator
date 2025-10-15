@@ -3,10 +3,10 @@ name: Emperator CI
 on:
   push:
     paths:
-      - 'emperor/**'
+      - 'emperator/**'
   pull_request:
     paths:
-      - 'emperor/**'
+      - 'emperator/**'
 
 jobs:
   test:
@@ -22,8 +22,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[dev]
       - name: Run linters
-        run: ruff check emperor/src
+        run: ruff check emperator/src
       - name: Type check
-        run: mypy emperor/src
+        run: mypy emperator/src
       - name: Run tests
-        run: pytest emperor/tests
+        run: pytest emperator/tests

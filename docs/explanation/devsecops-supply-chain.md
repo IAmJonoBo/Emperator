@@ -4,13 +4,13 @@ Emperator embeds compliance and supply chain security controls into everyday dev
 
 ## SBOM discipline and dependency guardrails
 
-- Generate application SBOMs with `emperor sbom --format cyclonedx --output sbom/app.json` and merge them with base image or infrastructure BOMs to achieve full-stack visibility.
+- Generate application SBOMs with `emperator sbom --format cyclonedx --output sbom/app.json` and merge them with base image or infrastructure BOMs to achieve full-stack visibility.
 - Enforce license allowlists and dependency age thresholds by evaluating SBOM metadata through Rego policies.
 - Feed generated SBOMs into vulnerability scanners such as Dependency-Track or Microsoft Defender for continuous monitoring and alerting.
 
 ## Provenance and SLSA alignment
 
-- Emit in-toto attestations via `emperor attest --out provenance/intoto.jsonl`; sign them using Sigstore Cosign or internal PKI to establish a verifiable build record.
+- Emit in-toto attestations via `emperator attest --out provenance/intoto.jsonl`; sign them using Sigstore Cosign or internal PKI to establish a verifiable build record.
 - Attach signed attestations and SBOMs to release artefacts so auditors can confirm the contract version, Emperator build version, and rule set applied.
 - Keep the Project Contract versioned to provide a transparent change log for every standards update.
 
@@ -35,7 +35,7 @@ Emperator embeds compliance and supply chain security controls into everyday dev
 ## Exemption governance and reporting
 
 - Record waivers in `contract/exemptions.yaml` with owner, expiry, and mitigation notes; Emperator can fail builds when waivers lapse or lack justification.
-- Export waiver reports (`emperor explain --exemptions --format table`) for compliance dashboards and recurring review cadences.
+- Export waiver reports (`emperator explain --exemptions --format table`) for compliance dashboards and recurring review cadences.
 - Require review comments to reference rule IDs so accepted risk is always traceable to the originating standard.
 
 By treating supply chain signals as first-class artefacts, Emperator keeps code, policies, and audit evidence synchronized—helping teams reach higher SLSA tiers without bolting on one-off scripts.

@@ -1,14 +1,14 @@
 # Using AI-Assisted Refactors Safely
 
-Emperor’s deterministic codemods cover common rules, but some refactors benefit from context-aware suggestions. This guide explains how to enable local LLM support and keep every AI-generated change within Emperator’s safety envelope.
+Emperator’s deterministic codemods cover common rules, but some refactors benefit from context-aware suggestions. This guide explains how to enable local LLM support and keep every AI-generated change within Emperator’s safety envelope.
 
 ## 1. Enable local models
 
 - Install an open-source code-capable model (e.g., Code Llama, StarCoder, Phi-3) that fits your security requirements. Keep weights on-prem to avoid leaking proprietary code.
-- Configure Emperator’s AI bridge via `emperor ai init --model path/to/model.gguf --max-tokens 1024`. This stores model metadata in `.emperor/config.yaml`.
+- Configure Emperator’s AI bridge via `emperator ai init --model path/to/model.gguf --max-tokens 1024`. This stores model metadata in `.emperator/config.yaml`.
 - Set `EMPERATOR_AI_ENABLED=1` in your environment to opt in.
 
-```yaml title=".emperor/config.yaml"
+```yaml title=".emperator/config.yaml"
 ai:
   provider: local
   model_path: /models/code-llama-13b.gguf
@@ -61,12 +61,12 @@ Return unified diff only.
 
 - Map each contract rule to a safety tier (`formatting`, `low`, `medium`, `high`). Allow automatic AI fixes only for `formatting` and `low`; surface `medium/high` as reviewable diffs.
 - Require human approval when AI changes touch security-critical modules, persistence layers, or public API contracts.
-- Log provenance (model version, prompt hash) with `emperor explain --last` so reviewers can inspect the AI context.
+- Log provenance (model version, prompt hash) with `emperator explain --last` so reviewers can inspect the AI context.
 
 ## 5. Test before trusting
 
-- Run `emperor test --scope touched-files` after each accepted AI patch. Emperator can synthesize property-based tests for marked functions, providing additional assurance.
-- For migrations, pair AI-generated diffs with codemod regression tests to ensure idempotence (`emperor codemod verify path/to/recipe.py`).
+- Run `emperator test --scope touched-files` after each accepted AI patch. Emperator can synthesize property-based tests for marked functions, providing additional assurance.
+- For migrations, pair AI-generated diffs with codemod regression tests to ensure idempotence (`emperator codemod verify path/to/recipe.py`).
 
 ## Lint-aware fixes {#lint-aware-fixes}
 

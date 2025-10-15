@@ -4,7 +4,7 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 
 ## SBOM production and validation
 
-- Run `emperor sbom --format cyclonedx --output sbom/app.json` in CI after successful checks.
+- Run `emperator sbom --format cyclonedx --output sbom/app.json` in CI after successful checks.
 - Merge application SBOMs with base image or infrastructure SBOMs to achieve full-stack visibility.
 - Feed generated SBOMs into vulnerability management platforms (Dependency-Track, Azure Defender, etc.) for continuous monitoring.
 - Configure contract policies to block disallowed licenses or aged dependencies by querying SBOM metadata in OPA.
@@ -17,7 +17,7 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 
 ## Provenance and attestations
 
-- Use `emperor attest --out provenance/intoto.jsonl` to emit in-toto statements describing the contract version, Emperator release, and rule outcomes.
+- Use `emperator attest --out provenance/intoto.jsonl` to emit in-toto statements describing the contract version, Emperator release, and rule outcomes.
 - Sign attestations with Sigstore Cosign (`cosign attest --predicate provenance/intoto.jsonl image:tag`) or an internal PKI for regulated environments.
 - Store signed attestations alongside release artefacts so auditors can verify origin and integrity.
 - Include hashes of generated reports (SARIF, SBOM) inside the attestation payload for tamper evidence.
@@ -35,8 +35,8 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 
 - Collect all approved waivers in `contract/exemptions.yaml` with owner, expiry, and mitigation plan.
 - Schedule a recurring review (e.g., monthly) where compliance leads confirm whether exemptions can be retired.
-- Set `emperor check --strict --enforce-expiry` in protected branch pipelines to prevent stale waivers from slipping through.
-- Export exemption reports via `emperor explain --format json` and feed them into dashboards for executive visibility.
+- Set `emperator check --strict --enforce-expiry` in protected branch pipelines to prevent stale waivers from slipping through.
+- Export exemption reports via `emperator explain --format json` and feed them into dashboards for executive visibility.
 
 ## Audit-ready logging
 

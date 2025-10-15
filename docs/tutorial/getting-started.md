@@ -80,13 +80,13 @@ def get_user():
 
 The filename mixes casing, the code embeds a credential-like string, and the controller hits the database layer directly.
 
-## Step 3 — Run `emperor apply`
+## Step 3 — Run `emperator apply`
 
 Execute the CLI at the project root to compile the contract, build the IR, and run checks.
 
 ```bash
 cd sample-app
-emperor apply --diff --format table
+emperator apply --diff --format table
 ```
 
 Typical output after the first run:
@@ -139,7 +139,7 @@ flowchart LR
 - Replace the hardcoded credential with a secrets manager reference.
 - Move the database call into a dedicated service module and expose a service method to the controller.
 
-Re-run `emperor apply` until the summary shows `✅ Standards satisfied`.
+Re-run `emperator apply` until the summary shows `✅ Standards satisfied`.
 
 ## Step 5 — Align linting and install the pre-commit hook
 
@@ -159,7 +159,7 @@ repos:
     hooks:
       - id: emperator
         name: Emperator Standards Check
-        entry: emperor apply --diff --color
+        entry: emperator apply --diff --color
         language: system
         pass_filenames: false
 ```

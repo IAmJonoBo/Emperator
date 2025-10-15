@@ -17,7 +17,7 @@ Emperator hardens codebases by combining defense-in-depth analysis with conserva
 ## Property-based and regression testing
 
 - Generates Hypothesis-based round-trip tests for designated data structures (e.g., DTO serialization) to confirm behaviour remains intact after refactors.
-- Supports codemod regression suites (`emperor codemod verify`) to guarantee recipes remain safe as contracts evolve.
+- Supports codemod regression suites (`emperator codemod verify`) to guarantee recipes remain safe as contracts evolve.
 
 ## Exemption hygiene
 

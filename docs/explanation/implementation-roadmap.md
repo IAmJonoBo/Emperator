@@ -19,7 +19,7 @@ Phase1 --> Phase2 --> Phase3 --> Phase4 --> Phase5
 - **Checks:** Detect naming convention violations, forbidden imports across layers, and insecure shell execution.
 - **Fixes:** Auto-rename identifiers via LibCST, run Ruff/Black formatters, and scaffold missing handlers implied by the contract.
 - **Safety:** Re-run checks after fixes and execute at least one property-based test (e.g., DTO round-trip) to show the safety envelope in action.
-- **CLI experience:** Deliver `emperor apply` with diff output, summaries, and exit codes suitable for pre-commit and CI.
+- **CLI experience:** Deliver `emperator apply` with diff output, summaries, and exit codes suitable for pre-commit and CI.
 - **Demo project:** Curate a sample repo exhibiting each violation type to showcase before/after results.
 
 ## Phase 2: Developer feedback loop {#phase-2-rollout}

@@ -78,7 +78,7 @@ Output a table with columns: Rule, Owner, Expiry, Status, Notes.
 Reviewer mode: Ensure the change complies with the Emperator contract.
 
 Steps:
-1. Confirm `emperor apply --diff --no-commit` was run (look for provenance comment).
+1. Confirm `emperator apply --diff --no-commit` was run (look for provenance comment).
 2. Check SARIF or Emperator report attachments for unresolved violations.
 3. Validate SBOM/provenance artefacts attached if release-impacting.
 4. Ensure AI-assisted diffs include model/version metadata.

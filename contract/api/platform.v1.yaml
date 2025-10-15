@@ -62,5 +62,5 @@ paths:
                   sourcePath:
                     type: string
                     description: Repository-relative path to the contract artifact.
-                    example: emperor/contract/api/platform.v1.yaml
+                    example: emperator/contract/api/platform.v1.yaml
 components: {}

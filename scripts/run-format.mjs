@@ -68,19 +68,21 @@ const resolveUv = () => {
 
 const tasks = [() => runScript("fmt:yaml"), () => runScript("fmt:biome")];
 
-if (wantsAll) {
-  const uvBinary = resolveUv();
-  if (!uvBinary) {
-    logError(
-      "pnpm fmt --all requires uv on PATH (or UV_BIN). Install uv from https://docs.astral.sh/uv/ and retry."
-    );
-    process.exit(1);
-  }
-
-  tasks.push(
-    () => runCommand(uvBinary, ["run", "ruff", "format", "."]),
-    () => runCommand(uvBinary, ["run", "ruff", "check", ".", "--fix"])
+const uvBinary = resolveUv();
+if (!uvBinary) {
+  logError(
+    "pnpm fmt requires uv on PATH (or UV_BIN) so Ruff can format and sort imports. Install uv from https://docs.astral.sh/uv/ and retry."
   );
+  process.exit(1);
+}
+
+tasks.push(
+  () => runCommand(uvBinary, ["run", "ruff", "format", "."]),
+  () => runCommand(uvBinary, ["run", "ruff", "check", ".", "--select", "I", "--fix"])
+);
+
+if (wantsAll) {
+  tasks.push(() => runCommand(uvBinary, ["run", "ruff", "check", ".", "--fix"]));
 }
 
 for (const task of tasks) {

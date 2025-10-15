@@ -180,28 +180,27 @@ jobs:
 
 ### Quick bootstrap (all tooling) {#quick-bootstrap}
 
-- Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) after cloning. It generates/refreshes `uv.lock`, runs `uv sync --group dev` so `.venv/` aligns with the lockfile, fetches pnpm dependencies (with `pnpm fetch` + `pnpm install --frozen-lockfile` in CI), and then defers to `setup-linting.sh` for formatter/linter checks. Pass `--ci` inside automation to skip hook installation while still running the lint pipeline.
+- Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) after cloning. It generates/refreshes `uv.lock`, runs `uv sync --group dev` so `.venv/` aligns with the lockfile, fetches pnpm dependencies (with `pnpm fetch` + `pnpm install --frozen-lockfile` in CI), defers to `setup-linting.sh` for formatter/linter checks, and installs both `pre-commit` and `commit-msg` hooks when not in CI. Pass `--ci` inside automation to skip hook installation while still running the lint pipeline.
 
 ### 1. Editor workflow (reproducible, LSP-centred) {#editor-workflow}
 
 - Rely on Language Server Protocol integrations in VS Code, Neovim, or any LSP-capable editor to surface completion, diagnostics, and codemod-ready code actions.
 - Launch projects inside Dev Containers so the editor boots a pre-tooled environment described in `devcontainer.json`; once cached locally the workflow stays reliable offline.
 - Track shared formatting defaults via a root-level `.editorconfig` so secondary editors match the same indentation, end-of-line, and charset expectations.
+- Reuse the checked-in `.vscode/settings.json` to pin Ruff as the Python formatter, Biome as the JSON/JS/TS formatter, and the workspace interpreter at `${workspaceFolder}/.venv/bin/python` for consistent on-save behaviour.
+- Use the shared `.vscode/launch.json` debug profiles for `pytest tests`, `emperator scaffold audit`, and `uvicorn emperator.api:app --reload` to reduce task boilerplate across machines.
 
 ### 2. Python lane (first-class) {#python-lane}
 
-- Use [uv](https://docs.astral.sh/uv/) for package management and virtual environments. It is a drop-in `pip` replacement that produces a universal lockfile and delivers order-of-magnitude speedups.
 - Run [Ruff](https://docs.astral.sh/ruff/) for both linting and formatting, aligning with the [Python entry in the Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks). Pair it with `pytest` and `coverage` for fast unit feedback.
 - Keep project environments self-contained. Export `UV_VENV_IN_PROJECT=1` (or equivalent `PIPENV_VENV_IN_PROJECT=1` / `poetry config virtualenvs.in-project true`) so your virtual environments live under `.venv/` inside the repository and can be pruned with a single `rm -rf`.
-
-### 3. TypeScript and JavaScript {#typescript-javascript}
 
 - Prefer [pnpm](https://pnpm.io/) workspaces for installs; they keep disk usage low and caching predictable across Dev Containers and CI.
 - Reach for [Biome](https://biomejs.dev/) when a single binary can handle lint and format. If framework plugins or bespoke rules are required, fall back to the ESLint plus Prettier combo referenced in the [Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks).
 - Use the repo-scoped `.npmrc` (sets `store-dir=./.pnpm-store`) so pnpm’s content-addressable store remains under version control boundaries. Run `pnpm store prune` periodically if you need to reclaim disk space.
 - Biome is configured to auto-organise imports, clamp line width to 100 characters, enforce two-space indentation, and prefer double quotes with required semicolons. These defaults are applied globally via the `formatter` block so any Biome-supported language inherits the same layout conventions and aligns with the contract examples in [Authoring and Evolving the Project Contract](../how-to/author-contract.md#2-define-structural-conventions-with-cue).
-- Bootstrap or re-run the full lint/format toolchain with `pnpm run setup:lint`. The script installs dependencies, installs the `pre-commit` and commit-msg hooks, formats the tree with Biome, and then executes the combined `pnpm lint` pipeline (Biome check + ESLint). In CI or deployment environments, call `pnpm run setup:lint -- --ci` to skip hook installation and avoid write operations while still running the gate checks.
-- Reach for `pnpm fmt --all` when you want a single command to rewrite YAML, Biome-managed assets, and Python files (`ruff format` + `ruff check --fix` via uv). Without flags, `pnpm fmt` limits itself to YAML + Biome.
+- Bootstrap or re-run the full lint/format toolchain with `pnpm run setup:lint`. The script installs dependencies, installs the `pre-commit` and commit-msg hooks, formats the tree with Biome, and then executes the combined `pnpm lint` pipeline (Ruff + Biome + ESLint). In CI or deployment environments, call `pnpm run setup:lint -- --ci` to skip hook installation and avoid write operations while still running the gate checks.
+- Reach for `pnpm fmt` for YAML, Biome-managed assets, Python formatting, and Ruff-powered import sorting (`ruff format` + `ruff check --select I --fix`). Append `--all` to enable the broader `ruff check --fix` sweep in the same pass. Ensure `uv` is available (installed via `scripts/setup-tooling.sh`) so the Ruff invocations succeed.
 - ESLint remains in place for rules Biome does not yet cover (module boundary policies, import hygiene beyond ordering, etc.). Keep both tools wired into `pre-commit` so contributors see the same failures locally that CI enforces.
 
 ### 4. Git hooks, commit hygiene, and PR UX {#git-hygiene}
@@ -218,7 +217,7 @@ jobs:
 
 ### 6. Optional but excellent {#optional-additions}
 
-- Install VS Code extensions such as [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) for inline diagnostics and [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) for history context.
+- Install VS Code extensions such as [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) for Python lint/format integration, [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) for inline diagnostics, [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens) for history context, and the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to power the debug profiles described above.
 - Build documentation with MkDocs Material (this site) or Sphinx; embed architecture visuals with Mermaid. Align prose and code styling through `.editorconfig` and the docs lint tooling captured in the [automation section of the Toolchain Matrix](toolchain.md#automation-to-keep-this-reference-current).
 
 ## Nice visual touches without noise {#visual-touches}

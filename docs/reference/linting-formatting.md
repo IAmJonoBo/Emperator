@@ -43,10 +43,12 @@ profile. Key decisions:
 
 Biome runs via two scripts:
 
-- `pnpm fmt` delegates to `scripts/run-format.mjs`, which formats YAML (`scripts/format-yaml.mjs`) and then
-  calls `biome format --write .`. Pass `--all` to also invoke `uv run ruff format .` and
-  `uv run ruff check . --fix`, giving Python sources the same two-space, 100-column treatment in
-  one command.
+- `pnpm fmt` delegates to `scripts/run-format.mjs`, which formats YAML (`scripts/format-yaml.mjs`),
+  runs `biome format --write .`, then executes `uv run ruff format .` followed by
+  `uv run ruff check . --select I --fix` to keep Python sources aligned and imports sorted. Append
+  `--all` to include a full `uv run ruff check . --fix` sweep after the import-only pass. Install
+  `uv` (or run `scripts/setup-tooling.sh`) before invoking the formatter so the Ruff commands are
+  available.
 - `pnpm check` executes `biome check .` without writes and is the first half of `pnpm lint`.
 
 ESLint supplements Biome with rules that require type/module awareness. `eslint.config.js` imports
@@ -59,9 +61,9 @@ ESLint's flat config plus the TypeScript preset from `typescript-eslint` and the
 - **Ignored paths** &mdash; Matches Biome's exclusions and adds `.venv/`, `.pnpm-store/`, and coverage
   reports so ESLint never inspects generated output.
 
-Run ESLint with `pnpm lint:eslint`. The combined `pnpm lint` script first invokes `pnpm check`
-(Biome) and then `pnpm lint:eslint`, guaranteeing that both formatting and semantic linting pass
-before CI greenlights a change.
+Run ESLint with `pnpm lint:eslint`. The combined `pnpm lint` script now runs `pnpm lint:ruff`,
+`pnpm check` (Biome), and `pnpm lint:eslint`, guaranteeing Ruff, Biome, and ESLint all pass before
+CI greenlights a change.
 
 ## YAML style enforcement: format script + yamllint
 
@@ -108,6 +110,10 @@ source .venv/bin/activate
 ruff check .
 ruff format .
 ```
+
+Alternatively, use the project script `pnpm lint:ruff` to execute `uv run ruff check .` without
+manually activating the virtualenv; `pnpm fmt` now calls the Ruff formatter and import sorter in the
+same pass.
 
 Because `scripts/setup-tooling.sh` drives `uv lock`/`uv sync`, the project-managed `.venv/` always
 has the right version of Ruff and the dev dependencies on the path.

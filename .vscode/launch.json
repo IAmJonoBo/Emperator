@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pytest: tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "CLI: emperator scaffold audit",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "emperator.cli",
+      "args": ["scaffold", "audit"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "FastAPI: uvicorn emperator.api:app --reload",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["emperator.api:app", "--reload"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    }
+  ]
+}

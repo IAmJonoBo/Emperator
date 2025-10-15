@@ -14,7 +14,15 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeEl
 from rich.table import Table
 
 from . import __version__
-from .analysis import AnalyzerPlan, gather_analysis, plan_tool_invocations
+from .analysis import (
+    AnalyzerPlan,
+    InMemoryTelemetryStore,
+    JSONLTelemetryStore,
+    TelemetryStore,
+    fingerprint_analysis,
+    gather_analysis,
+    plan_tool_invocations,
+)
 from .doctor import (
     CheckStatus,
     DoctorCheckResult,
@@ -40,6 +48,21 @@ ROOT_OPTION = typer.Option(
     None,
     '--root',
     help='Override the project root (defaults to the current working directory).',
+    dir_okay=True,
+    file_okay=False,
+)
+
+TELEMETRY_STORE_OPTION = typer.Option(
+    'memory',
+    '--telemetry-store',
+    help='Telemetry backend to use: memory, jsonl, or off.',
+    show_default=False,
+)
+
+TELEMETRY_PATH_OPTION = typer.Option(
+    None,
+    '--telemetry-path',
+    help='Directory for telemetry persistence when using the jsonl backend.',
     dir_okay=True,
     file_okay=False,
 )
@@ -73,6 +96,8 @@ FIX_RUN_MODE_OPTION = typer.Option(
 class CLIState:
     project_root: Path
     console: Console
+    telemetry_store: TelemetryStore | None
+    telemetry_path: Path | None
 
 
 def _get_state(ctx: typer.Context) -> CLIState:
@@ -91,12 +116,34 @@ def _status_style(status: CheckStatus) -> str:
 def main(
     ctx: typer.Context,
     root: Path | None = ROOT_OPTION,
+    telemetry_store: str = TELEMETRY_STORE_OPTION,
+    telemetry_path: Path | None = TELEMETRY_PATH_OPTION,
 ) -> None:
     """Initialise CLI context and greet the user."""
 
     console = Console()
     project_root = (root or Path.cwd()).resolve()
-    ctx.obj = CLIState(project_root=project_root, console=console)
+    store_choice = telemetry_store.lower()
+    store: TelemetryStore | None
+    resolved_path: Path | None = None
+    if store_choice == 'off':
+        store = None
+    elif store_choice == 'jsonl':
+        resolved_path = (telemetry_path or project_root / '.emperator' / 'telemetry').resolve()
+        store = JSONLTelemetryStore(resolved_path)
+    elif store_choice == 'memory':
+        store = InMemoryTelemetryStore()
+    else:
+        raise typer.BadParameter(
+            "Unsupported telemetry store. Choose from 'memory', 'jsonl', or 'off'.",
+            param_hint='--telemetry-store',
+        )
+    ctx.obj = CLIState(
+        project_root=project_root,
+        console=console,
+        telemetry_store=store,
+        telemetry_path=resolved_path,
+    )
     console.print(
         f'[bold cyan]Emperator CLI[/] v{__version__} — root: [bold]{project_root}[/]',
     )
@@ -202,18 +249,43 @@ def _render_analysis_report(console: Console, report) -> None:
         console.print(Panel(Markdown(hints), title='Hints', border_style='cyan'))
 
 
-def _render_analysis_plan(console: Console, plans: Iterable[AnalyzerPlan]) -> None:
+def _render_analysis_plan(
+    console: Console,
+    plans: Iterable[AnalyzerPlan],
+    *,
+    fingerprint: str,
+    telemetry_store: TelemetryStore | None,
+    telemetry_path: Path | None,
+) -> None:
+    materialised = tuple(plans)
+    console.print(f'[bold cyan]Telemetry fingerprint:[/] {fingerprint}')
+    if telemetry_store is None:
+        console.print('[yellow]Telemetry disabled for this session.[/]')
+    else:
+        latest = telemetry_store.latest(fingerprint)
+        if latest is None:
+            console.print('[yellow]No telemetry recorded for this plan yet.[/]')
+        else:
+            status = 'success' if latest.successful else 'issues detected'
+            console.print(
+                '[cyan]Last run:[/] '
+                f'{latest.completed_at.isoformat()} '
+                f'({status}, {len(latest.events)} events, {latest.duration_seconds:.2f}s)'
+            )
+    if telemetry_path is not None:
+        console.print(f'[green]Telemetry directory:[/] {telemetry_path}')
+
     table = Table(title='Analysis Execution Plan', show_lines=False)
     table.add_column('Tool', style='cyan')
     table.add_column('Ready', justify='center')
     table.add_column('Summary', style='white')
-    for plan in plans:
+    for plan in materialised:
         icon = '✅' if plan.ready else '⚠️'
         style = 'green' if plan.ready else 'yellow'
         table.add_row(plan.tool, f'[{style}]{icon}[/]', plan.reason)
     console.print(table)
 
-    for plan in plans:
+    for plan in materialised:
         if not plan.steps:
             continue
         steps_table = Table(title=f'{plan.tool} Steps', show_lines=False)
@@ -324,13 +396,20 @@ def analysis_plan(ctx: typer.Context) -> None:
 
     state = _get_state(ctx)
     report = gather_analysis(state.project_root)
-    plans = plan_tool_invocations(report)
+    plans = tuple(plan_tool_invocations(report))
     if not plans:
         state.console.print(
             '[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]'
         )
         return
-    _render_analysis_plan(state.console, plans)
+    fingerprint = fingerprint_analysis(report, plans, metadata={'command': 'analysis-plan'})
+    _render_analysis_plan(
+        state.console,
+        plans,
+        fingerprint=fingerprint,
+        telemetry_store=state.telemetry_store,
+        telemetry_path=state.telemetry_path,
+    )
 
 
 @fix_app.command('plan')

@@ -5,6 +5,10 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
 ## Global options
 
 - `--root PATH`: run commands against a different checkout (defaults to the current directory).
+- `--telemetry-store {memory,jsonl,off}`: choose how the CLI persists analyzer telemetry (in-memory
+  for ephemeral sessions, JSONL for on-disk history, or disabled).
+- `--telemetry-path PATH`: override the default `.emperator/telemetry` directory when using the JSONL
+  store.
 
 ## Scaffold commands
 
@@ -27,3 +31,5 @@ Outputs are rendered with Rich progress spinners and colour-coded tables for qui
 - `emperator analysis inspect`: build an at-a-glance report that highlights detected languages, example files, and whether Semgrep, CodeQL, and the Tree-sitter CLI are installed. The command renders progress bars while collecting the data and concludes with actionable hints.
 - `emperator analysis wizard`: guide developers (and copilots) through the steps required to bring the IR pipeline online, highlighting missing tooling with friendly reminders and celebrating ready-to-use analyzers.
 - `emperator analysis plan`: synthesise an execution plan for supported analyzers, including the exact Semgrep and CodeQL commands to run and whether the tools are ready to execute.
+  When telemetry persistence is enabled the command also surfaces the plan fingerprint, last run
+  timestamp, and the on-disk telemetry directory (if applicable).

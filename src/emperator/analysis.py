@@ -23,6 +23,7 @@ __all__ = [
     'TelemetryRun',
     'TelemetryStore',
     'InMemoryTelemetryStore',
+    'JSONLTelemetryStore',
     'fingerprint_analysis',
     'detect_languages',
     'gather_analysis',
@@ -108,6 +109,23 @@ class TelemetryEvent:
             'metadata': dict(self.metadata or {}),
         }
 
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> TelemetryEvent:
+        """Rehydrate telemetry event metadata from a payload."""
+
+        metadata = payload.get('metadata') or None
+        normalized_metadata = None
+        if metadata is not None:
+            normalized_metadata = {str(key): str(value) for key, value in dict(metadata).items()}
+        return cls(
+            tool=str(payload['tool']),
+            command=tuple(str(part) for part in payload.get('command', ())),
+            exit_code=int(payload.get('exit_code', 0)),
+            duration_seconds=float(payload.get('duration_seconds', 0.0)),
+            timestamp=datetime.fromisoformat(str(payload['timestamp'])),
+            metadata=normalized_metadata,
+        )
+
 
 @dataclass(frozen=True)
 class TelemetryRun:
@@ -131,6 +149,34 @@ class TelemetryRun:
         """Whether all recorded events completed successfully."""
 
         return all(event.exit_code == 0 for event in self.events)
+
+    def to_payload(self) -> dict[str, Any]:
+        """Serialise the telemetry run for persistence."""
+
+        return {
+            'fingerprint': self.fingerprint,
+            'project_root': str(self.project_root),
+            'started_at': self.started_at.isoformat(),
+            'completed_at': self.completed_at.isoformat(),
+            'events': [event.to_payload() for event in self.events],
+            'notes': list(self.notes),
+        }
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> TelemetryRun:
+        """Reconstruct a telemetry run from a JSON payload."""
+
+        events = tuple(
+            TelemetryEvent.from_payload(raw_event) for raw_event in payload.get('events', ())
+        )
+        return cls(
+            fingerprint=str(payload['fingerprint']),
+            project_root=Path(str(payload['project_root'])),
+            started_at=datetime.fromisoformat(str(payload['started_at'])),
+            completed_at=datetime.fromisoformat(str(payload['completed_at'])),
+            events=events,
+            notes=tuple(str(note) for note in payload.get('notes', ())),
+        )
 
 
 @runtime_checkable
@@ -164,6 +210,55 @@ class InMemoryTelemetryStore:
 
     def history(self, fingerprint: str) -> tuple[TelemetryRun, ...]:
         return tuple(self._runs.get(fingerprint, ()))
+
+
+class JSONLTelemetryStore:
+    """Persist telemetry runs to JSON Lines files on disk."""
+
+    def __init__(self, directory: Path | str, *, max_history: int | None = None) -> None:
+        self.directory = Path(directory)
+        self.directory.mkdir(parents=True, exist_ok=True)
+        self._max_history = max_history
+
+    def _path_for(self, fingerprint: str) -> Path:
+        return self.directory / f'{fingerprint}.jsonl'
+
+    def _read_runs(self, fingerprint: str) -> list[TelemetryRun]:
+        path = self._path_for(fingerprint)
+        if not path.exists():
+            return []
+        runs: list[TelemetryRun] = []
+        with path.open('r', encoding='utf-8') as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                payload = json.loads(line)
+                runs.append(TelemetryRun.from_payload(payload))
+        return runs
+
+    def _write_runs(self, fingerprint: str, runs: Iterable[TelemetryRun]) -> None:
+        path = self._path_for(fingerprint)
+        with path.open('w', encoding='utf-8') as handle:
+            for run in runs:
+                json.dump(run.to_payload(), handle, sort_keys=True)
+                handle.write('\n')
+
+    def persist(self, run: TelemetryRun) -> None:
+        history = self._read_runs(run.fingerprint)
+        history.append(run)
+        if self._max_history is not None:
+            history = history[-self._max_history :]
+        self._write_runs(run.fingerprint, history)
+
+    def latest(self, fingerprint: str) -> TelemetryRun | None:
+        history = self._read_runs(fingerprint)
+        if not history:
+            return None
+        return history[-1]
+
+    def history(self, fingerprint: str) -> tuple[TelemetryRun, ...]:
+        return tuple(self._read_runs(fingerprint))
 
 
 _LANGUAGE_MAP: dict[str, str] = {

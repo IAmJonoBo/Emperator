@@ -13,6 +13,7 @@ try:
         AnalyzerCommand,
         AnalyzerPlan,
         InMemoryTelemetryStore,
+        JSONLTelemetryStore,
         LanguageSummary,
         TelemetryEvent,
         TelemetryRun,
@@ -30,6 +31,7 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
         AnalyzerCommand,
         AnalyzerPlan,
         InMemoryTelemetryStore,
+        JSONLTelemetryStore,
         LanguageSummary,
         TelemetryEvent,
         TelemetryRun,
@@ -335,3 +337,71 @@ def test_in_memory_store_persists_runs(tmp_path: Path) -> None:
     assert store.history(fingerprint) == (run,)
     assert run.successful is True
     assert run.duration_seconds == 0.0
+
+
+def test_jsonl_store_persists_history(tmp_path: Path) -> None:
+    """JSONL telemetry store should persist runs and enforce history limits."""
+
+    store = JSONLTelemetryStore(tmp_path / 'telemetry', max_history=2)
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with the selected configuration over the repository.',
+                ),
+            ),
+        ),
+    )
+    fingerprint = fingerprint_analysis(report, plan)
+    telemetry_file = tmp_path / 'telemetry' / f'{fingerprint}.jsonl'
+
+    timestamps = [datetime.now(UTC), datetime.now(UTC), datetime.now(UTC)]
+    for idx, timestamp in enumerate(timestamps, start=1):
+        event = TelemetryEvent(
+            tool='Semgrep',
+            command=plan[0].steps[0].command,
+            exit_code=0,
+            duration_seconds=idx * 1.5,
+            timestamp=timestamp,
+            metadata={'config': f'auto-{idx}'},
+        )
+        run = TelemetryRun(
+            fingerprint=fingerprint,
+            project_root=tmp_path,
+            started_at=timestamp,
+            completed_at=timestamp,
+            events=(event,),
+            notes=(f'run-{idx}',),
+        )
+        store.persist(run)
+
+    assert telemetry_file.exists()
+
+    # Append an empty line to validate parser resilience.
+    with telemetry_file.open('a', encoding='utf-8') as handle:
+        handle.write('\n')
+
+    assert store.latest('missing-fingerprint') is None
+    history = store.history(fingerprint)
+    assert len(history) == 2
+    assert history[-1].notes == ('run-3',)
+    assert store.latest(fingerprint) == history[-1]
+    assert history[0].notes == ('run-2',)
+    assert all(entry.events[0].metadata for entry in history)

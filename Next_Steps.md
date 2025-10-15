@@ -17,7 +17,8 @@
 - [x] Model analyzer execution telemetry + caching strategy for follow-up automation (Owner: AI, Due: Current pass)
 - [ ] Implement analyzer telemetry persistence once design lands (Owner: Maintainers, Due: Upcoming sprint)
 - [ ] Evaluate automated guardrails for regenerated YAML assets (contract + compose) to prevent accidental churn (Owner: Maintainers, Due: Upcoming sprint)
-- [ ] Prototype JSONL-backed telemetry store and CLI integration flag (Owner: AI, Due: Next pass)
+- [x] Prototype JSONL-backed telemetry store and CLI integration flag (Owner: AI, Due: Current pass)
+- [ ] Thread telemetry capture through analyzer execution once orchestration lands (Owner: Maintainers, Due: Upcoming sprint)
 
 ## Steps
 
@@ -32,13 +33,15 @@
 - Completed: seeded ADR template (`docs/adr/0000-template.md`) and recorded sprint-driving decisions (ADR-0001/0002).
 - Pending: remediate packaging metadata before setuptools deprecates table syntax.
 - Completed: designed analyzer telemetry primitives, fingerprinting helper, and ADR to steer persistence work.
-- Pending: capture analyzer run outputs for historical telemetry and CLI caching (awaiting storage backend).
+- Completed: implemented JSONL telemetry store + CLI banners to unlock cached-run awareness.
+- Completed: landed JSONL telemetry store with CLI banner + persistence hooks; awaiting analyzer execution wiring for automatic capture.
 
 ## Deliverables
 
 - ✅ Developer CLI (`src/emperator/cli.py`) with scaffold/doctor/fix workflows and 100% coverage.
 - ✅ Scaffolding + doctor utility modules with TODO-stub generation and remediation metadata.
 - ✅ Documentation updates (`README.md`, `docs/index.md`, `docs/cli.md`) highlighting the workflow.
+- ✅ JSONL-backed telemetry store with unit coverage + CLI integration banner for cached runs.
 - ✅ Expanded docs (`docs/cli.md`, `docs/explanation/*`) covering analysis planning wizard and progress feedback.
 - ✅ Repository assets populated with TODO placeholders for policy, conventions, rules, and infra blueprints.
 - ✅ Delivery blueprint (`emperator_specs/Project_Plan.md`) and sprint playbook (`emperator_specs/Sprint_Playbook.md`).
@@ -54,7 +57,7 @@
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠ Build: `uv run --with build python -m build` (succeeds with setuptools SPDX license deprecation warning).
-- ✅ Telemetry caching: Fingerprint helper landed with unit coverage; persistence backend follow-up remains.
+- ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
 - ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
 
 ## Links
@@ -75,4 +78,5 @@
 - Monitor future work to hook Semgrep/CodeQL execution into the new analysis pipeline without regressing UX; next sprint will explore telemetry capture and caching.
 - Keep `FORMAT_YAML_INCLUDE_LOCKS=1` escape hatch documented before enabling lockfile formatting globally; default skip prevents inadvertent churn.
 - Removing platform-specific scripts shifts responsibility to git hygiene; verify future platform issues through ADRs before reintroducing tooling.
-- Telemetry events remain local-only until JSONL persistence lands; document opt-in remote uploads before shipping alternative stores.
+- Telemetry events remain local-only by default; document opt-in remote uploads before shipping alternative stores.
+- Monitor `.emperator/telemetry` lifecycle (retention, rotation) as analyzer orchestration begins writing runs automatically.

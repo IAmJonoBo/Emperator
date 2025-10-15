@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -15,6 +16,10 @@ try:
         AnalysisReport,
         AnalyzerCommand,
         AnalyzerPlan,
+        JSONLTelemetryStore,
+        TelemetryEvent,
+        TelemetryRun,
+        fingerprint_analysis,
     )
     from emperator.cli import app
     from emperator.doctor import RemediationAction
@@ -26,6 +31,10 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
         AnalysisReport,
         AnalyzerCommand,
         AnalyzerPlan,
+        JSONLTelemetryStore,
+        TelemetryEvent,
+        TelemetryRun,
+        fingerprint_analysis,
     )
     from emperator.cli import app
     from emperator.doctor import RemediationAction
@@ -365,6 +374,11 @@ def test_cli_analysis_plan_renders_steps(monkeypatch, tmp_path: Path) -> None:
 
     monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
     monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(
+        cli_module,
+        'fingerprint_analysis',
+        lambda report, plans, metadata=None: 'demo-fingerprint',
+    )
 
     result = runner.invoke(
         app,
@@ -375,6 +389,9 @@ def test_cli_analysis_plan_renders_steps(monkeypatch, tmp_path: Path) -> None:
     assert 'Analysis Execution Plan' in result.stdout
     assert 'Semgrep' in result.stdout
     assert 'semgrep scan --config=auto --metrics=off' in result.stdout
+    assert 'Telemetry fingerprint' in result.stdout
+    assert 'demo-fingerprint' in result.stdout
+    assert 'No telemetry recorded for this plan yet.' in result.stdout
 
 
 def test_cli_analysis_plan_handles_empty_steps(monkeypatch, tmp_path: Path) -> None:
@@ -417,6 +434,121 @@ def test_cli_analysis_plan_handles_no_plans(monkeypatch, tmp_path: Path) -> None
     )
     assert result.exit_code == 0, result.stdout
     assert 'No analyzer plans available yet' in result.stdout
+
+
+def test_cli_analysis_plan_reports_cached_telemetry(monkeypatch, tmp_path: Path) -> None:
+    """Telemetry banner should surface details about the most recent run."""
+
+    store_path = tmp_path / 'telemetry'
+    store = JSONLTelemetryStore(store_path, max_history=5)
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with auto config.',
+                ),
+            ),
+        ),
+    )
+    fingerprint = fingerprint_analysis(report, plans)
+    start = datetime.now(UTC)
+    event = TelemetryEvent(
+        tool='Semgrep',
+        command=plans[0].steps[0].command,
+        exit_code=0,
+        duration_seconds=3.2,
+        timestamp=start,
+        metadata={'config': 'auto'},
+    )
+    run = TelemetryRun(
+        fingerprint=fingerprint,
+        project_root=tmp_path,
+        started_at=start,
+        completed_at=start + timedelta(seconds=3),
+        events=(event,),
+        notes=('cached',),
+    )
+    store.persist(run)
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(
+        cli_module,
+        'fingerprint_analysis',
+        lambda report, plans, metadata=None: fingerprint,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'jsonl',
+            '--telemetry-path',
+            str(store_path),
+            'analysis',
+            'plan',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Telemetry fingerprint' in result.stdout
+    assert str(run.completed_at.isoformat()) in result.stdout
+    assert 'success' in result.stdout.lower()
+
+
+def test_cli_analysis_plan_disables_telemetry(monkeypatch, tmp_path: Path) -> None:
+    """CLI should respect the --telemetry-store off flag."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(
+        cli_module,
+        'fingerprint_analysis',
+        lambda report, plans, metadata=None: 'disabled-fingerprint',
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'off',
+            'analysis',
+            'plan',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Telemetry disabled for this session.' in result.stdout
+
+
+def test_cli_rejects_unknown_telemetry_backend(tmp_path: Path) -> None:
+    """Main callback should surface a helpful error for unknown telemetry stores."""
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), '--telemetry-store', 'invalid', 'analysis', 'plan'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code != 0
+    assert 'Unsupported telemetry store' in result.stderr
 
 
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:

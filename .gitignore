@@ -52,6 +52,9 @@ node_modules/
 # Tool caches
 .cache/
 
+# Emperator telemetry & working state
+.emperator/
+
 # MkDocs static output
 site/
 

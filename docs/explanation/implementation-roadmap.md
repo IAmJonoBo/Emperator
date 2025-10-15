@@ -23,13 +23,13 @@ style Phase2 fill:#FFE4B5
 
 ## Progress Overview
 
-| Phase                            | Status         | Completion | Key Milestones                                                                 |
-| -------------------------------- | -------------- | ---------- | ------------------------------------------------------------------------------ |
-| Phase 1: Python-focused slice    | � At Risk     | 40%        | Contract/CLI shipped, but IR builder and analyzer integrations still pending    |
-| Phase 2: Developer feedback loop | ⚪ Planned     | 0%         | Sprint 4-5 detailed plans created; execution blocked by Phase 1 deliverables    |
-| Phase 3: Polyglot expansion      | ⚪ Future      | 0%         | Depends on Phase 2 completion                                   |
-| Phase 4: AI augmentation         | ⚪ Future      | 0%         | Safety envelope must be proven first                            |
-| Phase 5: Governance & reporting  | ⚪ Future      | 0%         | Operational readiness focus                                     |
+| Phase                            | Status     | Completion | Key Milestones                                                               |
+| -------------------------------- | ---------- | ---------- | ---------------------------------------------------------------------------- |
+| Phase 1: Python-focused slice    | � At Risk  | 40%        | Contract/CLI shipped, but IR builder and analyzer integrations still pending |
+| Phase 2: Developer feedback loop | ⚪ Planned | 0%         | Sprint 4-5 detailed plans created; execution blocked by Phase 1 deliverables |
+| Phase 3: Polyglot expansion      | ⚪ Future  | 0%         | Depends on Phase 2 completion                                                |
+| Phase 4: AI augmentation         | ⚪ Future  | 0%         | Safety envelope must be proven first                                         |
+| Phase 5: Governance & reporting  | ⚪ Future  | 0%         | Operational readiness focus                                                  |
 
 ## Phase 1: Python-focused slice
 

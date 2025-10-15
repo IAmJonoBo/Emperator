@@ -81,15 +81,15 @@ Interface specifications enable Emperator to scaffold handlers, tests, and clien
 ```yaml title="contract/api/openapi.yaml"
 openapi: 3.1.0
 info:
-	title: Emperator Reference Contract
-	version: 1.2.0
+ title: Emperator Reference Contract
+ version: 1.2.0
 paths:
-	/healthz:
-		get:
-			operationId: getHealth
-			responses:
-				'200':
-					description: OK
+ /healthz:
+  get:
+   operationId: getHealth
+   responses:
+    '200':
+     description: OK
 ```
 
 - Align operation IDs with code generation templates in `contract/generators/`.
@@ -108,15 +108,15 @@ Follow a lightweight but disciplined review loop:
 
 ```mermaid
 flowchart LR
-	P[Draft rule change] --> R[Peer review
-	(code + policy experts)]
-	R --> V[Validate locally
-	(cue vet, opa eval, emperator dry-run)]
-	V --> D[Decide release tier
-	(warn-only or enforce)]
-	D --> T[Tag contract version]
-	T --> B[Broadcast change
-	(docs, release notes, Copilot prompts)]
+ P[Draft rule change] --> R[Peer review
+ (code + policy experts)]
+ R --> V[Validate locally
+ (cue vet, opa eval, emperator dry-run)]
+ V --> D[Decide release tier
+ (warn-only or enforce)]
+ D --> T[Tag contract version]
+ T --> B[Broadcast change
+ (docs, release notes, Copilot prompts)]
 ```
 
 - **Warn-only rollouts:** Introduce new rules in advisory mode first (`severity: info` or `auto_apply: false`) and flip to blocking once noise is under control.

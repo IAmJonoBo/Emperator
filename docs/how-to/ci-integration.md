@@ -14,16 +14,16 @@ Use fast checks for pull requests and full checks for protected branches.
 
 ```mermaid
 flowchart TD
-	  A[Developer push] --> B[Pre-commit hook]
-	  B -->|passes| C[PR build]
-	  C --> D{Emperator mode}
-	  D -->|fast| E[semgrep diff • format validation]
-	  D -->|full| F[codeql pack • codemod dry-run • tests]
-	  E --> G[PR status checks]
-	  F --> G
-	  G --> H[Merge]
-	  H --> I[Release build]
-	  I --> J[Provenance & SBOM upload]
+   A[Developer push] --> B[Pre-commit hook]
+   B -->|passes| C[PR build]
+   C --> D{Emperator mode}
+   D -->|fast| E[semgrep diff • format validation]
+   D -->|full| F[codeql pack • codemod dry-run • tests]
+   E --> G[PR status checks]
+   F --> G
+   G --> H[Merge]
+   H --> I[Release build]
+   I --> J[Provenance & SBOM upload]
 ```
 
 Recommended modes:
@@ -40,37 +40,37 @@ name: Emperator Compliance
 
 on:
   pull_request:
-	branches: [ main ]
+ branches: [ main ]
   push:
-	branches: [ main ]
+ branches: [ main ]
 
 jobs:
   emperator:
-	runs-on: ubuntu-latest
-	steps:
-	  - uses: actions/checkout@v4
+ runs-on: ubuntu-latest
+ steps:
+   - uses: actions/checkout@v4
 
-	  - name: Set up Python
-		uses: actions/setup-python@v4
-		with:
-		  python-version: '3.11'
+   - name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: '3.11'
 
-	  - name: Install Emperator toolchain
-		run: |
-		  python -m pip install --upgrade pip
-		  pip install emperator-cli semgrep
-		  curl -sSL https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz \
-			| tar -xz -C "$HOME"
-		  echo "CODEQL_HOME=$HOME/codeql" >> "$GITHUB_ENV"
+   - name: Install Emperator toolchain
+  run: |
+    python -m pip install --upgrade pip
+    pip install emperator-cli semgrep
+    curl -sSL https://github.com/github/codeql-action/releases/latest/download/codeql-bundle-linux64.tar.gz \
+   | tar -xz -C "$HOME"
+    echo "CODEQL_HOME=$HOME/codeql" >> "$GITHUB_ENV"
 
-	  - name: Run fast contract checks
-		run: emperator apply --diff --no-commit --fast
+   - name: Run fast contract checks
+  run: emperator apply --diff --no-commit --fast
 
-	  - name: Upload SARIF
-		if: always()
-		uses: github/codeql-action/upload-sarif@v2
-		with:
-		  sarif_file: reports/emperator.sarif
+   - name: Upload SARIF
+  if: always()
+  uses: github/codeql-action/upload-sarif@v2
+  with:
+    sarif_file: reports/emperator.sarif
 ```
 
 Adaptations for other CI systems:

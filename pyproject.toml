@@ -42,7 +42,6 @@ line-length = 100
 target-version = "py311"
 fix = true
 extend-exclude = [
-  "emperator_specs/site",
   "site",
   "node_modules",
   ".venv",

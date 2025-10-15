@@ -33,7 +33,7 @@ profile. Key decisions:
 - **Formatting rules** &mdash; JS/TS use double quotes, trailing commas follow the `es5` style, HTML/CSS
   respect a 100 character line width. These defaults align with our documentation theme and keep
   diffs tight across auto-generated snippets.
-- **Ignored paths** &mdash; We explicitly drop MkDocs output (`site`, `emperator_specs/site`), pnpm cache,
+- **Ignored paths** &mdash; We explicitly drop MkDocs output (`site/`), pnpm cache,
   Python virtualenvs, minified bundles, and macOS `._*` resource forks. Biome previously surfaced IO
   errors on Apple metadata files; excluding them keeps the pipeline green on macOS.
 - **Global formatter defaults** &mdash; The `formatter` block sets the global indentation and line width

@@ -1,8 +1,7 @@
 exclude: |
-  (?x)^(
-    emperator_specs/site/|
-    node_modules/|
-    dist/|
+  (?x)^
+  (
+    site/|
     build/|
     \.cache/|
     \.venv/

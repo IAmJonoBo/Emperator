@@ -2,10 +2,26 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-import emperator.scaffolding as scaffolding
-from emperator.scaffolding import ScaffoldAction, ScaffoldItem, audit_structure, ensure_structure
+try:
+    import emperator.scaffolding as scaffolding
+    from emperator.scaffolding import (
+        ScaffoldAction,
+        ScaffoldItem,
+        audit_structure,
+        ensure_structure,
+    )
+except ModuleNotFoundError:  # pragma: no cover - allow running without installing the package
+    sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
+    import emperator.scaffolding as scaffolding
+    from emperator.scaffolding import (
+        ScaffoldAction,
+        ScaffoldItem,
+        audit_structure,
+        ensure_structure,
+    )
 
 
 def test_audit_marks_items_missing(tmp_path: Path) -> None:

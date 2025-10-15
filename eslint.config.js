@@ -10,7 +10,6 @@ const ignoredPaths = [
   "vendor/",
   "public/",
   "site/",
-  "emperator_specs/site/",
   "site/js/bootstrap.bundle.min.js",
   ".venv/",
   ".pnpm-store/",

@@ -12,7 +12,6 @@ const IGNORED_DIRECTORIES = [
   ".venv",
   "build",
   "dist",
-  "emperator_specs/site",
   "node_modules",
   "site",
   ".cache",

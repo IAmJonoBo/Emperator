@@ -10,7 +10,6 @@
       "!vendor",
       "!public",
       "!site",
-      "!emperator_specs/site",
       "!**/.cache",
       "!.pnpm-store",
       "!.venv",

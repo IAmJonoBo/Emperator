@@ -53,7 +53,6 @@ node_modules/
 .cache/
 
 # MkDocs static output
-emperator_specs/site/
 site/
 
 # Editors & IDEs

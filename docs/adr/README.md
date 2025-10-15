@@ -21,3 +21,5 @@ decision.
 - [ADR-0001: Adopt a Repository-wide ADR Process](0001-adopt-adr-process.md)
 - [ADR-0002: Sprint Focus on Code Hardening and Analyzer Telemetry](0002-code-hardening-and-telemetry.md)
 - [ADR-0003: Analyzer Telemetry Architecture and Caching Strategy](0003-analyzer-telemetry-architecture.md)
+- [ADR-0004: IR Builder Architecture and Caching Strategy](0004-ir-builder-architecture.md)
+- [ADR-0005: Safety Envelope Design for Automated Code Fixes](0005-safety-envelope-design.md)

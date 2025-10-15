@@ -924,9 +924,9 @@ def analysis_codeql_query(
         _handle_codeql_error(state.console, error)
         return
 
-    selected_queries = query or []
+    selected_queries: list[Path] = list(query or [])
     if not selected_queries:
-        selected_queries = _discover_default_queries(state.project_root)
+        selected_queries = list(_discover_default_queries(state.project_root))
         if not selected_queries:
             state.console.print(
                 '[yellow]No queries specified and none discovered under rules/codeql.[/]'

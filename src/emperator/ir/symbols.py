@@ -93,7 +93,7 @@ class SymbolExtractor:
             Tuple of Python symbols
 
         """
-        symbols = []
+        symbols: list[Symbol] = []
 
         def visit_node(node: Node, scope: str = '') -> None:
             if self._handle_function(node, scope, symbols, visit_node):
@@ -119,7 +119,10 @@ class SymbolExtractor:
         name_node = node.child_by_field_name('name')
         if name_node is None:
             return False
-        name = name_node.text.decode('utf-8')
+        name_bytes = name_node.text
+        if name_bytes is None:
+            return False
+        name = name_bytes.decode('utf-8')
         symbols.append(
             Symbol(
                 name=name,
@@ -145,7 +148,10 @@ class SymbolExtractor:
         name_node = node.child_by_field_name('name')
         if name_node is None:
             return False
-        name = name_node.text.decode('utf-8')
+        name_bytes = name_node.text
+        if name_bytes is None:
+            return False
+        name = name_bytes.decode('utf-8')
         symbols.append(
             Symbol(
                 name=name,
@@ -164,7 +170,10 @@ class SymbolExtractor:
             return
         for child in node.children:
             if child.type == 'dotted_name':
-                name = child.text.decode('utf-8')
+                name_bytes = child.text
+                if name_bytes is None:
+                    continue
+                name = name_bytes.decode('utf-8')
                 symbols.append(
                     Symbol(
                         name=name,
@@ -176,7 +185,10 @@ class SymbolExtractor:
             if child.type == 'aliased_import':
                 name_node = child.child_by_field_name('name')
                 if name_node:
-                    name = name_node.text.decode('utf-8')
+                    name_bytes = name_node.text
+                    if name_bytes is None:
+                        continue
+                    name = name_bytes.decode('utf-8')
                     symbols.append(
                         Symbol(
                             name=name,

@@ -240,7 +240,7 @@ class SemgrepRuleGenerator:
             Tuple of all generated Semgrep rules
 
         """
-        all_rules = []
+        all_rules: list[SemgrepRule] = []
         all_rules.extend(self.generate_naming_rules())
         all_rules.extend(self.generate_security_rules())
         all_rules.extend(self.generate_architectural_rules())

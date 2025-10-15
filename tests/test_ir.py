@@ -1,12 +1,46 @@
 """Tests for the IR (Intermediate Representation) module."""
 
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
 
 from emperator.ir import IRBuilder, SymbolExtractor, SymbolKind
 from emperator.ir.cache import CacheManager
+
+
+class _FakeNode:
+    """Minimal Tree-sitter node stand-in for symbol extractor tests."""
+
+    def __init__(
+        self,
+        node_type: str,
+        *,
+        text: bytes | None = None,
+        children: Sequence['_FakeNode'] | None = None,
+        fields: dict[str, '_FakeNode'] | None = None,
+    ) -> None:
+        self.type = node_type
+        self._text = text
+        self.children = list(children or [])
+        self._fields = dict(fields or {})
+        self.start_point = (0, 0)
+        self.end_point = (0, 0)
+
+    def child_by_field_name(self, name: str):
+        return self._fields.get(name)
+
+    @property
+    def text(self) -> bytes | None:
+        return self._text
+
+
+class _FakeTree:
+    """Minimal Tree-sitter tree stand-in for symbol extractor tests."""
+
+    def __init__(self, root_node: _FakeNode) -> None:
+        self.root_node = root_node
 
 
 @pytest.fixture
@@ -182,6 +216,44 @@ def test_symbol_extractor_empty_tree() -> None:
         assert symbols == ()
     finally:
         path.unlink()
+
+
+def test_symbol_extractor_skips_functions_without_name_text() -> None:
+    """Functions missing name text should be ignored gracefully."""
+    extractor = SymbolExtractor()
+    name_node = _FakeNode('identifier', text=None)
+    function_node = _FakeNode(
+        'function_definition',
+        children=(name_node,),
+        fields={'name': name_node},
+    )
+    module = _FakeNode('module', children=(function_node,))
+    tree = _FakeTree(module)
+
+    assert extractor.extract_symbols(tree, 'python') == ()
+
+
+def test_symbol_extractor_skips_imports_without_text() -> None:
+    """Import statements without concrete text should be skipped."""
+    extractor = SymbolExtractor()
+    dotted = _FakeNode('dotted_name', text=None)
+    import_node = _FakeNode('import_statement', children=(dotted,))
+    module = _FakeNode('module', children=(import_node,))
+    tree = _FakeTree(module)
+
+    assert extractor.extract_symbols(tree, 'python') == ()
+
+
+def test_symbol_extractor_skips_alias_imports_without_name_text() -> None:
+    """Aliased imports without alias text should be ignored."""
+    extractor = SymbolExtractor()
+    alias_name = _FakeNode('identifier', text=None)
+    alias = _FakeNode('aliased_import', fields={'name': alias_name})
+    import_node = _FakeNode('import_statement', children=(alias,))
+    module = _FakeNode('module', children=(import_node,))
+    tree = _FakeTree(module)
+
+    assert extractor.extract_symbols(tree, 'python') == ()
 
 
 def test_cache_manager_initialization(tmp_path: Path) -> None:

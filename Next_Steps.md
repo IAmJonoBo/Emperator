@@ -31,8 +31,8 @@
 
 #### Week 4: Correlation & Benchmarks (T+15 to T+20 days)
 
-- [ ] Implement correlation engine linking findings to contract rules (Owner: AI, Due: 2025-10-28)
-- [ ] Add remediation guidance extraction from contract metadata (Owner: AI, Due: 2025-10-28)
+- [x] Implement correlation engine linking findings to contract rules (Owner: AI, Completed: Current pass)
+- [x] Add remediation guidance extraction from contract metadata (Owner: AI, Completed: Current pass)
 - [ ] Create benchmark suite in `tests/benchmarks/` (Owner: Maintainers, Due: 2025-10-29)
 - [ ] Run performance tests and verify thresholds (Owner: Maintainers, Due: 2025-10-29)
 - [ ] Generate performance baseline report in `docs/metrics/sprint-4-baseline.md` (Owner: Maintainers, Due: 2025-10-29)
@@ -138,6 +138,7 @@
 - Current focus: executing the remediation program (docs/explanation/implementation-roadmap.md#integrated-remediation-plan) starting with IR builder scaffolding, dependency bootstrapping, and CLI entry points.
 - In progress: documenting how Semgrep, CodeQL, and IR caches must integrate once the generators and correlation engine exist, using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` to steer contributions.
 - Completed: restored CodeQL manager + CLI test coverage (≥91% overall) and re-ran full lint/format/test/build/security suite post-additions.
+- Completed: hardened IR symbol extraction for missing node text, annotated Semgrep generator aggregation, tightened CodeQL query selection defaults, and added regression tests plus a configurable pip-audit wrapper script.
 - Planned: codifying Sprint 5 safety envelope requirements (rollback workflow, telemetry, documentation) informed by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
 - Completed: shipped `pnpm lint:changed` for quick Ruff/Biome/ESLint passes on changed files to complement the full lint suite.
 - Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.
@@ -220,7 +221,7 @@
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
-- ⚠️ Security: `uv run --with pip-audit pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
+- ⚠️ Security: `./scripts/run-pip-audit.sh` (wraps pip-audit with configurable CA bundle but still fails with container trust store SSL errors; needs upstream certificate remediation).
 - ✅ Build: `uv run --with build python -m build` (setuptools warns about deprecated license table; schedule SPDX string follow-up).
 - ✅ Contract: `uv run --extra dev emperator contract validate --strict` enforced via dedicated CI job prior to lint/tests/build.
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
@@ -260,8 +261,9 @@
 - Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.
 - Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.
 - Maintain 100% coverage for analysis/CLI modules; tighten review on future changes that introduce untested branches.
+- Correlation engine ships with heuristic tag matching; expand scoring metrics and analyzer-specific adapters before relying on it for CI gating.
 - CI now blocks on the contract validation gate; coordinate rollout communications so contributors expect the additional job latency.
 - Ruff auto-fix mode is enabled; `pnpm lint` will rewrite Python sources/tests when issues are detected—communicate before running in shared branches.
 - `pnpm lint:changed` requires `uv` and pnpm to be on PATH; ensure developer workstations install tooling via `scripts/setup-tooling.sh` before relying on the quick pass.
 - mdformat rewrites Markdown structure (lists/tables); audit semantic diffs during follow-up documentation edits.
-- `pip-audit` continues to fail in this container due to missing trust anchors; rerun once the SSL root store is corrected or swap to an offline advisory cache.
+- `pip-audit` continues to fail in this container due to missing trust anchors; rerun `./scripts/run-pip-audit.sh` with a trusted CA bundle once the SSL root store is corrected or swap to an offline advisory cache.

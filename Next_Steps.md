@@ -24,6 +24,8 @@
 - [x] Extend analyzer run UX with richer filtering (severity, dry-run) options (Owner: AI, Due: Current pass)
 - [x] Add analyzer command severity metadata and CLI validation for severity filters (Owner: AI, Due: Current pass)
 - [x] Record severity filter selections in telemetry + documentation updates (Owner: AI, Due: Current pass)
+- [x] Harden telemetry store against corrupted JSONL entries and add atomic writes (Owner: AI, Due: Current pass)
+- [x] Surface analyzer runner OSErrors as telemetry events with actionable notes (Owner: AI, Due: Current pass)
 - [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: Next pass)
 
 ## Steps
@@ -47,6 +49,8 @@
 - Completed: introduced YAML guardrail digests with CLI verification to prevent unintended churn in contract and compose assets.
 - Completed: upgraded `analysis run` UX with severity filtering, dry-run support, and richer telemetry metadata.
 - Completed: enforced analyzer command severity metadata, CLI validation errors, and telemetry capture for severity filters.
+- Completed: hardened JSONL telemetry store to skip malformed entries and rewrite atomically.
+- Completed: improved analyzer execution resilience by capturing missing binary errors in telemetry output.
 
 ## Deliverables
 
@@ -66,6 +70,8 @@
 - ✅ Guardrail digest tracking (`guardrails/yaml-digests.json`) plus CLI verification command and dedicated tests.
 - ✅ Analyzer UX upgrade with severity filters, dry-run simulation, and updated CLI documentation.
 - ✅ Analyzer execution now honours severity metadata during runs and records skipped steps in telemetry notes.
+- ✅ JSONL telemetry store ignores corrupted lines, rewrites atomically, and retains valid run history with coverage.
+- ✅ Analyzer execution handles missing binaries gracefully, emitting exit-code notes and telemetry metadata.
 
 ## Quality Gates
 
@@ -73,6 +79,7 @@
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
+- ⚠️ Security: `uv tool run pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
 - ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
 - ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
@@ -99,3 +106,4 @@
 - Telemetry events remain local-only by default; document opt-in remote uploads before shipping alternative stores.
 - Monitor `.emperator/telemetry` lifecycle (retention, rotation) as analyzer orchestration begins writing runs automatically.
 - Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.
+- Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.

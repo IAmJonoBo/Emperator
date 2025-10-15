@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -412,6 +413,94 @@ def test_jsonl_store_persists_history(tmp_path: Path) -> None:
     assert all(entry.events[0].metadata for entry in history)
 
 
+def test_jsonl_store_recovers_from_corrupted_lines(tmp_path: Path) -> None:
+    """Telemetry store should ignore corrupted JSONL entries when reading history."""
+
+    store = JSONLTelemetryStore(tmp_path / 'telemetry')
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with the selected configuration over the repository.',
+                ),
+            ),
+        ),
+    )
+    fingerprint = fingerprint_analysis(report, plan)
+    telemetry_file = tmp_path / 'telemetry' / f'{fingerprint}.jsonl'
+
+    base_timestamp = datetime.now(UTC)
+    first_run = TelemetryRun(
+        fingerprint=fingerprint,
+        project_root=tmp_path,
+        started_at=base_timestamp,
+        completed_at=base_timestamp,
+        events=(
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan[0].steps[0].command,
+                exit_code=0,
+                duration_seconds=1.0,
+                timestamp=base_timestamp,
+                metadata={'config': 'auto'},
+            ),
+        ),
+        notes=('baseline',),
+    )
+    store.persist(first_run)
+
+    # Inject a corrupted JSON line to emulate partial writes or manual edits.
+    with telemetry_file.open('a', encoding='utf-8') as handle:
+        handle.write('{corrupt-json\n')
+        handle.write('{}\n')
+
+    second_timestamp = datetime.now(UTC)
+    second_run = TelemetryRun(
+        fingerprint=fingerprint,
+        project_root=tmp_path,
+        started_at=second_timestamp,
+        completed_at=second_timestamp,
+        events=(
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan[0].steps[0].command,
+                exit_code=0,
+                duration_seconds=2.0,
+                timestamp=second_timestamp,
+                metadata={'config': 'strict'},
+            ),
+        ),
+        notes=('recovered',),
+    )
+    store.persist(second_run)
+
+    history = store.history(fingerprint)
+    assert history == (first_run, second_run)
+
+    # Ensure the corrupted entry is not preserved.
+    lines = [line for line in telemetry_file.read_text(encoding='utf-8').splitlines() if line]
+    assert len(lines) == 2
+    for line in lines:
+        json.loads(line)
+
+
 def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
     """Executor should run ready steps, persist telemetry, and capture metadata."""
 
@@ -470,6 +559,58 @@ def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
         'description': plan[0].steps[0].description,
         'severity': 'medium',
     }
+
+
+def test_execute_analysis_plan_handles_missing_binary(tmp_path: Path) -> None:
+    """Runner exceptions should be converted into telemetry events and notes."""
+
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--version'),
+                    description='Probe Semgrep version.',
+                    severity='medium',
+                ),
+            ),
+        ),
+    )
+
+    def failing_runner(command: tuple[str, ...], *, cwd: Path | None = None) -> None:  # noqa: D401
+        raise FileNotFoundError('semgrep binary not found')
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        telemetry_store=None,
+        include_unready=False,
+        severity_filter=None,
+        runner=failing_runner,
+    )
+
+    assert len(run.events) == 1
+    event = run.events[0]
+    assert event.exit_code == 127
+    assert event.metadata and event.metadata['severity'] == 'medium'
+    assert event.metadata.get('error') == 'semgrep binary not found'
+    assert any('semgrep binary not found' in note for note in run.notes)
+    assert any('exit code 127' in note for note in run.notes)
 
 
 def test_execute_analysis_plan_skips_unready(tmp_path: Path) -> None:

@@ -9,6 +9,7 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
   for ephemeral sessions, JSONL for on-disk history, or disabled).
 - `--telemetry-path PATH`: override the default `.emperator/telemetry` directory when using the JSONL
   store.
+- `--version`, `-v`: display the CLI version and exit.
 
 ## Scaffold commands
 

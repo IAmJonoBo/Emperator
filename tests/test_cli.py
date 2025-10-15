@@ -1281,3 +1281,11 @@ def test_cli_version_flag_short_form() -> None:
     assert result.exit_code == 0, result.stdout
     assert 'Emperator CLI version' in result.stdout
 
+
+def test_cli_no_command_shows_message() -> None:
+    """Invoking CLI without command should show helpful message."""
+    result = runner.invoke(app, [], env={'NO_COLOR': '1'})
+    assert result.exit_code == 0, result.stdout
+    assert 'No command specified' in result.stdout
+    assert 'Use --help' in result.stdout
+

@@ -580,6 +580,84 @@ def test_cli_analysis_plan_disables_telemetry(monkeypatch, tmp_path: Path) -> No
     assert 'Telemetry disabled for this session.' in result.stdout
 
 
+def test_cli_analysis_plan_uses_default_telemetry_dir(monkeypatch, tmp_path: Path) -> None:
+    """Default telemetry storage should live under .emperator/telemetry."""
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(
+        cli_module,
+        'fingerprint_analysis',
+        lambda report, plans, metadata=None: 'default-fingerprint',
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'jsonl',
+            'analysis',
+            'plan',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    expected_path = (tmp_path / '.emperator' / 'telemetry').resolve()
+    assert str(expected_path) in result.stdout
+    assert 'Telemetry directory:' in result.stdout
+
+
+def test_cli_analysis_plan_resolves_relative_telemetry_path(monkeypatch, tmp_path: Path) -> None:
+    """Relative telemetry paths should resolve beneath the configured project root."""
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(
+        cli_module,
+        'fingerprint_analysis',
+        lambda report, plans, metadata=None: 'resolved-fingerprint',
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'jsonl',
+            '--telemetry-path',
+            'telemetry-data',
+            'analysis',
+            'plan',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    expected_path = (tmp_path / 'telemetry-data').resolve()
+    assert str(expected_path) in result.stdout
+    assert 'Telemetry directory:' in result.stdout
+
+
 def test_cli_analysis_run_executes_plans(monkeypatch, tmp_path: Path) -> None:
     """Analysis run should execute filtered plans and display a summary."""
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
@@ -1255,6 +1333,25 @@ def test_cli_rejects_unknown_telemetry_backend(tmp_path: Path) -> None:
     assert 'Unsupported telemetry store' in result.stderr
 
 
+def test_cli_rejects_telemetry_path_without_jsonl(tmp_path: Path) -> None:
+    """Providing --telemetry-path without the jsonl backend should error."""
+    target = tmp_path / 'telemetry'
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-path',
+            str(target),
+            'analysis',
+            'plan',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code != 0
+    assert 'requires the jsonl telemetry store' in result.stderr
+
+
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:
     """CLI module run function should invoke Typer app."""
     called: dict[str, bool] = {}
@@ -1288,4 +1385,3 @@ def test_cli_no_command_shows_message() -> None:
     assert result.exit_code == 0, result.stdout
     assert 'No command specified' in result.stdout
     assert 'Use --help' in result.stdout
-

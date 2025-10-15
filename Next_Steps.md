@@ -70,6 +70,7 @@
 - Completed: established contract validation CLI with strict-mode escalation and tabled warnings in output.
 - Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
 - Completed: strengthened CLI severity flows with metadata capture and invalid-option coverage.
+- Completed: hardened CLI telemetry path handling (JSONL-only enforcement, relative path resolution).
 - Completed: audited documentation, aligned structure with scaffold utilities, and seeded TODO-driven stubs.
 - Completed: delivered CLI with scaffold, doctor, and fix commands plus progress visualisation.
 - Completed: added analysis inspect/wizard workflows with progress bars and guided hints for IR readiness.
@@ -114,6 +115,7 @@
 - ✅ Analyzer UX upgrade with severity filters, dry-run simulation, and updated CLI documentation.
 - ✅ Analyzer execution now honours severity metadata during runs and records skipped steps in telemetry notes.
 - ✅ Severity gating surfaced in analysis summaries with PASS/REVIEW/BLOCK badges, run-level escalation notes, and refreshed docs/tests.
+- ✅ CLI telemetry configuration validates JSONL path usage and documents relative resolution behaviour.
 - ✅ JSONL telemetry store ignores corrupted lines, rewrites atomically, and retains valid run history with coverage.
 - ✅ Analyzer execution handles missing binaries gracefully, emitting exit-code notes and telemetry metadata.
 - ⏳ Sprint 4 deliverables (IR builder, Semgrep/CodeQL integration, findings correlation, performance benchmarks) – in planning per `docs/explanation/system-architecture.md`, `docs/reference/toolchain.md`, and `emperator_specs/Sprint_Playbook.md`.
@@ -121,7 +123,7 @@
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (114 passed, 100% coverage across source and test modules).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (120 passed, 100% coverage across source and test modules).
 - ✅ Format: `pnpm fmt -- --check` (Ruff + mdformat + YAML formatter all succeed on current tree).
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
@@ -146,6 +148,7 @@
 
 - Formatter stack now enforces Ruff single quotes + mdformat tables; run `pnpm fmt -- --check` before applying fixes to review doc table rewrites and Python quote flips.
 - CLI severity guardrails rely on substring matching to associate notes with tools; monitor for future false positives as telemetry volume grows.
+- Telemetry path overrides now require the JSONL backend; ensure docs and onboarding scripts stay aligned as new stores land.
 - Auto-remediation commands default to dry-run; explicit `--apply` required for mutations.
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.
 - Contract metadata helpers cache the OpenAPI document; clear the cache (`load_contract_spec.cache_clear()`) if tests need to observe on-disk edits within a single process.

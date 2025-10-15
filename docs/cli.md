@@ -8,7 +8,8 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
 - `--telemetry-store {memory,jsonl,off}`: choose how the CLI persists analyzer telemetry (in-memory
   for ephemeral sessions, JSONL for on-disk history, or disabled).
 - `--telemetry-path PATH`: override the default `.emperator/telemetry` directory when using the JSONL
-  store.
+  store. The option is rejected for in-memory or disabled telemetry, and relative paths are resolved
+  beneath the selected `--root` to keep history inside the repository checkout.
 - `--version`, `-v`: display the CLI version and exit.
 
 ## Scaffold commands

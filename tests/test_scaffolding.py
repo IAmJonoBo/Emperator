@@ -25,6 +25,7 @@ except ModuleNotFoundError:  # pragma: no cover - allow running without installi
 
 
 def test_audit_marks_items_missing(tmp_path: Path) -> None:
+    """Audit should report missing scaffold assets."""
     statuses = audit_structure(tmp_path)
     # The contract policy file should be missing in a fresh workspace.
     policy_status = next(s for s in statuses if 'policy.rego' in str(s.item.relative_path))
@@ -33,6 +34,7 @@ def test_audit_marks_items_missing(tmp_path: Path) -> None:
 
 
 def test_ensure_creates_stub_files(tmp_path: Path) -> None:
+    """Ensure action creates scaffold files and stubs."""
     statuses = ensure_structure(tmp_path, dry_run=False)
     policy_path = tmp_path / 'contract' / 'policy' / 'policy.rego'
     semgrep_path = tmp_path / 'rules' / 'semgrep' / 'ruleset.yaml'
@@ -46,6 +48,7 @@ def test_ensure_creates_stub_files(tmp_path: Path) -> None:
 
 
 def test_ensure_respects_existing_assets(tmp_path: Path) -> None:
+    """Ensure action does not overwrite existing assets."""
     ensure_structure(tmp_path, dry_run=False)
     statuses = ensure_structure(tmp_path, dry_run=False)
     policy_status = next(s for s in statuses if s.item.relative_path.name == 'policy.rego')
@@ -54,6 +57,7 @@ def test_ensure_respects_existing_assets(tmp_path: Path) -> None:
 
 
 def test_ensure_handles_items_without_stub(tmp_path: Path, monkeypatch) -> None:
+    """Items without stub materials should still be created."""
     custom_item = ScaffoldItem(Path('custom.txt'), 'Custom without stub', stub=None)
 
     def fake_iter():

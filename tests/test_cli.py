@@ -2,19 +2,27 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
-from emperator.cli import app
-from emperator.doctor import RemediationAction
 from typer.testing import CliRunner
 
-from emperator import cli as cli_module
+try:
+    from emperator import cli as cli_module
+    from emperator.cli import app
+    from emperator.doctor import RemediationAction
+except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
+    sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
+    from emperator import cli as cli_module
+    from emperator.cli import app
+    from emperator.doctor import RemediationAction
 
 runner = CliRunner()
 
 
 def test_cli_scaffold_ensure_creates_structure(tmp_path: Path) -> None:
+    """Scaffold ensure should create the expected policy file."""
     result = runner.invoke(
         app,
         ['--root', str(tmp_path), 'scaffold', 'ensure'],
@@ -27,6 +35,7 @@ def test_cli_scaffold_ensure_creates_structure(tmp_path: Path) -> None:
 
 
 def test_cli_scaffold_audit_reports_missing(tmp_path: Path) -> None:
+    """Scaffold audit should report missing assets."""
     result = runner.invoke(
         app,
         ['--root', str(tmp_path), 'scaffold', 'audit'],
@@ -37,6 +46,7 @@ def test_cli_scaffold_audit_reports_missing(tmp_path: Path) -> None:
 
 
 def test_cli_scaffold_ensure_dry_run(tmp_path: Path) -> None:
+    """Dry-run ensure should not write to disk."""
     result = runner.invoke(
         app,
         ['--root', str(tmp_path), 'scaffold', 'ensure', '--dry-run'],
@@ -48,6 +58,7 @@ def test_cli_scaffold_ensure_dry_run(tmp_path: Path) -> None:
 
 
 def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
+    """Doctor env should report bootstrap status."""
     result = runner.invoke(
         app,
         ['--root', str(tmp_path), 'doctor', 'env'],
@@ -59,6 +70,7 @@ def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
 
 
 def test_cli_fix_plan_lists_actions() -> None:
+    """Fix plan should list available remediation actions."""
     result = runner.invoke(app, ['fix', 'plan'], env={'NO_COLOR': '1'})
     assert result.exit_code == 0, result.stdout
     assert 'Auto-remediation Plan' in result.stdout
@@ -66,6 +78,7 @@ def test_cli_fix_plan_lists_actions() -> None:
 
 
 def test_cli_doctor_env_apply_runs_remediations(monkeypatch, tmp_path: Path) -> None:
+    """Doctor env apply should execute remediation actions."""
     actions = (RemediationAction('Sample', ('echo', 'sample'), 'desc'),)
     executed: list[tuple[RemediationAction, bool, Path | None]] = []
 
@@ -86,10 +99,12 @@ def test_cli_doctor_env_apply_runs_remediations(monkeypatch, tmp_path: Path) -> 
 
 
 def test_cli_doctor_env_apply_handles_failure(monkeypatch, tmp_path: Path) -> None:
+    """Doctor env apply should surface remediation failures."""
     action = RemediationAction('Fail', ('echo', 'fail'), 'desc')
     monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
+        del action, dry_run, cwd
         return SimpleNamespace(returncode=1, stderr='boom')
 
     monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
@@ -104,6 +119,7 @@ def test_cli_doctor_env_apply_handles_failure(monkeypatch, tmp_path: Path) -> No
 
 
 def test_cli_fix_run_handles_filters(monkeypatch, tmp_path: Path) -> None:
+    """Fix run should respect the --only filter when applying."""
     actions = (
         RemediationAction('A', ('echo', 'a'), 'desc'),
         RemediationAction('B', ('echo', 'b'), 'desc'),
@@ -113,6 +129,7 @@ def test_cli_fix_run_handles_filters(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cli_module, 'iter_actions', lambda: actions)
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
+        del dry_run, cwd
         outputs.append(action.name)
         return SimpleNamespace(returncode=0, stderr='')
 
@@ -127,6 +144,7 @@ def test_cli_fix_run_handles_filters(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_cli_fix_run_reports_no_match(monkeypatch, tmp_path: Path) -> None:
+    """Fix run should report when no actions match filters."""
     monkeypatch.setattr(cli_module, 'iter_actions', lambda: ())
     result = runner.invoke(
         app,
@@ -138,10 +156,12 @@ def test_cli_fix_run_reports_no_match(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_cli_fix_run_handles_failure(monkeypatch, tmp_path: Path) -> None:
+    """Fix run should report remediation command failures."""
     action = RemediationAction('Broken', ('echo', 'broken'), 'desc')
     monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
+        del action, dry_run, cwd
         return SimpleNamespace(returncode=2, stderr='fail whale')
 
     monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
@@ -156,10 +176,12 @@ def test_cli_fix_run_handles_failure(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_cli_fix_run_dry_run_message(monkeypatch, tmp_path: Path) -> None:
+    """Fix run dry-run should explain no commands were executed."""
     action = RemediationAction('Dry', ('echo', 'dry'), 'desc')
     monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
+        del action, dry_run, cwd
         return SimpleNamespace(returncode=0, stderr='')
 
     monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
@@ -173,6 +195,7 @@ def test_cli_fix_run_dry_run_message(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:
+    """CLI module run function should invoke Typer app."""
     called: dict[str, bool] = {}
 
     def fake_app() -> None:

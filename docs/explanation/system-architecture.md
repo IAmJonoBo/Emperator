@@ -28,6 +28,7 @@ flowchart LR
 
 - **Contract layer:** Stores declarative standards in existing open formats (OpenAPI for interface contracts, CUE for naming/config constraints, OPA Rego for policies, plus codemod templates). Contracts are version-controlled and treated as first-class artefacts so standards evolve without drifting from code.
 - **IR & analysis layer:** Builds a polyglot intermediate representation by combining Tree-sitter concrete syntax trees, CodeQL semantic databases, and Semgrep’s pattern index. The result is a unified graph that supports fast local checks and deep cross-language reasoning.
+- The CLI’s `analysis inspect` command surfaces this context directly for developers, confirming language coverage and highlighting which analyzers are ready before deeper orchestration begins.
 - **Execution layer:** Compiles contract rules into checks, fixes, scaffolds, and formatter runs. Each action is orchestrated through the Safety Gate, which classifies findings by severity and determines whether Emperator can auto-remediate or should defer to a developer.
 
 This structure maps cleanly to a C4 view: the CLI/LSP service acts as the primary container, backed by modular components (contract loader, IR builder, check coordinator, codemod runner, formatter and report generator) that communicate via typed rule and finding objects.

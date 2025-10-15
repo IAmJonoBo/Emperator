@@ -53,5 +53,6 @@ CI-->>Dev: Surface checks in PR
 - Incremental analysis daemons cache IR so routine runs complete in seconds even on large codebases.
 - Idempotent codemods and formatter passes prevent noisy diffs, keeping pull requests focused on substantive changes.
 - Clear waiver workflows and rule ownership metadata ensure developers know exactly whom to involve when they need exceptions.
+- The `emperator analysis wizard` command turns IR enablement into a guided tour, surfacing missing Semgrep/CodeQL/Tree-sitter tooling alongside quick links and celebratory messaging when everything is ready.
 
 A smooth developer experience is foundational to adoption; Emperator’s tooling aims to reduce friction so teams can spend energy on product work rather than policing standards manually. Consult the [Developer Tooling reference](../reference/developer-tooling.md#baseline-stack) when provisioning workstations or Dev Containers.

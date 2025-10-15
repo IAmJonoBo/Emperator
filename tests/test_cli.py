@@ -10,11 +10,13 @@ from typer.testing import CliRunner
 
 try:
     from emperator import cli as cli_module
+    from emperator.analysis import AnalysisHint, AnalysisReport
     from emperator.cli import app
     from emperator.doctor import RemediationAction
 except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
     sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
     from emperator import cli as cli_module
+    from emperator.analysis import AnalysisHint, AnalysisReport
     from emperator.cli import app
     from emperator.doctor import RemediationAction
 
@@ -192,6 +194,140 @@ def test_cli_fix_run_dry_run_message(monkeypatch, tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.stdout
     assert 'Dry run complete' in result.stdout
+
+
+def test_cli_analysis_inspect_renders_report(monkeypatch, tmp_path: Path) -> None:
+    """Analysis inspect should render language and tooling information."""
+
+    from emperator.analysis import LanguageSummary, ToolStatus
+
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='CodeQL',
+                available=False,
+                location=None,
+                hint='Install CodeQL CLI',
+            ),
+        ),
+        hints=(
+            AnalysisHint(
+                topic='CodeQL',
+                guidance='Install CodeQL CLI to enable semantic checks.',
+            ),
+        ),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'inspect'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Analysis Overview' in result.stdout
+    assert 'Python' in result.stdout
+    assert 'CodeQL' in result.stdout
+    assert 'Install CodeQL CLI' in result.stdout
+
+
+def test_cli_analysis_inspect_handles_empty_languages(monkeypatch, tmp_path: Path) -> None:
+    """Analysis inspect should fall back gracefully when nothing is detected."""
+
+    from emperator.analysis import ToolStatus
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(
+            ToolStatus(name='Semgrep', available=False, location=None, hint='Install Semgrep'),
+        ),
+        hints=(AnalysisHint(topic='Sources', guidance='Add code.'),),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'inspect'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'No supported languages detected' in result.stdout
+    assert 'Hints' in result.stdout
+
+
+def test_cli_analysis_wizard_surfaces_hints(monkeypatch, tmp_path: Path) -> None:
+    """Analysis wizard should surface actionable hints for missing tooling."""
+
+    from emperator.analysis import ToolStatus
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=False,
+                location=None,
+                hint='Install Semgrep',
+            ),
+            ToolStatus(
+                name='CodeQL',
+                available=True,
+                location='/opt/codeql',
+                hint='Available at /opt/codeql',
+            ),
+        ),
+        hints=(
+            AnalysisHint(
+                topic='Semgrep',
+                guidance='Install Semgrep for contract-driven scans.',
+            ),
+        ),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'wizard'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Interactive Analysis Wizard' in result.stdout
+    assert 'Semgrep' in result.stdout
+    assert 'Install Semgrep' in result.stdout
+
+
+def test_cli_analysis_wizard_reports_languages(monkeypatch, tmp_path: Path) -> None:
+    """Analysis wizard should celebrate detected languages."""
+
+    from emperator.analysis import LanguageSummary, ToolStatus
+
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Tree-sitter CLI',
+                available=True,
+                location='/usr/bin/tree-sitter',
+                hint='Available at /usr/bin/tree-sitter',
+            ),
+        ),
+        hints=(),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'wizard'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Review detected languages' in result.stdout
+    assert 'Python' in result.stdout
 
 
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:

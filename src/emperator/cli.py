@@ -8,10 +8,13 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.table import Table
 
 from . import __version__
+from .analysis import gather_analysis
 from .doctor import (
     CheckStatus,
     DoctorCheckResult,
@@ -24,10 +27,12 @@ from .scaffolding import ScaffoldAction, ScaffoldStatus, audit_structure, ensure
 app = typer.Typer(help='Swiss-army knife for Emperator developers and AI copilots.')
 scaffold_app = typer.Typer(help='Inspect and enforce the documented project layout.')
 doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
+analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
 fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
 
 app.add_typer(scaffold_app, name='scaffold')
 app.add_typer(doctor_app, name='doctor')
+app.add_typer(analysis_app, name='analysis')
 app.add_typer(fix_app, name='fix')
 
 
@@ -170,6 +175,33 @@ def _render_check_table(console: Console, results: Iterable[DoctorCheckResult]) 
     console.print(table)
 
 
+def _render_analysis_report(console: Console, report) -> None:
+    language_table = Table(title='Analysis Overview', show_lines=False)
+    language_table.add_column('Language', style='cyan')
+    language_table.add_column('Files', justify='right')
+    language_table.add_column('Samples', style='white')
+    for summary in report.languages:
+        samples = '\n'.join(summary.sample_files) or '—'
+        language_table.add_row(summary.language, str(summary.file_count), samples)
+    if not report.languages:
+        language_table.add_row('—', '0', 'No supported languages detected.')
+    console.print(language_table)
+
+    tooling_table = Table(title='Analyzer Tooling', show_lines=False)
+    tooling_table.add_column('Tool', style='cyan')
+    tooling_table.add_column('Status', justify='center')
+    tooling_table.add_column('Details', style='white')
+    for status in report.tool_statuses:
+        icon = '✅' if status.available else '⚠️'
+        style = 'green' if status.available else 'yellow'
+        tooling_table.add_row(status.name, f'[{style}]{icon}[/]', status.hint)
+    console.print(tooling_table)
+
+    if report.hints:
+        hints = '\n'.join(f'- **{hint.topic}:** {hint.guidance}' for hint in report.hints)
+        console.print(Panel(Markdown(hints), title='Hints', border_style='cyan'))
+
+
 @doctor_app.command('env')
 def doctor_env(
     ctx: typer.Context,
@@ -197,13 +229,71 @@ def doctor_env(
                 if completed and completed.returncode != 0:
                     message = (
                         f"[red]'{' '.join(action.command)}' exited with code "
-                        f"{completed.returncode}[/]"
+                        f'{completed.returncode}[/]'
                     )
                     state.console.print(message)
                     if completed.stderr:
                         state.console.print(completed.stderr)
     else:
         state.console.print('[yellow]Use --apply to run the suggested remediation commands.[/]')
+
+
+@analysis_app.command('inspect')
+def analysis_inspect(ctx: typer.Context) -> None:
+    """Summarise languages and analyzer readiness with progress feedback."""
+
+    state = _get_state(ctx)
+    progress = Progress(
+        SpinnerColumn(),
+        TextColumn('{task.description}'),
+        BarColumn(bar_width=None),
+        TimeElapsedColumn(),
+        console=state.console,
+    )
+    with progress:
+        task_id = progress.add_task('Detecting repository signals', total=2)
+        progress.advance(task_id)
+        progress.update(task_id, description='Building analysis report')
+        report = gather_analysis(state.project_root)
+        progress.advance(task_id)
+    _render_analysis_report(state.console, report)
+
+
+@analysis_app.command('wizard')
+def analysis_wizard(ctx: typer.Context) -> None:
+    """Guide developers through preparing the IR pipeline."""
+
+    state = _get_state(ctx)
+    report = gather_analysis(state.project_root)
+    steps: list[str] = []
+
+    if report.languages:
+        detected = ', '.join(summary.language for summary in report.languages)
+        steps.append(f'Review detected languages: {detected}.')
+    else:
+        steps.append('No supported languages detected — add source files or adjust mappings.')
+
+    for status in report.tool_statuses:
+        if status.available:
+            location = status.location or 'system PATH'
+            steps.append(f'✅ {status.name} ready at {location}.')
+        else:
+            steps.append(f'⚠️ {status.name} missing — {status.hint}')
+
+    if report.hints:
+        steps.append('Review the detailed hints below for follow-up actions.')
+
+    wizard_lines = '\n'.join(f'{idx}. {text}' for idx, text in enumerate(steps, start=1))
+    wizard_panel = Panel(
+        Markdown(wizard_lines),
+        title='Interactive Analysis Wizard',
+        border_style='magenta',
+    )
+    state.console.print(wizard_panel)
+
+    if report.hints:
+        hints = '\n'.join(f'- **{hint.topic}:** {hint.guidance}' for hint in report.hints)
+        state.console.print(Markdown(hints))
 
 
 @fix_app.command('plan')
@@ -247,8 +337,7 @@ def fix_run(
             progress.advance(task_id)
             if result and result.returncode != 0:
                 message = (
-                    f"[red]Command '{' '.join(action.command)}' exited with "
-                    f"{result.returncode}[/]"
+                    f"[red]Command '{' '.join(action.command)}' exited with {result.returncode}[/]"
                 )
                 state.console.print(message)
                 if result.stderr:

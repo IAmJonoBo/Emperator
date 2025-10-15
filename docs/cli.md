@@ -21,3 +21,8 @@ The `emperator` command line interface streamlines day-to-day maintenance tasks 
 - `emperator fix run [--only NAME] [--apply]`: execute one or more remediation actions. Without `--apply` the command operates in dry-run mode so you can review the plan first.
 
 Outputs are rendered with Rich progress spinners and colour-coded tables for quick scanning.
+
+## Analysis planning
+
+- `emperator analysis inspect`: build an at-a-glance report that highlights detected languages, example files, and whether Semgrep, CodeQL, and the Tree-sitter CLI are installed. The command renders progress bars while collecting the data and concludes with actionable hints.
+- `emperator analysis wizard`: guide developers (and copilots) through the steps required to bring the IR pipeline online, highlighting missing tooling with friendly reminders and celebrating ready-to-use analyzers.

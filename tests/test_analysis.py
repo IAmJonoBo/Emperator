@@ -5,6 +5,9 @@ from __future__ import annotations
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 try:
     from emperator.analysis import (
@@ -19,6 +22,7 @@ try:
         TelemetryRun,
         ToolStatus,
         detect_languages,
+        execute_analysis_plan,
         fingerprint_analysis,
         gather_analysis,
         plan_tool_invocations,
@@ -37,6 +41,7 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
         TelemetryRun,
         ToolStatus,
         detect_languages,
+        execute_analysis_plan,
         fingerprint_analysis,
         gather_analysis,
         plan_tool_invocations,
@@ -405,3 +410,311 @@ def test_jsonl_store_persists_history(tmp_path: Path) -> None:
     assert store.latest(fingerprint) == history[-1]
     assert history[0].notes == ('run-2',)
     assert all(entry.events[0].metadata for entry in history)
+
+
+def test_execute_analysis_plan_records_events(tmp_path: Path) -> None:
+    """Executor should run ready steps, persist telemetry, and capture metadata."""
+
+    start = datetime(2025, 1, 1, tzinfo=UTC)
+    step_start = datetime(2025, 1, 1, 0, 0, 5, tzinfo=UTC)
+    step_end = datetime(2025, 1, 1, 0, 0, 9, tzinfo=UTC)
+    ticks = iter((start, step_start, step_end))
+
+    def fake_time() -> datetime:
+        return next(ticks)
+
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready to scan.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep with the auto configuration.',
+                ),
+            ),
+        ),
+    )
+    store = InMemoryTelemetryStore()
+    executed: list[tuple[tuple[str, ...], Path | None]] = []
+
+    def fake_runner(command: tuple[str, ...], *, cwd: Path | None = None) -> SimpleNamespace:
+        executed.append((command, cwd))
+        return SimpleNamespace(returncode=0)
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        telemetry_store=store,
+        metadata={'command': 'unit-test'},
+        runner=fake_runner,
+        time_source=fake_time,
+    )
+
+    fingerprint = fingerprint_analysis(report, plan, metadata={'command': 'unit-test'})
+    assert run.fingerprint == fingerprint
+    latest = store.latest(fingerprint)
+    assert latest is not None and latest.events == run.events
+    assert executed == [(plan[0].steps[0].command, tmp_path)]
+    assert run.events[0].duration_seconds == 4.0
+    assert run.events[0].metadata == {'description': plan[0].steps[0].description}
+
+
+def test_execute_analysis_plan_skips_unready(tmp_path: Path) -> None:
+    """Unready analyzers should be skipped unless explicitly forced."""
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='CodeQL',
+            ready=False,
+            reason='Missing CodeQL CLI.',
+            steps=(
+                AnalyzerCommand(
+                    command=('codeql', 'database', 'create'),
+                    description='Prepare CodeQL database.',
+                ),
+            ),
+        ),
+    )
+    called: list[tuple[tuple[str, ...], Path | None]] = []
+
+    def fake_runner(command: tuple[str, ...], *, cwd: Path | None = None) -> SimpleNamespace:
+        called.append((command, cwd))
+        return SimpleNamespace(returncode=0)
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        runner=fake_runner,
+        time_source=lambda: datetime(2025, 1, 1, tzinfo=UTC),
+    )
+
+    assert called == []
+    assert run.events == ()
+    assert any('CodeQL' in note and 'Skipped' in note for note in run.notes)
+
+
+def test_execute_analysis_plan_honours_callbacks(tmp_path: Path) -> None:
+    """Callbacks should fire with execution metadata and capture failures."""
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=False,
+            reason='Dry run',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep.',
+                ),
+            ),
+        ),
+    )
+    times = iter(
+        (
+            datetime(2025, 2, 1, tzinfo=UTC),
+            datetime(2025, 2, 1, 0, 0, 3, tzinfo=UTC),
+            datetime(2025, 2, 1, 0, 0, 4, tzinfo=UTC),
+        )
+    )
+    started: list[tuple[str, tuple[str, ...]]] = []
+    completed: list[tuple[str, tuple[str, ...], int, float]] = []
+
+    def fake_runner(command: tuple[str, ...], *, cwd: Path | None = None) -> SimpleNamespace:
+        assert cwd == tmp_path
+        return SimpleNamespace(returncode=2)
+
+    def on_start(current_plan: AnalyzerPlan, command: AnalyzerCommand) -> None:
+        started.append((current_plan.tool, command.command))
+
+    def on_complete(
+        current_plan: AnalyzerPlan,
+        command: AnalyzerCommand,
+        exit_code: int,
+        duration: float,
+    ) -> None:
+        completed.append((current_plan.tool, command.command, exit_code, duration))
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        include_unready=True,
+        runner=fake_runner,
+        time_source=lambda: next(times),
+        on_step_start=on_start,
+        on_step_complete=on_complete,
+    )
+
+    assert started == [('Semgrep', plan[0].steps[0].command)]
+    assert completed == [('Semgrep', plan[0].steps[0].command, 2, 1.0)]
+    assert run.events and run.events[0].exit_code == 2
+    assert any('Semgrep' in note and 'exit code 2' in note for note in run.notes)
+
+
+def test_execute_analysis_plan_uses_default_runner(monkeypatch, tmp_path: Path) -> None:
+    """Default runner should invoke subprocess.run with expected arguments."""
+
+    module = sys.modules['emperator.analysis']
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep.',
+                ),
+            ),
+        ),
+    )
+    calls: list[tuple[tuple[str, ...], Path | None, bool, bool, bool]] = []
+
+    def fake_run(
+        command: tuple[str, ...],
+        *,
+        cwd: Path | None = None,
+        check: bool,
+        text: bool,
+        capture_output: bool,
+    ) -> SimpleNamespace:
+        calls.append((command, cwd, check, text, capture_output))
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(module.subprocess, 'run', fake_run)
+    timestamps = iter(
+        (
+            datetime(2025, 3, 1, tzinfo=UTC),
+            datetime(2025, 3, 1, 0, 0, 2, tzinfo=UTC),
+            datetime(2025, 3, 1, 0, 0, 4, tzinfo=UTC),
+        )
+    )
+
+    run = execute_analysis_plan(report, plan, time_source=lambda: next(timestamps))
+
+    assert calls == [(plan[0].steps[0].command, tmp_path.resolve(), False, True, True)]
+    assert run.events and run.events[0].exit_code == 0
+
+
+def test_execute_analysis_plan_supports_exit_code_attribute(tmp_path: Path) -> None:
+    """Runner results exposing exit_code should be accepted."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep.',
+                ),
+            ),
+        ),
+    )
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        runner=lambda command, *, cwd=None: SimpleNamespace(exit_code=5),
+        time_source=lambda: datetime(2025, 4, 1, tzinfo=UTC),
+    )
+
+    assert run.events and run.events[0].exit_code == 5
+
+
+def test_execute_analysis_plan_accepts_integer_exit_code(tmp_path: Path) -> None:
+    """Plain integer runner results should be normalised to exit codes."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep.',
+                ),
+            ),
+        ),
+    )
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        runner=lambda command, *, cwd=None: 0,
+        time_source=lambda: datetime(2025, 4, 2, tzinfo=UTC),
+    )
+
+    assert run.events and run.events[0].exit_code == 0
+
+
+def test_execute_analysis_plan_raises_when_exit_code_missing(tmp_path: Path) -> None:
+    """Missing exit code information should raise a helpful TypeError."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', '--config=auto', str(tmp_path)),
+                    description='Run Semgrep.',
+                ),
+            ),
+        ),
+    )
+
+    with pytest.raises(TypeError):
+        execute_analysis_plan(
+            report,
+            plan,
+            runner=lambda command, *, cwd=None: object(),
+            time_source=lambda: datetime(2025, 5, 1, tzinfo=UTC),
+        )
+
+
+def test_execute_analysis_plan_notes_missing_steps(tmp_path: Path) -> None:
+    """Plans without steps should record a descriptive note."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = (AnalyzerPlan(tool='CodeQL', ready=True, reason='Ready', steps=()),)
+
+    run = execute_analysis_plan(
+        report,
+        plan,
+        time_source=lambda: datetime(2025, 6, 1, tzinfo=UTC),
+    )
+
+    assert run.events == ()
+    assert run.notes == ('No steps defined for CodeQL.',)

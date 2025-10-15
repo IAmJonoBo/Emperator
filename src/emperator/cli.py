@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -15,10 +16,14 @@ from rich.table import Table
 
 from . import __version__
 from .analysis import (
+    AnalyzerCommand,
     AnalyzerPlan,
     InMemoryTelemetryStore,
     JSONLTelemetryStore,
+    TelemetryEvent,
+    TelemetryRun,
     TelemetryStore,
+    execute_analysis_plan,
     fingerprint_analysis,
     gather_analysis,
     plan_tool_invocations,
@@ -65,6 +70,19 @@ TELEMETRY_PATH_OPTION = typer.Option(
     help='Directory for telemetry persistence when using the jsonl backend.',
     dir_okay=True,
     file_okay=False,
+)
+
+ANALYSIS_TOOL_OPTION = typer.Option(
+    None,
+    '--tool',
+    '-t',
+    help='Execute only the specified analyzer (option can be repeated).',
+)
+
+INCLUDE_UNREADY_ANALYZERS_OPTION = typer.Option(
+    False,
+    '--include-unready',
+    help='Attempt to run analyzers even if prerequisites are missing.',
 )
 
 SCAFFOLD_DRY_RUN_OPTION = typer.Option(
@@ -296,6 +314,87 @@ def _render_analysis_plan(
         console.print(steps_table)
 
 
+def _render_run_telemetry(
+    console: Console,
+    run: TelemetryRun,
+    *,
+    telemetry_store: TelemetryStore | None,
+    telemetry_path: Path | None,
+) -> None:
+    """Display telemetry metadata for a completed analysis run."""
+
+    console.print(f'[bold cyan]Telemetry fingerprint:[/] {run.fingerprint}')
+    if telemetry_store is None:
+        console.print('[yellow]Telemetry disabled for this session.[/]')
+    else:
+        status = 'success' if run.successful else 'issues detected'
+        console.print(
+            '[cyan]Run recorded:[/] '
+            f'{run.completed_at.isoformat()} '
+            f'({len(run.events)} events, {run.duration_seconds:.2f}s, {status})'
+        )
+    if telemetry_path is not None:
+        console.print(f'[green]Telemetry directory:[/] {telemetry_path}')
+
+
+def _render_analysis_run_summary(
+    console: Console,
+    plans: Iterable[AnalyzerPlan],
+    run: TelemetryRun,
+) -> None:
+    """Render the execution results for each analyzer tool."""
+
+    materialised = tuple(plans)
+    events_by_tool: dict[str, list[TelemetryEvent]] = {}
+    for event in run.events:
+        events_by_tool.setdefault(event.tool, []).append(event)
+    notes_by_tool: dict[str | None, list[str]] = {}
+    for note in run.notes:
+        matched_tool: str | None = None
+        for plan in materialised:
+            if plan.tool in note:
+                matched_tool = plan.tool
+                break
+        notes_by_tool.setdefault(matched_tool, []).append(note)
+
+    table = Table(title='Analysis Run Summary', show_lines=False)
+    table.add_column('Tool', style='cyan')
+    table.add_column('Steps', justify='right')
+    table.add_column('Result', style='white')
+    table.add_column('Details', style='white')
+
+    for plan in materialised:
+        tool_events = events_by_tool.get(plan.tool, [])
+        tool_notes = notes_by_tool.get(plan.tool, [])
+        step_count = len(tool_events)
+        if not tool_events:
+            if not plan.steps:
+                result = '[yellow]No steps[/]'
+                detail = tool_notes[-1] if tool_notes else plan.reason
+            else:
+                result = '[yellow]Skipped[/]'
+                detail = tool_notes[-1] if tool_notes else plan.reason
+            steps_display = '0'
+        else:
+            failures = [event for event in tool_events if event.exit_code != 0]
+            steps_display = str(step_count)
+            if failures:
+                result = '[red]FAILED[/]'
+                detail = (
+                    '; '.join(tool_notes) if tool_notes else f'{len(failures)} failing step(s).'
+                )
+            else:
+                result = '[green]Success[/]'
+                detail = '; '.join(tool_notes) if tool_notes else 'All steps succeeded.'
+        table.add_row(plan.tool, steps_display, result, detail)
+
+    console.print(table)
+
+    general_notes = notes_by_tool.get(None, [])
+    if general_notes:
+        console.print(Panel('\n'.join(general_notes), title='Run Notes', border_style='yellow'))
+
+
 @doctor_app.command('env')
 def doctor_env(
     ctx: typer.Context,
@@ -410,6 +509,90 @@ def analysis_plan(ctx: typer.Context) -> None:
         telemetry_store=state.telemetry_store,
         telemetry_path=state.telemetry_path,
     )
+
+
+@analysis_app.command('run')
+def analysis_run(
+    ctx: typer.Context,
+    tool: list[str] | None = ANALYSIS_TOOL_OPTION,
+    include_unready: bool = INCLUDE_UNREADY_ANALYZERS_OPTION,
+) -> None:
+    """Execute analyzer plans, stream progress, and record telemetry."""
+
+    state = _get_state(ctx)
+    report = gather_analysis(state.project_root)
+    plans = tuple(plan_tool_invocations(report))
+    if not plans:
+        state.console.print(
+            '[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]'
+        )
+        return
+
+    selected_tools = {name.lower() for name in (tool or ())}
+    if selected_tools:
+        selected_plans = tuple(plan for plan in plans if plan.tool.lower() in selected_tools)
+    else:
+        selected_plans = plans
+
+    if not selected_plans:
+        state.console.print('[yellow]No analyzer plans matched the provided filters.[/]')
+        return
+
+    executable_steps = sum(
+        len(plan.steps) for plan in selected_plans if plan.ready or include_unready
+    )
+    metadata: dict[str, Any] = {'command': 'analysis-run', 'include_unready': include_unready}
+    if selected_tools:
+        metadata['tools'] = sorted(selected_tools)
+
+    progress = Progress(
+        SpinnerColumn(),
+        TextColumn('{task.description}'),
+        BarColumn(bar_width=None),
+        TimeElapsedColumn(),
+        console=state.console,
+    )
+    task_label = 'Executing analyzer steps' if executable_steps else 'No executable steps detected'
+    with progress:
+        task_id = progress.add_task(task_label, total=executable_steps or None)
+
+        def handle_start(plan: AnalyzerPlan, command: AnalyzerCommand) -> None:
+            progress.update(
+                task_id,
+                description=f'Running {plan.tool}: {" ".join(command.command)}',
+            )
+
+        def handle_complete(
+            plan: AnalyzerPlan,
+            command: AnalyzerCommand,
+            exit_code: int,
+            duration: float,
+        ) -> None:
+            del plan, command, exit_code, duration
+            progress.advance(task_id)
+
+        run = execute_analysis_plan(
+            report,
+            selected_plans,
+            telemetry_store=state.telemetry_store,
+            metadata=metadata,
+            include_unready=include_unready,
+            on_step_start=handle_start if executable_steps else None,
+            on_step_complete=handle_complete if executable_steps else None,
+        )
+        progress.update(
+            task_id,
+            description='Analyzer execution complete',
+            completed=executable_steps or 0,
+        )
+
+    _render_run_telemetry(
+        state.console,
+        run,
+        telemetry_store=state.telemetry_store,
+        telemetry_path=state.telemetry_path,
+    )
+    _render_analysis_run_summary(state.console, selected_plans, run)
 
 
 @fix_app.command('plan')

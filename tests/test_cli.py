@@ -539,6 +539,355 @@ def test_cli_analysis_plan_disables_telemetry(monkeypatch, tmp_path: Path) -> No
     assert 'Telemetry disabled for this session.' in result.stdout
 
 
+def test_cli_analysis_run_executes_plans(monkeypatch, tmp_path: Path) -> None:
+    """Analysis run should execute filtered plans and display a summary."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path)),
+                description='Run Semgrep with auto configuration.',
+            ),
+        ),
+    )
+    start = datetime.now(UTC)
+    run = TelemetryRun(
+        fingerprint='run-fingerprint',
+        project_root=tmp_path,
+        started_at=start,
+        completed_at=start,
+        events=(
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=0,
+                duration_seconds=2.5,
+                timestamp=start,
+                metadata={'description': plan.steps[0].description},
+            ),
+        ),
+        notes=(),
+    )
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+
+    def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
+        captured['report'] = report_arg
+        captured['plans'] = tuple(plans_arg)
+        captured['kwargs'] = kwargs
+        if kwargs.get('on_step_start') is not None:
+            kwargs['on_step_start'](plans_arg[0], plans_arg[0].steps[0])
+        if kwargs.get('on_step_complete') is not None:
+            kwargs['on_step_complete'](plans_arg[0], plans_arg[0].steps[0], 0, 2.5)
+        return run
+
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'Analysis Run Summary' in result.stdout
+    assert 'run-fingerprint' in result.stdout
+    assert 'Semgrep' in result.stdout and 'Success' in result.stdout
+    assert captured['plans'] == (plan,)
+    kwargs = captured['kwargs']
+    assert kwargs['include_unready'] is False
+    assert kwargs['metadata']['command'] == 'analysis-run'
+
+
+def test_cli_analysis_run_filters_tools(monkeypatch, tmp_path: Path) -> None:
+    """Tool filters should restrict which plans are executed."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Ready',
+            steps=(),
+        ),
+        AnalyzerPlan(
+            tool='CodeQL',
+            ready=True,
+            reason='Ready',
+            steps=(),
+        ),
+    )
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+
+    called: dict[str, object] = {}
+
+    def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
+        called['plans'] = tuple(plans_arg)
+        return TelemetryRun(
+            fingerprint='filtered',
+            project_root=tmp_path,
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+            events=(),
+            notes=('Filtered execution',),
+        )
+
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run', '--tool', 'CodeQL'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert called['plans'] == (plans[1],)
+    assert 'CodeQL' in result.stdout
+    assert 'Semgrep' not in result.stdout
+
+
+def test_cli_analysis_run_handles_no_plans(monkeypatch, tmp_path: Path) -> None:
+    """Run command should explain when no analyzers are configured."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: ())
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'No analyzer plans available yet' in result.stdout
+
+
+def test_cli_analysis_run_reports_failures(monkeypatch, tmp_path: Path) -> None:
+    """Failures should be highlighted in the run summary."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path)),
+                description='Run Semgrep with auto config.',
+            ),
+        ),
+    )
+    timestamp = datetime.now(UTC)
+    run = TelemetryRun(
+        fingerprint='failure-fingerprint',
+        project_root=tmp_path,
+        started_at=timestamp,
+        completed_at=timestamp,
+        events=(
+            TelemetryEvent(
+                tool='Semgrep',
+                command=plan.steps[0].command,
+                exit_code=3,
+                duration_seconds=1.0,
+                timestamp=timestamp,
+                metadata={'description': plan.steps[0].description},
+            ),
+        ),
+        notes=('Semgrep exited with code 3',),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'FAILED' in result.stdout or 'failed' in result.stdout.lower()
+    assert 'code 3' in result.stdout
+
+
+def test_cli_analysis_run_includes_unready(monkeypatch, tmp_path: Path) -> None:
+    """The --include-unready flag should forward to the executor."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(tool='Semgrep', ready=False, reason='Missing deps', steps=())
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+
+    forwarded: dict[str, object] = {}
+
+    def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
+        forwarded['include_unready'] = kwargs['include_unready']
+        return TelemetryRun(
+            fingerprint='forced',
+            project_root=tmp_path,
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+            events=(),
+            notes=('Forced execution',),
+        )
+
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run', '--include-unready'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert forwarded['include_unready'] is True
+
+
+def test_cli_analysis_run_disables_telemetry(monkeypatch, tmp_path: Path) -> None:
+    """Telemetry disabled via CLI flag should be reported in the output."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(
+        cli_module,
+        'execute_analysis_plan',
+        lambda *args, **kwargs: TelemetryRun(
+            fingerprint='disabled',
+            project_root=tmp_path,
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+            events=(),
+            notes=('No steps defined for Semgrep.',),
+        ),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'off',
+            'analysis',
+            'run',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'Telemetry disabled for this session.' in result.stdout
+
+
+def test_cli_analysis_run_reports_directory(monkeypatch, tmp_path: Path) -> None:
+    """Telemetry directory should be surfaced when using the JSONL backend."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
+    store_path = tmp_path / 'telemetry'
+
+    def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
+        return TelemetryRun(
+            fingerprint='jsonl',
+            project_root=tmp_path,
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
+            events=(),
+            notes=('No steps defined for Semgrep.',),
+        )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+
+    result = runner.invoke(
+        app,
+        [
+            '--root',
+            str(tmp_path),
+            '--telemetry-store',
+            'jsonl',
+            '--telemetry-path',
+            str(store_path),
+            'analysis',
+            'run',
+        ],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert str(store_path) in result.stdout
+    assert 'Telemetry directory' in result.stdout
+
+
+def test_cli_analysis_run_reports_filter_miss(monkeypatch, tmp_path: Path) -> None:
+    """Missing tool filters should surface a helpful warning."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run', '--tool', 'CodeQL'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'No analyzer plans matched the provided filters' in result.stdout
+
+
+def test_cli_analysis_run_reports_skipped_tool(monkeypatch, tmp_path: Path) -> None:
+    """Skipped analyzers should be reflected in the run summary."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=False,
+        reason='Missing Semgrep CLI',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', '--config=auto', str(tmp_path)),
+                description='Run Semgrep.',
+            ),
+        ),
+    )
+
+    run = TelemetryRun(
+        fingerprint='skipped',
+        project_root=tmp_path,
+        started_at=datetime.now(UTC),
+        completed_at=datetime.now(UTC),
+        events=(),
+        notes=('Skipped Semgrep: Missing Semgrep CLI',),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'run'],
+        env={'NO_COLOR': '1'},
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert 'Skipped Semgrep' in result.stdout
+    assert 'Missing Semgrep CLI' in result.stdout
+
+
 def test_cli_rejects_unknown_telemetry_backend(tmp_path: Path) -> None:
     """Main callback should surface a helpful error for unknown telemetry stores."""
 

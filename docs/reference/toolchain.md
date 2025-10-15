@@ -29,6 +29,16 @@ Reports --> Feedback[Developer & CI feedback loops]
 | Ruby                    | ✔           | ✖       | ✔       | Relies on Semgrep and Tree-sitter; consider Sorbet integration for deeper analysis.                                                                                |
 | Shell                   | ✔           | ✖       | ✔       | Static analysis limited to Semgrep patterns and shellcheck (optional plugin); pair with [Developer experience guardrails](../explanation/developer-experience.md). |
 
+### CodeQL workflow
+
+- Build databases with `emperator analysis codeql create --language <lang>`; results are cached
+  under `.emperator/codeql-cache/` keyed by language and source fingerprint.
+- Execute custom query packs via `emperator analysis codeql query --database <path>`.
+- Generated SARIF reports default to `<database>/analysis.sarif` and can be uploaded to GitHub
+  Advanced Security or other ingestion pipelines.
+- Author queries in `rules/codeql/queries/` and document the workflow in
+  [Develop CodeQL Queries](../how-to/develop-codeql-queries.md).
+
 ## Codemod engines
 
 | Ecosystem             | Engine                   | Typical use cases                                                 | Safety tier guidance                                                         |

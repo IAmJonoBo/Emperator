@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,6 +20,9 @@ from .analysis import (
     AnalysisReport,
     AnalyzerCommand,
     AnalyzerPlan,
+    CodeQLManager,
+    CodeQLManagerError,
+    CodeQLUnavailableError,
     InMemoryTelemetryStore,
     JSONLTelemetryStore,
     TelemetryEvent,
@@ -50,6 +54,7 @@ fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
 contract_app = typer.Typer(help='Inspect and validate the Project Contract assets.')
 ir_app = typer.Typer(help='Intermediate Representation (IR) operations for code analysis.')
 rules_app = typer.Typer(help='Generate and manage Semgrep and CodeQL rules.')
+codeql_app = typer.Typer(help='Manage CodeQL databases and query execution.')
 
 app.add_typer(scaffold_app, name='scaffold')
 app.add_typer(doctor_app, name='doctor')
@@ -58,6 +63,7 @@ app.add_typer(fix_app, name='fix')
 app.add_typer(contract_app, name='contract')
 app.add_typer(ir_app, name='ir')
 app.add_typer(rules_app, name='rules')
+analysis_app.add_typer(codeql_app, name='codeql')
 
 
 _SUPPORTED_SEVERITIES: tuple[str, ...] = (
@@ -153,6 +159,91 @@ VERSION_OPTION = typer.Option(
 )
 VERSION_OPTION.param_decls = ('--version', '-v')
 
+CODEQL_LANGUAGE_OPTION = typer.Option(
+    'python',
+    '--language',
+    '-l',
+    help='Language for the CodeQL database.',
+)
+
+CODEQL_SOURCE_OPTION = typer.Option(
+    None,
+    '--source',
+    '-s',
+    help='Source root to index (defaults to the project root).',
+    dir_okay=True,
+    file_okay=False,
+)
+
+CODEQL_FORCE_OPTION = typer.Option(
+    default=False,
+    help='Overwrite any existing database at the target location.',
+)
+CODEQL_FORCE_OPTION.param_decls = ('--force',)
+
+CODEQL_DATABASE_OPTION = typer.Option(
+    None,
+    '--database',
+    '-d',
+    help='Path to an existing CodeQL database directory.',
+    dir_okay=True,
+    file_okay=False,
+)
+
+CODEQL_QUERIES_OPTION = typer.Option(
+    None,
+    '--query',
+    '-q',
+    help='CodeQL query file(s) to execute (option can be repeated).',
+    dir_okay=False,
+    file_okay=True,
+    exists=False,
+    show_default=False,
+)
+
+CODEQL_OUTPUT_OPTION = typer.Option(
+    None,
+    '--output',
+    '-o',
+    help='Optional SARIF output path for query results.',
+    dir_okay=True,
+    file_okay=True,
+)
+
+CODEQL_OLDER_THAN_OPTION = typer.Option(
+    None,
+    '--older-than',
+    help='Remove cached databases older than the provided number of days.',
+)
+
+CODEQL_MAX_BYTES_OPTION = typer.Option(
+    None,
+    '--max-bytes',
+    help='Maximum total size of cached databases (bytes) after pruning.',
+)
+
+CODEQL_DEFAULT_SARIF = 'analysis.sarif'
+
+RULES_CATEGORY_OPTION = typer.Option(
+    None,
+    '--category',
+    '-c',
+    help='Generate rules for a specific category (naming, security, architecture).',
+)
+
+RULES_OUTPUT_OPTION = typer.Option(
+    None,
+    '--output',
+    '-o',
+    help='Output directory for generated rules.',
+    dir_okay=True,
+    file_okay=False,
+)
+
+RULES_PATH_ARGUMENT = typer.Argument(
+    ..., help='Path to Semgrep rules file or directory for validation.'
+)
+
 
 @dataclass
 class CLIState:
@@ -175,6 +266,29 @@ def _resolve_telemetry_path(project_root: Path, target: Path | None) -> Path:
     if target.is_absolute():
         return target.resolve()
     return (project_root / target).resolve()
+
+
+def _resolve_project_path(project_root: Path, path: Path) -> Path:
+    if path.is_absolute():
+        return path.resolve()
+    return (project_root / path).resolve()
+
+
+def _get_codeql_manager(state: CLIState) -> CodeQLManager:
+    cache_dir = state.project_root / '.emperator' / 'codeql-cache'
+    return CodeQLManager(cache_dir=cache_dir)
+
+
+def _handle_codeql_error(console: Console, error: Exception) -> None:
+    console.print(f'[red]{error}[/]')
+    raise typer.Exit(1) from error
+
+
+def _discover_default_queries(project_root: Path) -> tuple[Path, ...]:
+    queries_dir = project_root / 'rules' / 'codeql'
+    if not queries_dir.exists():
+        return ()
+    return tuple(sorted(path.resolve() for path in queries_dir.glob('*.ql')))
 
 
 def _status_style(status: CheckStatus) -> str:
@@ -756,6 +870,163 @@ def analysis_run(
     _render_analysis_run_summary(state.console, selected_plans, run)
 
 
+@codeql_app.command('create')
+def analysis_codeql_create(
+    ctx: typer.Context,
+    *,
+    language: str = CODEQL_LANGUAGE_OPTION,
+    source: Path | None = CODEQL_SOURCE_OPTION,
+    force: bool = CODEQL_FORCE_OPTION,
+) -> None:
+    """Create or refresh a CodeQL database for the repository."""
+    state = _get_state(ctx)
+    manager = _get_codeql_manager(state)
+    source_root = (
+        _resolve_project_path(state.project_root, source) if source else state.project_root
+    )
+
+    try:
+        database = asyncio.run(
+            manager.create_database(source_root=source_root, language=language, force=force)
+        )
+    except (CodeQLUnavailableError, CodeQLManagerError) as error:
+        _handle_codeql_error(state.console, error)
+        return
+
+    message = (
+        f'[green]Database ready[/] → [bold]{database.path}[/]\n'
+        f'Language: [cyan]{database.language}[/]\n'
+        f'Fingerprint: {database.fingerprint}\n'
+        f'Size: {database.size_bytes:,} bytes'
+    )
+    state.console.print(Panel.fit(message, title='CodeQL'))
+
+
+@codeql_app.command('query')
+def analysis_codeql_query(
+    ctx: typer.Context,
+    *,
+    database: Path | None = CODEQL_DATABASE_OPTION,
+    query: list[Path] | None = CODEQL_QUERIES_OPTION,
+    output: Path | None = CODEQL_OUTPUT_OPTION,
+) -> None:
+    """Execute CodeQL queries and report findings."""
+    state = _get_state(ctx)
+    if database is None:
+        message = 'A database path is required.'
+        raise typer.BadParameter(message, param_hint='--database')
+
+    manager = _get_codeql_manager(state)
+    db_path = _resolve_project_path(state.project_root, database)
+    try:
+        metadata = manager.load_database(db_path)
+    except CodeQLManagerError as error:
+        _handle_codeql_error(state.console, error)
+        return
+
+    selected_queries = query or []
+    if not selected_queries:
+        selected_queries = _discover_default_queries(state.project_root)
+        if not selected_queries:
+            state.console.print(
+                '[yellow]No queries specified and none discovered under rules/codeql.[/]'
+            )
+            raise typer.Exit(1)
+
+    resolved_queries = tuple(
+        _resolve_project_path(state.project_root, query_path) for query_path in selected_queries
+    )
+    sarif_output = _resolve_project_path(state.project_root, output) if output is not None else None
+
+    try:
+        findings = asyncio.run(
+            manager.run_queries(metadata, resolved_queries, sarif_output=sarif_output)
+        )
+    except (CodeQLUnavailableError, CodeQLManagerError) as error:
+        _handle_codeql_error(state.console, error)
+        return
+
+    if findings:
+        table = Table(title='CodeQL Findings', show_lines=False)
+        table.add_column('Rule', style='cyan')
+        table.add_column('Severity', style='magenta')
+        table.add_column('Location', style='white', overflow='fold')
+        for finding in findings:
+            severity = finding.severity or 'info'
+            location = '—'
+            if finding.file_path:
+                line = finding.start_line or 0
+                location = f'{finding.file_path}:{line}'
+            table.add_row(finding.rule_id or '—', severity, location)
+        state.console.print(table)
+    else:
+        state.console.print('[green]CodeQL did not report any findings.[/]')
+
+    sarif_path = sarif_output or (metadata.path / CODEQL_DEFAULT_SARIF).resolve()
+    state.console.print(f'SARIF output: [bold]{sarif_path}[/]')
+
+
+@codeql_app.command('list')
+def analysis_codeql_list(ctx: typer.Context) -> None:
+    """List cached CodeQL databases."""
+    state = _get_state(ctx)
+    manager = _get_codeql_manager(state)
+    databases = manager.list_databases()
+    if not databases:
+        state.console.print('[yellow]No cached CodeQL databases found.[/]')
+        return
+
+    table = Table(title='Cached CodeQL Databases', show_lines=False)
+    table.add_column('Language', style='cyan')
+    table.add_column('Fingerprint', style='magenta')
+    table.add_column('Created', style='green')
+    table.add_column('Size (bytes)', justify='right')
+    table.add_column('Path', style='white', overflow='fold')
+
+    for db in databases:
+        table.add_row(
+            db.language,
+            db.fingerprint[:12],
+            db.created_at.astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'),
+            f'{db.size_bytes:,}',
+            str(db.path),
+        )
+
+    state.console.print(table)
+
+
+@codeql_app.command('prune')
+def analysis_codeql_prune(
+    ctx: typer.Context,
+    *,
+    older_than: int | None = CODEQL_OLDER_THAN_OPTION,
+    max_bytes: int | None = CODEQL_MAX_BYTES_OPTION,
+) -> None:
+    """Remove stale CodeQL databases from the cache."""
+    if older_than is None and max_bytes is None:
+        message = 'Provide --older-than or --max-bytes to prune the cache.'
+        raise typer.BadParameter(message)
+    if older_than is not None and older_than < 0:
+        message = 'older-than must be non-negative.'
+        raise typer.BadParameter(message, param_hint='--older-than')
+    if max_bytes is not None and max_bytes < 0:
+        message = 'max-bytes must be non-negative.'
+        raise typer.BadParameter(message, param_hint='--max-bytes')
+
+    state = _get_state(ctx)
+    manager = _get_codeql_manager(state)
+    removed = manager.prune(older_than_days=older_than, max_total_bytes=max_bytes)
+    if not removed:
+        state.console.print('[green]No cached databases matched the prune criteria.[/]')
+        return
+
+    table = Table(title='Pruned CodeQL Databases', show_header=False)
+    table.add_column('Removed', style='red', overflow='fold')
+    for path in removed:
+        table.add_row(str(path))
+    state.console.print(table)
+
+
 def _render_validation_summary(console: Console, result: ContractValidationResult) -> None:
     if result.warnings:
         warning_table = Table(title='Contract validation warnings', show_header=False)
@@ -964,21 +1235,56 @@ def ir_cache(
 # └────────────────────────────────────────────────────────────────────────┘
 
 
+def _summarise_semgrep_rules(console: Console, rules_path: Path) -> tuple[int, int]:
+    import yaml
+
+    if rules_path.is_file():
+        files = [rules_path]
+    else:
+        files = list(rules_path.glob('*.yaml')) + list(rules_path.glob('*.yml'))
+
+    valid_count = 0
+    invalid_count = 0
+
+    for file in files:
+        try:
+            with file.open() as handle:
+                data = yaml.safe_load(handle)
+        except yaml.YAMLError as error:  # pragma: no cover - exercised via CLI
+            console.print(f'[red]✗[/] {file}: YAML error: {error}')
+            invalid_count += 1
+            continue
+
+        if not isinstance(data, dict) or 'rules' not in data:
+            console.print(f'[yellow]⚠[/] {file}: missing "rules" key')
+            invalid_count += 1
+            continue
+
+        missing_fields = []
+        for rule in data.get('rules', []):
+            required = ['id', 'message', 'severity', 'languages']
+            missing = [field for field in required if field not in rule]
+            if missing:
+                missing_fields.append((rule.get('id', '<unknown>'), missing))
+
+        if missing_fields:
+            for rule_id, missing in missing_fields:
+                console.print(f'[yellow]⚠[/] {file}: rule {rule_id} missing fields: {missing}')
+            invalid_count += 1
+            continue
+
+        valid_count += 1
+        console.print(f'[green]✓[/] {file}')
+
+    return valid_count, invalid_count
+
+
 @rules_app.command('generate')
 def rules_generate(
     ctx: typer.Context,
-    category: str | None = typer.Option(
-        None,
-        '--category',
-        '-c',
-        help='Generate rules for specific category (naming, security, architecture)',
-    ),
-    output: Path | None = typer.Option(
-        None,
-        '--output',
-        '-o',
-        help='Output directory for generated rules',
-    ),
+    *,
+    category: str | None = RULES_CATEGORY_OPTION,
+    output: Path | None = RULES_OUTPUT_OPTION,
 ) -> None:
     """Generate Semgrep rules from contract conventions.
 
@@ -998,9 +1304,7 @@ def rules_generate(
 
         if category:
             # Filter by category
-            filtered_rules = tuple(
-                r for r in all_rules if r.metadata.get('category') == category
-            )
+            filtered_rules = tuple(r for r in all_rules if r.metadata.get('category') == category)
             if not filtered_rules:
                 state.console.print(f'[yellow]No rules found for category: {category}[/]')
                 return
@@ -1008,8 +1312,7 @@ def rules_generate(
             output_file = output_dir / f'{category}.yaml'
             generator.write_rule_pack(filtered_rules, output_file)
             state.console.print(
-                f'[green]✓[/] Generated {len(filtered_rules)} {category} rules '
-                f'to {output_file}'
+                f'[green]✓[/] Generated {len(filtered_rules)} {category} rules ' f'to {output_file}'
             )
         else:
             # Generate all categories
@@ -1029,10 +1332,8 @@ def rules_generate(
 @rules_app.command('validate')
 def rules_validate(
     ctx: typer.Context,
-    rules_path: Path = typer.Argument(
-        ...,
-        help='Path to Semgrep rules file or directory',
-    ),
+    *,
+    rules_path: Path = RULES_PATH_ARGUMENT,
 ) -> None:
     """Validate Semgrep rules syntax.
 
@@ -1040,56 +1341,28 @@ def rules_validate(
     """
     state = _get_state(ctx)
 
+    def _fail() -> None:
+        raise typer.Exit(code=1)
+
     if not rules_path.exists():
         state.console.print(f'[red]✗[/] Rules path not found: {rules_path}')
-        raise typer.Exit(code=1)
+        _fail()
 
     state.console.print(f'[bold]Validating Semgrep rules in {rules_path}[/]')
 
     try:
-        import yaml
-
-        if rules_path.is_file():
-            files = [rules_path]
-        else:
-            files = list(rules_path.glob('*.yaml')) + list(rules_path.glob('*.yml'))
-
-        valid_count = 0
-        invalid_count = 0
-
-        for file in files:
-            try:
-                with file.open() as f:
-                    data = yaml.safe_load(f)
-                    if 'rules' not in data:
-                        state.console.print(f'[yellow]⚠[/] {file}: missing "rules" key')
-                        invalid_count += 1
-                        continue
-                    for rule in data['rules']:
-                        required = ['id', 'message', 'severity', 'languages']
-                        missing = [k for k in required if k not in rule]
-                        if missing:
-                            state.console.print(
-                                f'[yellow]⚠[/] {file}: rule missing fields: {missing}'
-                            )
-                            invalid_count += 1
-                            continue
-                valid_count += 1
-                state.console.print(f'[green]✓[/] {file}')
-            except yaml.YAMLError as e:
-                state.console.print(f'[red]✗[/] {file}: YAML error: {e}')
-                invalid_count += 1
-
+        valid_count, invalid_count = _summarise_semgrep_rules(state.console, rules_path)
         state.console.print(
             f'\n[bold]Validation complete:[/] {valid_count} valid, {invalid_count} invalid'
         )
-
         if invalid_count > 0:
-            raise typer.Exit(code=1)
-
-    except Exception as e:  # noqa: BLE001
-        state.console.print(f'[red]✗[/] Validation failed: {e}')
-        raise typer.Exit(code=1) from None
+            _fail()
+    except ImportError:
+        state.console.print('[red]✗[/] Semgrep is not installed or not on PATH.')
+        _fail()
+    except Exception as error:  # noqa: BLE001
+        state.console.print(f'[red]✗[/] Validation failed: {error}')
+        _fail()
 
 
 def run() -> None:

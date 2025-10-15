@@ -13,6 +13,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
+from .codeql import (
+    CodeQLDatabase,
+    CodeQLFinding,
+    CodeQLManager,
+    CodeQLManagerError,
+    CodeQLUnavailableError,
+)
+
 __all__ = [
     'AnalysisHint',
     'AnalysisReport',
@@ -30,6 +38,11 @@ __all__ = [
     'detect_languages',
     'gather_analysis',
     'plan_tool_invocations',
+    'CodeQLDatabase',
+    'CodeQLFinding',
+    'CodeQLManager',
+    'CodeQLManagerError',
+    'CodeQLUnavailableError',
 ]
 
 

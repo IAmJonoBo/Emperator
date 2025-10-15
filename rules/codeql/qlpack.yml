@@ -1,0 +1,4 @@
+name: emperator-codeql
+version: 0.1.0
+libraryPathDependencies:
+  - codeql/python-all

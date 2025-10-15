@@ -33,6 +33,7 @@ class SemgrepRule:
 
         Returns:
             Dictionary representation for YAML serialization
+
         """
         rule_dict: dict[str, Any] = {
             'id': self.id,
@@ -67,6 +68,7 @@ class SemgrepRuleGenerator:
 
         Returns:
             Tuple of Semgrep rules for naming conventions
+
         """
         rules = []
 
@@ -113,6 +115,7 @@ class SemgrepRuleGenerator:
 
         Returns:
             Tuple of Semgrep rules for security checks
+
         """
         rules = []
 
@@ -120,7 +123,9 @@ class SemgrepRuleGenerator:
         rules.append(
             SemgrepRule(
                 id='security-ban-eval',
-                message='Use of eval() is forbidden. Use ast.literal_eval() or json.loads() instead.',
+                message=(
+                    'Use of eval() is forbidden. ' 'Use ast.literal_eval() or json.loads() instead.'
+                ),
                 severity=Severity.ERROR,
                 pattern='eval(...)',
                 languages=('python',),
@@ -178,7 +183,9 @@ class SemgrepRuleGenerator:
         rules.append(
             SemgrepRule(
                 id='security-hardcoded-secret',
-                message='Potential hardcoded secret. Use environment variables or secret management.',
+                message=(
+                    'Potential hardcoded secret. ' 'Use environment variables or secret management.'
+                ),
                 severity=Severity.ERROR,
                 pattern={
                     'pattern-regex': r'(password|api_key|secret|token)\s*=\s*["\'][^"\']+["\']',
@@ -199,6 +206,7 @@ class SemgrepRuleGenerator:
 
         Returns:
             Tuple of Semgrep rules for architecture enforcement
+
         """
         rules = []
 
@@ -230,6 +238,7 @@ class SemgrepRuleGenerator:
 
         Returns:
             Tuple of all generated Semgrep rules
+
         """
         all_rules = []
         all_rules.extend(self.generate_naming_rules())
@@ -243,6 +252,7 @@ class SemgrepRuleGenerator:
         Args:
             rules: Tuple of Semgrep rules to write
             output: Output file path for the rule pack
+
         """
         output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -264,6 +274,7 @@ class SemgrepRuleGenerator:
 
         Returns:
             Dictionary mapping category names to output file paths
+
         """
         output_dir.mkdir(parents=True, exist_ok=True)
 

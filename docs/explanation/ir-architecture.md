@@ -9,10 +9,10 @@ This document explains the design philosophy, architecture, and implementation d
 The IR system is designed to provide:
 
 1. **Unified Code Understanding**: Parse multiple languages into a common representation
-2. **Fast Incremental Updates**: Re-parse only changed files for quick feedback
-3. **Rich Symbol Information**: Extract functions, classes, imports for analysis
-4. **Analysis Foundation**: Feed Tree-sitter, Semgrep, CodeQL with parsed code
-5. **Developer Experience**: Sub-second response times for typical workflows
+1. **Fast Incremental Updates**: Re-parse only changed files for quick feedback
+1. **Rich Symbol Information**: Extract functions, classes, imports for analysis
+1. **Analysis Foundation**: Feed Tree-sitter, Semgrep, CodeQL with parsed code
+1. **Developer Experience**: Sub-second response times for typical workflows
 
 ### Non-Goals
 
@@ -165,6 +165,7 @@ symbols = self._symbol_extractor.extract_symbols(tree, language)
 **Language-Specific Queries:**
 
 For Python:
+
 ```python
 if node.type == 'function_definition':
     name_node = node.child_by_field_name('name')
@@ -208,9 +209,9 @@ def incremental_update(
 ### Invalidation Triggers
 
 1. **Content Hash Mismatch**: File content changed
-2. **Timestamp Check**: Modification time newer than cache
-3. **Dependency Change**: Imported file changed (future)
-4. **Manual Invalidation**: User cleared cache
+1. **Timestamp Check**: Modification time newer than cache
+1. **Dependency Change**: Imported file changed (future)
+1. **Manual Invalidation**: User cleared cache
 
 ## Language Support
 
@@ -248,9 +249,9 @@ def incremental_update(
 **Techniques:**
 
 1. Tree-sitter is written in C for speed
-2. Incremental parsing reuses previous tree
-3. Parallel parsing (planned for v1.1)
-4. Memory-mapped file reading (future)
+1. Incremental parsing reuses previous tree
+1. Parallel parsing (planned for v1.1)
+1. Memory-mapped file reading (future)
 
 **Benchmarks:**
 
@@ -292,6 +293,7 @@ def incremental_update(
 ### Semgrep
 
 IR provides:
+
 - File language detection
 - Symbol locations for pattern matching
 - Import analysis for dependency checks
@@ -299,6 +301,7 @@ IR provides:
 ### CodeQL
 
 IR complements CodeQL by:
+
 - Pre-filtering files by language
 - Symbol index for query optimization
 - Cache coordination (avoid duplicate work)
@@ -306,6 +309,7 @@ IR complements CodeQL by:
 ### Custom Analyzers
 
 IR exposes:
+
 - Parsed trees for custom queries
 - Symbol tables for name resolution
 - Error locations for validation

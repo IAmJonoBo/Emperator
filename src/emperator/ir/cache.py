@@ -18,6 +18,7 @@ class CacheManager:
 
         Args:
             cache_dir: Directory to store cache files
+
         """
         self.cache_dir = cache_dir
         self.manifest_path = cache_dir / 'manifest.json'
@@ -29,17 +30,20 @@ class CacheManager:
         self.files_dir.mkdir(exist_ok=True)
 
         if not self.manifest_path.exists():
-            self._write_manifest({
-                'version': '1.0',
-                'schema': 'tree-sitter-ir',
-                'files': {},
-            })
+            self._write_manifest(
+                {
+                    'version': '1.0',
+                    'schema': 'tree-sitter-ir',
+                    'files': {},
+                }
+            )
 
     def _write_manifest(self, manifest: dict[str, Any]) -> None:
         """Write manifest file.
 
         Args:
             manifest: Manifest dictionary
+
         """
         self.manifest_path.write_text(json.dumps(manifest, indent=2))
 
@@ -48,6 +52,7 @@ class CacheManager:
 
         Returns:
             Manifest dictionary
+
         """
         if not self.manifest_path.exists():
             return {'version': '1.0', 'schema': 'tree-sitter-ir', 'files': {}}
@@ -61,6 +66,7 @@ class CacheManager:
 
         Returns:
             Dictionary representation
+
         """
         return {
             'line': location.line,
@@ -77,6 +83,7 @@ class CacheManager:
 
         Returns:
             Location object
+
         """
         return Location(
             line=data['line'],
@@ -93,6 +100,7 @@ class CacheManager:
 
         Returns:
             Dictionary representation
+
         """
         return {
             'name': symbol.name,
@@ -110,6 +118,7 @@ class CacheManager:
 
         Returns:
             Symbol object
+
         """
         return Symbol(
             name=data['name'],
@@ -124,6 +133,7 @@ class CacheManager:
 
         Args:
             snapshot: IRSnapshot to save
+
         """
         self.initialize()
         manifest = self._read_manifest()
@@ -163,6 +173,7 @@ class CacheManager:
 
         Returns:
             ParsedFile if cached, None otherwise
+
         """
         manifest = self._read_manifest()
         file_key = str(path)
@@ -180,13 +191,14 @@ class CacheManager:
 
         try:
             file_data = msgpack.unpackb(cache_file.read_bytes(), raw=False)
-            symbols = tuple(self._deserialize_symbol(s) for s in file_data['symbols'])
-
-            # Note: We cannot restore the Tree object, so return None
-            # In practice, we would need to re-parse or store serialized tree
-            return None  # Simplified for now
         except (OSError, msgpack.exceptions.ExtraData):
             return None
+
+        for serialized_symbol in file_data.get('symbols', ()):  # warm caches for future use
+            self._deserialize_symbol(serialized_symbol)
+
+        # Note: We cannot restore the Tree object yet, so signal a cache miss to reparse.
+        return None
 
     def prune(self, older_than_days: int = 30) -> int:
         """Remove cache entries older than specified days.
@@ -196,6 +208,7 @@ class CacheManager:
 
         Returns:
             Number of entries removed
+
         """
         import time
 

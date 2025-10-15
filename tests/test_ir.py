@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from emperator.ir import IRBuilder, Symbol, SymbolExtractor, SymbolKind
+from emperator.ir import IRBuilder, SymbolExtractor, SymbolKind
 from emperator.ir.cache import CacheManager
 
 

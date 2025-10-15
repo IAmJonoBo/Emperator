@@ -43,6 +43,17 @@ This structure maps cleanly to a C4 view: the CLI/LSP service acts as the primar
 
 - **Tree-sitter parsing:** Provides incremental, lossless CSTs for dozens of languages. Emperator uses them to trigger near real-time diagnostics in editor integrations and to feed higher-level analyses without reparsing entire files.
 - **CodeQL enrichment:** Generates semantic databases for supported languages, exposing control-flow and data-flow relationships. Emperator ships with curated query packs that enforce architecture boundaries, detect security issues, and surface dependency violations.
+
+### CodeQL pipeline in practice
+
+- Build databases with `emperator analysis codeql create --language <lang>`; results are cached
+  under `.emperator/codeql-cache/` keyed by language and source fingerprint.
+- Execute query packs via `emperator analysis codeql query --database <path>` which defaults to
+  the curated rules in `rules/codeql/queries/` and produces SARIF output.
+- Prune or refresh caches using `emperator analysis codeql prune` to manage disk usage in CI
+  environments.
+- Extend coverage following [Develop CodeQL Queries](../how-to/develop-codeql-queries.md) to keep
+  custom rules aligned with the contract roadmap.
 - **Semgrep pattern catalog:** Converts contract snippets into multi-language patterns for quick, diff-friendly scans. Community security rules and custom project checks run alongside the contract-derived rules.
 - **Incremental updates:** A background daemon watches source changes, re-running only the relevant analyses. This keeps feedback loops short while supporting large repositories.
 

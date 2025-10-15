@@ -7,9 +7,9 @@ This module provides:
 - Language-agnostic code representation
 """
 
-from emperator.ir.parser import IRBuilder, ParsedFile, IRSnapshot
-from emperator.ir.symbols import Symbol, SymbolKind, SymbolExtractor
 from emperator.ir.cache import CacheManager
+from emperator.ir.parser import IRBuilder, IRSnapshot, ParsedFile
+from emperator.ir.symbols import Symbol, SymbolExtractor, SymbolKind
 
 __all__ = [
     'IRBuilder',

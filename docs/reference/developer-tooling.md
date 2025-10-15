@@ -99,9 +99,9 @@ Extras --> VSCode[VS Code extensions]
   ```yaml
   - run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
   - uses: actions/cache@v4
-   with:
-    path: ${{ env.STORE_PATH }}
-    key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+    with:
+      path: ${{env.STORE_PATH}}
+      key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
   ```
 
 ### Other ecosystems (parity)
@@ -118,30 +118,30 @@ Extras --> VSCode[VS Code extensions]
 name: ci-python
 on: [push, pull_request]
 jobs:
- test:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - name: Install uv
-    run: curl -LsSf https://astral.sh/uv/install.sh | sh
-   - name: Cache uv (by lockfile)
-    uses: actions/cache@v4
-    with:
-     path: |
-      ~/.cache/uv
-      .venv
-     key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-   - name: Sync venv (reproducible)
-    run: ~/.cargo/bin/uv sync --frozen
-   - name: Run tests
-    run: ~/.cargo/bin/uv run -m pytest -q
-   - name: Build wheelhouse
-    run: |
-     pip wheel -r <(~/.cargo/bin/uv export --format requirements.txt) -w wheelhouse
-   - uses: actions/upload-artifact@v4
-    with:
-     name: wheelhouse
-     path: wheelhouse/
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Cache uv (by lockfile)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            .venv
+          key: uv-${{runner.os}}-${{hashFiles('uv.lock')}}
+      - name: Sync venv (reproducible)
+        run: ~/.cargo/bin/uv sync --frozen
+      - name: Run tests
+        run: ~/.cargo/bin/uv run -m pytest -q
+      - name: Build wheelhouse
+        run: |
+          pip wheel -r <(~/.cargo/bin/uv export --format requirements.txt) -w wheelhouse
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheelhouse
+          path: wheelhouse/
 ```
 
 **Node (pnpm)**:
@@ -150,22 +150,24 @@ jobs:
 name: ci-node
 on: [push, pull_request]
 jobs:
- build:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - uses: pnpm/action-setup@v4
-    with: { version: 9, run_install: false }
-   - name: Get pnpm store path
-    run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-   - name: Cache pnpm store
-    uses: actions/cache@v4
-    with:
-     path: ${{ env.STORE_PATH }}
-     key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-   - run: pnpm fetch
-   - run: pnpm install --frozen-lockfile
-   - run: pnpm test
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+      - name: Get pnpm store path
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{env.STORE_PATH}}
+          key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
+      - run: pnpm fetch
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
 ```
 
 ### Private mirrors and provenance
@@ -199,14 +201,14 @@ jobs:
 - Reach for [Biome](https://biomejs.dev/) when a single binary can handle lint and format. If framework plugins or bespoke rules are required, fall back to the ESLint plus Prettier combo referenced in the [Toolchain Matrix](toolchain.md#recommended-lint-and-formatter-stacks).
 - Use the repo-scoped `.npmrc` (sets `store-dir=./.pnpm-store`) so pnpm’s content-addressable store remains under version control boundaries. Run `pnpm store prune` periodically if you need to reclaim disk space.
 - Biome is configured to auto-organise imports, clamp line width to 100 characters, enforce two-space indentation, and prefer double quotes with required semicolons. These defaults are applied globally via the `formatter` block so any Biome-supported language inherits the same layout conventions and aligns with the contract examples in [Authoring and Evolving the Project Contract](../how-to/author-contract.md#2-define-structural-conventions-with-cue).
-- Bootstrap or re-run the full lint/format toolchain with `pnpm run setup:lint`. The script installs dependencies, installs the `pre-commit` and commit-msg hooks, formats the tree with Biome, and then executes the combined `pnpm lint` pipeline (Ruff + Biome + ESLint). In CI or deployment environments, call `pnpm run setup:lint -- --ci` to skip hook installation and avoid write operations while still running the gate checks.
+- Bootstrap or re-run the full lint/format toolchain with `pnpm run setup:lint`. The script installs dependencies, installs the `pre-commit` and commit-msg hooks, formats the tree with Biome, executes the combined `pnpm lint` pipeline (Ruff + Biome + ESLint), and finishes with a full `pre-commit run --all-files` so hook regressions surface immediately. In CI or deployment environments, call `pnpm run setup:lint -- --ci` to skip hook installation and avoid write operations while still running the gate checks.
 - Reach for `pnpm fmt` for YAML, Biome-managed assets, Python formatting, and Ruff-powered import sorting (`ruff format` + `ruff check --select I --fix`). Append `--all` to enable the broader `ruff check --fix` sweep in the same pass. Ensure `uv` is available (installed via `scripts/setup-tooling.sh`) so the Ruff invocations succeed.
 - ESLint remains in place for rules Biome does not yet cover (module boundary policies, import hygiene beyond ordering, etc.). Keep both tools wired into `pre-commit` so contributors see the same failures locally that CI enforces.
 
 ### 4. Git hooks, commit hygiene, and PR UX {#git-hygiene}
 
-- Wire up [`pre-commit`](https://pre-commit.com/) (or [Lefthook](https://github.com/evilmartians/lefthook)) to run Ruff, Biome, ShellCheck, yamllint (configured via `.yamllint` while Biome awaits first-party YAML formatting), actionlint, and other fast checks before code reaches CI.
-- Guard commit history with [Conventional Commits](https://www.conventionalcommits.org/) and [`commitlint`](https://commitlint.js.org/) so releases and changelog automation remain deterministic.
+- Wire up [`pre-commit`](https://pre-commit.com/) (or [Lefthook](https://github.com/evilmartians/lefthook)) to run Ruff, Biome, ShellCheck, yamllint (configured via `.yamllint` while Biome awaits first-party YAML formatting), actionlint, and other fast checks before code reaches CI. `scripts/setup-tooling.sh` runs a full `pre-commit run --all-files` during bootstrap so misconfigured hooks are caught before the first commit.
+- Guard commit history with [Conventional Commits](https://www.conventionalcommits.org/) and [`commitlint`](https://commitlint.js.org/), extending the allowed types with `fmt` so formatter-only commits stay aligned with automation and release tooling.
 - Upload SARIF artefacts during CI (see the [CI integration playbook](../how-to/ci-integration.md#3-github-actions-template)) so findings annotate GitHub pull requests inline.
 - Point `PRE_COMMIT_HOME` at `${REPO_ROOT}/.cache/pre-commit` (or use `.envrc`) to keep hook environments alongside the repo. The `.gitignore` already excludes `.cache/`, so caches never show up as dirty files.
 

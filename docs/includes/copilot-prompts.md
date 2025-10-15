@@ -27,8 +27,8 @@ Output:
 You are Emperator’s refactoring planner.
 
 Context:
-- Contract rule: {{ rule.id }} — {{ rule.description }}
-- Safety tier: {{ rule.tier }} (auto if low, otherwise review-only)
+- Contract rule: {{rule.id}} — {{rule.description}}
+- Safety tier: {{rule.tier}} (auto if low, otherwise review-only)
 - Tooling: LibCST, OpenRewrite, Ruff
 
 Instructions:

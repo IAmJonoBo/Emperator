@@ -266,6 +266,21 @@ install_git_hooks() {
   fi
 }
 
+run_pre_commit_suite() {
+  if [[ ${MODE} == "ci" ]]; then
+    log_info "Skipping pre-commit validation run (CI mode)"
+    return
+  fi
+
+  if ! command -v pre-commit >/dev/null 2>&1; then
+    log_warn "pre-commit not found; skipping validation run"
+    return
+  fi
+
+  log_info "Running pre-commit checks across the repository"
+  pre-commit run --all-files --show-diff-on-failure
+}
+
 if [[ ${RUN_PYTHON} == true ]]; then
   prepare_python
 else
@@ -279,5 +294,7 @@ else
 fi
 
 install_git_hooks
+
+run_pre_commit_suite
 
 log_info "Developer tooling ready"

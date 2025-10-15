@@ -277,8 +277,28 @@ _LANGUAGE_MAP: dict[str, str] = {
     '.js': 'JavaScript',
     '.cjs': 'JavaScript',
     '.mjs': 'JavaScript',
+    '.jsx': 'JavaScript',
     '.ts': 'TypeScript',
     '.tsx': 'TypeScript',
+    '.go': 'Go',
+    '.rs': 'Rust',
+    '.java': 'Java',
+    '.c': 'C',
+    '.h': 'C',
+    '.cpp': 'C++',
+    '.cc': 'C++',
+    '.cxx': 'C++',
+    '.hpp': 'C++',
+    '.hxx': 'C++',
+    '.cs': 'C#',
+    '.rb': 'Ruby',
+    '.php': 'PHP',
+    '.swift': 'Swift',
+    '.kt': 'Kotlin',
+    '.kts': 'Kotlin',
+    '.sh': 'Shell',
+    '.bash': 'Shell',
+    '.zsh': 'Shell',
 }
 
 _SKIP_DIRS: frozenset[str] = frozenset(
@@ -601,6 +621,14 @@ _CODEQL_LANGUAGE_SLUGS: dict[str, str] = {
     'Python': 'python',
     'JavaScript': 'javascript',
     'TypeScript': 'javascript',
+    'Java': 'java',
+    'C': 'cpp',
+    'C++': 'cpp',
+    'C#': 'csharp',
+    'Go': 'go',
+    'Ruby': 'ruby',
+    'Swift': 'swift',
+    'Kotlin': 'java',
 }
 
 

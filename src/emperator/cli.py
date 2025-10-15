@@ -48,12 +48,16 @@ doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
 analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
 fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
 contract_app = typer.Typer(help='Inspect and validate the Project Contract assets.')
+ir_app = typer.Typer(help='Intermediate Representation (IR) operations for code analysis.')
+rules_app = typer.Typer(help='Generate and manage Semgrep and CodeQL rules.')
 
 app.add_typer(scaffold_app, name='scaffold')
 app.add_typer(doctor_app, name='doctor')
 app.add_typer(analysis_app, name='analysis')
 app.add_typer(fix_app, name='fix')
 app.add_typer(contract_app, name='contract')
+app.add_typer(ir_app, name='ir')
+app.add_typer(rules_app, name='rules')
 
 
 _SUPPORTED_SEVERITIES: tuple[str, ...] = (
@@ -833,6 +837,259 @@ def fix_run(
                     state.console.print(result.stderr)
     if dry_run:
         state.console.print('[yellow]Dry run complete. Re-run with --apply to make changes.[/]')
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ IR Commands                                                            │
+# └────────────────────────────────────────────────────────────────────────┘
+
+
+@ir_app.command('parse')
+def ir_parse(
+    ctx: typer.Context,
+    language: str = typer.Option(
+        'python',
+        '--language',
+        '-l',
+        help='Programming language to parse (python, javascript, etc.).',
+    ),
+) -> None:
+    """Parse source files and build IR cache.
+
+    This command parses source files in the specified language and builds
+    an intermediate representation (IR) cache for fast incremental analysis.
+    """
+    state = _get_state(ctx)
+    state.console.print(f'[bold]Parsing {language} files in {state.project_root}[/]')
+
+    try:
+        from emperator.ir import CacheManager, IRBuilder
+
+        cache_dir = state.project_root / '.emperator' / 'ir-cache'
+        builder = IRBuilder(cache_dir=cache_dir)
+        snapshot = builder.parse_directory(state.project_root, languages=(language,))
+
+        # Save to cache
+        manager = CacheManager(cache_dir)
+        manager.save_snapshot(snapshot)
+
+        state.console.print(
+            f'[green]✓[/] Parsed {snapshot.total_files} files '
+            f'in {snapshot.parse_time_seconds:.2f}s'
+        )
+        state.console.print(f'  Cache hit rate: {snapshot.cache_hit_rate:.1f}%')
+        if snapshot.files_with_errors > 0:
+            state.console.print(
+                f'  [yellow]⚠[/] {snapshot.files_with_errors} files with syntax errors'
+            )
+
+    except ImportError as e:
+        state.console.print(f'[red]✗[/] IR dependencies not installed: {e}')
+        state.console.print('Install with: uv pip install tree-sitter tree-sitter-python')
+        raise typer.Exit(code=1) from None
+
+
+@ir_app.command('cache')
+def ir_cache(
+    ctx: typer.Context,
+    action: str = typer.Argument(
+        'info',
+        help='Action to perform: info, prune, or clear',
+    ),
+    older_than: int = typer.Option(
+        30,
+        '--older-than',
+        help='Days threshold for pruning cache entries',
+    ),
+) -> None:
+    """Manage IR cache.
+
+    Actions:
+    - info: Display cache statistics
+    - prune: Remove old cache entries
+    - clear: Delete all cache data
+    """
+    state = _get_state(ctx)
+    cache_dir = state.project_root / '.emperator' / 'ir-cache'
+
+    if action == 'info':
+        if not cache_dir.exists():
+            state.console.print('[yellow]No IR cache found[/]')
+            return
+
+        try:
+            import json
+
+            manifest_path = cache_dir / 'manifest.json'
+            if manifest_path.exists():
+                manifest = json.loads(manifest_path.read_text())
+                file_count = len(manifest.get('files', {}))
+                state.console.print('[bold]IR Cache Statistics[/]')
+                state.console.print(f'  Location: {cache_dir}')
+                state.console.print(f'  Cached files: {file_count}')
+                state.console.print(f'  Version: {manifest.get("version", "unknown")}')
+            else:
+                state.console.print('[yellow]Cache manifest not found[/]')
+        except (OSError, json.JSONDecodeError) as e:
+            state.console.print(f'[red]✗[/] Error reading cache: {e}')
+
+    elif action == 'prune':
+        try:
+            from emperator.ir import CacheManager
+
+            manager = CacheManager(cache_dir)
+            removed = manager.prune(older_than_days=older_than)
+            state.console.print(f'[green]✓[/] Removed {removed} old cache entries')
+        except ImportError as e:
+            state.console.print(f'[red]✗[/] IR dependencies not installed: {e}')
+            raise typer.Exit(code=1) from None
+
+    elif action == 'clear':
+        if cache_dir.exists():
+            import shutil
+
+            shutil.rmtree(cache_dir)
+            state.console.print('[green]✓[/] Cache cleared')
+        else:
+            state.console.print('[yellow]No cache to clear[/]')
+
+    else:
+        state.console.print(f'[red]✗[/] Unknown action: {action}')
+        state.console.print('Valid actions: info, prune, clear')
+        raise typer.Exit(code=1)
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ Rules Commands                                                         │
+# └────────────────────────────────────────────────────────────────────────┘
+
+
+@rules_app.command('generate')
+def rules_generate(
+    ctx: typer.Context,
+    category: str | None = typer.Option(
+        None,
+        '--category',
+        '-c',
+        help='Generate rules for specific category (naming, security, architecture)',
+    ),
+    output: Path | None = typer.Option(
+        None,
+        '--output',
+        '-o',
+        help='Output directory for generated rules',
+    ),
+) -> None:
+    """Generate Semgrep rules from contract conventions.
+
+    This command reads your project contract (conventions.cue, policy/*.rego)
+    and generates Semgrep rule packs that enforce those conventions.
+    """
+    state = _get_state(ctx)
+    output_dir = output or state.project_root / 'contract' / 'generated' / 'semgrep'
+
+    state.console.print('[bold]Generating Semgrep rules from contract[/]')
+
+    try:
+        from emperator.rules import SemgrepRuleGenerator
+
+        generator = SemgrepRuleGenerator()
+        all_rules = generator.generate_all_rules()
+
+        if category:
+            # Filter by category
+            filtered_rules = tuple(
+                r for r in all_rules if r.metadata.get('category') == category
+            )
+            if not filtered_rules:
+                state.console.print(f'[yellow]No rules found for category: {category}[/]')
+                return
+
+            output_file = output_dir / f'{category}.yaml'
+            generator.write_rule_pack(filtered_rules, output_file)
+            state.console.print(
+                f'[green]✓[/] Generated {len(filtered_rules)} {category} rules '
+                f'to {output_file}'
+            )
+        else:
+            # Generate all categories
+            written = generator.write_category_packs(all_rules, output_dir)
+            state.console.print(
+                f'[green]✓[/] Generated {len(all_rules)} rules in {len(written)} categories:'
+            )
+            for cat, path in written.items():
+                count = len([r for r in all_rules if r.metadata.get('category') == cat])
+                state.console.print(f'  - {cat}: {count} rules → {path}')
+
+    except ImportError as e:
+        state.console.print(f'[red]✗[/] Failed to import rule generator: {e}')
+        raise typer.Exit(code=1) from None
+
+
+@rules_app.command('validate')
+def rules_validate(
+    ctx: typer.Context,
+    rules_path: Path = typer.Argument(
+        ...,
+        help='Path to Semgrep rules file or directory',
+    ),
+) -> None:
+    """Validate Semgrep rules syntax.
+
+    This command checks that generated or custom Semgrep rules are valid.
+    """
+    state = _get_state(ctx)
+
+    if not rules_path.exists():
+        state.console.print(f'[red]✗[/] Rules path not found: {rules_path}')
+        raise typer.Exit(code=1)
+
+    state.console.print(f'[bold]Validating Semgrep rules in {rules_path}[/]')
+
+    try:
+        import yaml
+
+        if rules_path.is_file():
+            files = [rules_path]
+        else:
+            files = list(rules_path.glob('*.yaml')) + list(rules_path.glob('*.yml'))
+
+        valid_count = 0
+        invalid_count = 0
+
+        for file in files:
+            try:
+                with file.open() as f:
+                    data = yaml.safe_load(f)
+                    if 'rules' not in data:
+                        state.console.print(f'[yellow]⚠[/] {file}: missing "rules" key')
+                        invalid_count += 1
+                        continue
+                    for rule in data['rules']:
+                        required = ['id', 'message', 'severity', 'languages']
+                        missing = [k for k in required if k not in rule]
+                        if missing:
+                            state.console.print(
+                                f'[yellow]⚠[/] {file}: rule missing fields: {missing}'
+                            )
+                            invalid_count += 1
+                            continue
+                valid_count += 1
+                state.console.print(f'[green]✓[/] {file}')
+            except yaml.YAMLError as e:
+                state.console.print(f'[red]✗[/] {file}: YAML error: {e}')
+                invalid_count += 1
+
+        state.console.print(
+            f'\n[bold]Validation complete:[/] {valid_count} valid, {invalid_count} invalid'
+        )
+
+        if invalid_count > 0:
+            raise typer.Exit(code=1)
+
+    except Exception as e:  # noqa: BLE001
+        state.console.print(f'[red]✗[/] Validation failed: {e}')
+        raise typer.Exit(code=1) from None
 
 
 def run() -> None:

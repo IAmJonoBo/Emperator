@@ -57,6 +57,9 @@ node_modules/
 # Emperator telemetry & working state
 .emperator/
 
+# Generated contract artifacts
+contract/generated/
+
 # MkDocs static output
 site/
 

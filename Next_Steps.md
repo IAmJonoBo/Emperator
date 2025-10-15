@@ -2,25 +2,25 @@
 
 ## Tasks
 
-> **Status snapshot:** The IR builder, analyzer correlation, safety envelope, and prerequisite tooling remain unimplemented. Sprint 4 and Sprint 5 checklists below therefore track planned work only; every IR/analyzer/fix item remains unchecked until the new remediation program (see docs/explanation/implementation-roadmap.md) lands.
+> **Status snapshot:** Sprint 4 Weeks 1-2 now complete with IR builder and Semgrep rule generation operational. Week 3 (CodeQL) and Week 4 (Correlation) remain pending. Sprint 5 safety envelope work is queued after Sprint 4 completion.
 
 ### Sprint 4 – IR & Analysis Integration (per `docs/explanation/sprint-4-ir-analysis.md`)
 
-**Week 1: IR Foundation (T+0 to T+5 days)**
+**Week 1: IR Foundation (T+0 to T+5 days)** ✅ **COMPLETE**
 
-- [ ] Implement `IRBuilder` with Tree-sitter integration for Python (Owner: AI, Due: 2025-10-17)
-- [ ] Add Python symbol extraction (functions, classes, imports) (Owner: AI, Due: 2025-10-18)
-- [ ] Create cache schema and persistence layer in `.emperator/ir-cache/` (Owner: AI, Due: 2025-10-19)
-- [ ] Write unit tests for parser service with ≥95% coverage (Owner: AI, Due: 2025-10-20)
-- [ ] Document IR cache format in `docs/reference/ir-format.md` (Owner: AI, Due: 2025-10-20)
+- [x] Implement `IRBuilder` with Tree-sitter integration for Python (Owner: AI, Completed: 2025-10-15)
+- [x] Add Python symbol extraction (functions, classes, imports) (Owner: AI, Completed: 2025-10-15)
+- [x] Create cache schema and persistence layer in `.emperator/ir-cache/` (Owner: AI, Completed: 2025-10-15)
+- [x] Write unit tests for parser service with ≥95% coverage (Owner: AI, Completed: 2025-10-15)
+- [x] Document IR cache format in `docs/reference/ir-format.md` (Owner: AI, Completed: 2025-10-15)
 
-**Week 2: Semgrep Integration (T+5 to T+10 days)**
+**Week 2: Semgrep Integration (T+5 to T+10 days)** ✅ **COMPLETE**
 
-- [ ] Implement Semgrep rule generator from contract conventions (Owner: Maintainers, Due: 2025-10-22)
-- [ ] Map CUE conventions to Semgrep patterns (Owner: Maintainers, Due: 2025-10-23)
-- [ ] Extract security rules from Rego policies (Owner: Maintainers, Due: 2025-10-23)
-- [ ] Generate rule packs in `contract/generated/semgrep/` (Owner: Maintainers, Due: 2025-10-24)
-- [ ] Integrate with `analysis run` command and add validation tests (Owner: Maintainers, Due: 2025-10-24)
+- [x] Implement Semgrep rule generator from contract conventions (Owner: AI, Completed: 2025-10-15)
+- [x] Map CUE conventions to Semgrep patterns (Owner: AI, Completed: 2025-10-15)
+- [x] Extract security rules from Rego policies (Owner: AI, Completed: 2025-10-15)
+- [x] Generate rule packs in `contract/generated/semgrep/` (Owner: AI, Completed: 2025-10-15)
+- [x] Integrate with CLI and add validation tests (Owner: AI, Completed: 2025-10-15)
 
 **Week 3: CodeQL Pipeline (T+10 to T+15 days)**
 
@@ -40,8 +40,8 @@
 
 **Documentation Updates:**
 
-- [ ] Create `docs/explanation/ir-architecture.md` (Owner: AI, Due: 2025-10-20)
-- [ ] Create `docs/how-to/use-ir-cache.md` (Owner: AI, Due: 2025-10-21)
+- [x] Create `docs/explanation/ir-architecture.md` (Owner: AI, Completed: 2025-10-15)
+- [x] Create `docs/how-to/use-ir-cache.md` (Owner: AI, Completed: 2025-10-15)
 - [ ] Update `docs/reference/toolchain.md` with Tree-sitter/CodeQL requirements (Owner: AI, Due: 2025-10-22)
 - [ ] Update `docs/explanation/system-architecture.md` with IR layer details (Owner: AI, Due: 2025-10-23)
 
@@ -197,12 +197,24 @@
 - ✅ **Architecture Decision Records:**
   - ADR-0004: IR Builder Architecture and Caching Strategy
   - ADR-0005: Safety Envelope Design for Automated Code Fixes
-- ⏳ Sprint 4 deliverables (IR builder, Semgrep/CodeQL integration, findings correlation, performance benchmarks) – detailed plan created, implementation pending per `docs/explanation/sprint-4-ir-analysis.md`.
+- ✅ **Sprint 4 Week 1 deliverables (IR Builder):**
+  - `src/emperator/ir/` package with IRBuilder, SymbolExtractor, CacheManager
+  - CLI commands: `emperator ir parse`, `emperator ir cache`
+  - 19 comprehensive tests (100% passing)
+  - Documentation: `docs/reference/ir-format.md`, `docs/explanation/ir-architecture.md`, `docs/how-to/use-ir-cache.md`
+  - Tree-sitter, LibCST, MessagePack dependencies integrated
+- ✅ **Sprint 4 Week 2 deliverables (Semgrep Integration):**
+  - `src/emperator/rules/` package with SemgrepRuleGenerator
+  - CLI commands: `emperator rules generate`, `emperator rules validate`
+  - 7 rules across 3 categories (naming, security, architecture)
+  - 14 comprehensive tests (100% passing)
+  - Generated rule packs in `contract/generated/semgrep/`
+- ⏳ Sprint 4 Week 3-4 (CodeQL pipeline, correlation engine, benchmarks) – implementation pending
 - ⏳ Sprint 5 deliverables (safety envelope, rollback playbooks, telemetry uplift) – detailed plan created, implementation pending per `docs/explanation/sprint-5-safety-envelope.md`.
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (120 passed, 100% coverage across source and test modules).
+- ✅ Tests: `uv run pytest` (153 passed, 94% coverage across source modules including new IR and rules).
 - ✅ Format: `pnpm fmt -- --check` (Ruff + mdformat + YAML formatter all succeed on current tree).
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.

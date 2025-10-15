@@ -6,6 +6,7 @@ RUN_PYTHON=true
 RUN_NODE=true
 PYTHON_CMD=""
 CUSTOM_ROOT=""
+# All variables are used in the script below.
 
 usage() {
   cat <<'EOF'
@@ -124,7 +125,8 @@ resolve_repo_root() {
 
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if repo_root="$(find_repo_root "${script_dir}")"; then
+  repo_root="$(find_repo_root "${script_dir}")"
+  if [[ -n "${repo_root}" ]]; then
     echo "${repo_root}"
     return 0
   fi
@@ -141,7 +143,7 @@ if [[ ! -f "pyproject.toml" ]]; then
 fi
 
 detect_uv() {
-  if [[ -n ${UV_BIN:-} && -x ${UV_BIN} ]]; then
+  if [[ -n ${UV_BIN-} && -x ${UV_BIN} ]]; then
     echo "${UV_BIN}"
     return 0
   fi
@@ -158,10 +160,10 @@ detect_uv() {
 
   return 1
 }
-
 ensure_uv() {
   local uv_path
-  if uv_path="$(detect_uv)"; then
+  uv_path="$(detect_uv)"
+  if [[ -n "${uv_path}" ]]; then
     echo "${uv_path}"
     return 0
   fi
@@ -179,7 +181,8 @@ ensure_uv() {
     exit 1
   fi
 
-  if uv_path="$(detect_uv)"; then
+  uv_path="$(detect_uv)"
+  if [[ -n "${uv_path}" ]]; then
     echo "${uv_path}"
     return 0
   fi
@@ -229,7 +232,7 @@ prepare_python() {
 
 prepare_node() {
   local lint_script="${ROOT_DIR}/scripts/setup-linting.sh"
-  if [[ ! -x "${lint_script}" ]]; then
+  if [[ ! -x ${lint_script} ]]; then
     log_error "Expected ${lint_script} to exist and be executable"
     exit 1
   fi

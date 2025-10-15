@@ -2,6 +2,8 @@
 
 ## Tasks
 
+- [x] Resolve CLI telemetry summary typing regression and severity deduplication (Owner: AI, Due: Current pass)
+- [x] Extend analysis run tests for severity filters, metadata capture, and validation errors (Owner: AI, Due: Current pass)
 - [x] Establish scaffolding CLI and environment doctor (Owner: AI, Due: T+0)
 - [x] Publish comprehensive delivery and sprint plans to guide implementation (Owner: AI, Due: Current pass)
 - [x] Resolve import-order lint failure in `tests/test_doctor.py` (`ruff check --no-fix .`) (Owner: AI, Due: Current pass)
@@ -16,13 +18,15 @@
 - [x] Track SPDX license string remediation for `pyproject.toml` (Owner: Maintainers, Due: Current pass)
 - [x] Model analyzer execution telemetry + caching strategy for follow-up automation (Owner: AI, Due: Current pass)
 - [x] Implement analyzer telemetry persistence once design lands (Owner: Maintainers, Due: Current pass)
-- [ ] Evaluate automated guardrails for regenerated YAML assets (contract + compose) to prevent accidental churn (Owner: Maintainers, Due: Upcoming sprint)
+- [x] Evaluate automated guardrails for regenerated YAML assets (contract + compose) to prevent accidental churn (Owner: AI, Due: Current pass)
 - [x] Prototype JSONL-backed telemetry store and CLI integration flag (Owner: AI, Due: Current pass)
 - [x] Thread telemetry capture through analyzer execution once orchestration lands (Owner: Maintainers, Due: Current pass)
-- [ ] Extend analyzer run UX with richer filtering (severity, dry-run) options (Owner: Maintainers, Due: Upcoming sprint)
+- [x] Extend analyzer run UX with richer filtering (severity, dry-run) options (Owner: AI, Due: Current pass)
 
 ## Steps
 
+- Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
+- Completed: strengthened CLI severity flows with metadata capture and invalid-option coverage.
 - Completed: audited documentation, aligned structure with scaffold utilities, and seeded TODO-driven stubs.
 - Completed: delivered CLI with scaffold, doctor, and fix commands plus progress visualisation.
 - Completed: added analysis inspect/wizard workflows with progress bars and guided hints for IR readiness.
@@ -37,9 +41,12 @@
 - Completed: implemented JSONL telemetry store + CLI banners to unlock cached-run awareness.
 - Completed: landed JSONL telemetry store with CLI banner + persistence hooks; awaiting analyzer execution wiring for automatic capture.
 - Completed: wired analyzer execution helper and CLI run command to persist telemetry with progress reporting.
+- Completed: introduced YAML guardrail digests with CLI verification to prevent unintended churn in contract and compose assets.
+- Completed: upgraded `analysis run` UX with severity filtering, dry-run support, and richer telemetry metadata.
 
 ## Deliverables
 
+- ✅ Additional CLI regression tests covering severity aggregation, metadata persistence, and invalid filter handling.
 - ✅ Developer CLI (`src/emperator/cli.py`) with scaffold/doctor/fix workflows and 100% coverage.
 - ✅ Scaffolding + doctor utility modules with TODO-stub generation and remediation metadata.
 - ✅ Documentation updates (`README.md`, `docs/index.md`, `docs/cli.md`) highlighting the workflow.
@@ -52,16 +59,19 @@
 - ✅ Formatter regression tests (`tests/test_formatting.py`) covering YAML multi-docs, environment tuning, and `pnpm fmt --check` flow.
 - ✅ ADR log bootstrapped (`docs/adr/` + governance/index references) documenting sprint focus areas.
 - ✅ Telemetry design captured in ADR-0003 with accompanying analysis module primitives and unit tests.
+- ✅ Guardrail digest tracking (`guardrails/yaml-digests.json`) plus CLI verification command and dedicated tests.
+- ✅ Analyzer UX upgrade with severity filters, dry-run simulation, and updated CLI documentation.
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (77 passed, 100% coverage).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (93 passed, 100% coverage).
 - ✅ Lint: `uv run ruff check --no-fix .`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
 - ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
+- ✅ Guardrails: `emperator guardrails verify` succeeds with digests tracked in `guardrails/yaml-digests.json`.
 
 ## Links
 
@@ -74,6 +84,7 @@
 
 ## Risks/Notes
 
+- CLI severity guardrails rely on substring matching to associate notes with tools; monitor for future false positives as telemetry volume grows.
 - Auto-remediation commands default to dry-run; explicit `--apply` required for mutations.
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.
 - Contract metadata helpers cache the OpenAPI document; clear the cache (`load_contract_spec.cache_clear()`) if tests need to observe on-disk edits within a single process.

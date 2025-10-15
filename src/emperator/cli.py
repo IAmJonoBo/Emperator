@@ -339,6 +339,48 @@ def _render_run_telemetry(
         console.print(f'[green]Telemetry directory:[/] {telemetry_path}')
 
 
+def _group_events_by_tool(events: Iterable[TelemetryEvent]) -> dict[str, list[TelemetryEvent]]:
+    """Index telemetry events by the analyzer tool that emitted them."""
+
+    grouped: dict[str, list[TelemetryEvent]] = {}
+    for event in events:
+        grouped.setdefault(event.tool, []).append(event)
+    return grouped
+
+
+def _partition_notes_by_tool(
+    notes: Iterable[str],
+    plans: tuple[AnalyzerPlan, ...],
+) -> tuple[dict[str, list[str]], list[str]]:
+    """Split notes into per-tool collections and general run guidance."""
+
+    notes_by_tool: dict[str, list[str]] = {}
+    general_notes: list[str] = []
+    for note in notes:
+        matched_tool = next((plan.tool for plan in plans if plan.tool in note), None)
+        if matched_tool is None:
+            general_notes.append(note)
+        else:
+            notes_by_tool.setdefault(matched_tool, []).append(note)
+    return notes_by_tool, general_notes
+
+
+def _format_severities(tool_events: Iterable[TelemetryEvent]) -> str:
+    """Return a comma-separated list of severities recorded for tool events."""
+
+    severity_values: set[str] = set()
+    for event in tool_events:
+        metadata = event.metadata
+        if metadata is None:
+            continue
+        severity = metadata.get('severity')
+        if severity:
+            severity_values.add(severity)
+    if not severity_values:
+        return '—'
+    return ', '.join(sorted(severity_values))
+
+
 def _render_analysis_run_summary(
     console: Console,
     plans: Iterable[AnalyzerPlan],
@@ -347,28 +389,22 @@ def _render_analysis_run_summary(
     """Render the execution results for each analyzer tool."""
 
     materialised = tuple(plans)
-    events_by_tool: dict[str, list[TelemetryEvent]] = {}
-    for event in run.events:
-        events_by_tool.setdefault(event.tool, []).append(event)
-    notes_by_tool: dict[str | None, list[str]] = {}
-    for note in run.notes:
-        matched_tool: str | None = None
-        for plan in materialised:
-            if plan.tool in note:
-                matched_tool = plan.tool
-                break
-        notes_by_tool.setdefault(matched_tool, []).append(note)
+    events_by_tool = _group_events_by_tool(run.events)
+    notes_by_tool, general_notes = _partition_notes_by_tool(run.notes, materialised)
 
     table = Table(title='Analysis Run Summary', show_lines=False)
     table.add_column('Tool', style='cyan')
     table.add_column('Steps', justify='right')
+    table.add_column('Severities', style='white')
     table.add_column('Result', style='white')
     table.add_column('Details', style='white')
 
     for plan in materialised:
         tool_events = events_by_tool.get(plan.tool, [])
-        tool_notes = notes_by_tool.get(plan.tool, [])
+        stored_notes = notes_by_tool.get(plan.tool)
+        tool_notes: list[str] = stored_notes if stored_notes is not None else []
         step_count = len(tool_events)
+        severity_display = _format_severities(tool_events)
         if not tool_events:
             if not plan.steps:
                 result = '[yellow]No steps[/]'
@@ -388,11 +424,10 @@ def _render_analysis_run_summary(
             else:
                 result = '[green]Success[/]'
                 detail = '; '.join(tool_notes) if tool_notes else 'All steps succeeded.'
-        table.add_row(plan.tool, steps_display, result, detail)
+        table.add_row(plan.tool, steps_display, severity_display, result, detail)
 
     console.print(table)
 
-    general_notes = notes_by_tool.get(None, [])
     if general_notes:
         console.print(Panel('\n'.join(general_notes), title='Run Notes', border_style='yellow'))
 

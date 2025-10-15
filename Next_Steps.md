@@ -19,8 +19,8 @@
 
 ### Outstanding Platform Hygiene
 
-- [ ] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: 2025-10-25)
-- [ ] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: 2025-10-25)
+- [x] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: 2025-10-25)
+- [x] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: 2025-10-25)
 - [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: 2025-10-25)
 - [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: 2025-10-28)
 - [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: 2025-10-30)
@@ -75,6 +75,7 @@
 - Completed: elevated `emperator.contract` helpers with cached OpenAPI loader, typed metadata surface, and doc references.
 - Completed: hardened doctor checks (uv detection, remediation error capture) and surfaced analyzer execution plans.
 - Completed: expanded formatter pipeline with YAML multi-document support, configurable indentation/width, and `pnpm fmt --check` dry-run.
+- Completed: normalised Ruff formatter baseline, added run-format conflict coverage, and documented mdformat troubleshooting guidance.
 - Completed: removed legacy Apple cleanup automation after confirming `.gitignore` coverage and workflow redundancy.
 - Completed: seeded ADR template (`docs/adr/0000-template.md`) and recorded sprint-driving decisions (ADR-0001/0002).
 - Completed: remediated packaging metadata before setuptools deprecates table syntax.
@@ -116,8 +117,8 @@
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (106 passed, 99% coverage; formatting/tooling helper coverage follow-up remains).
-- ❌ Format: `pnpm fmt -- --check` currently fails because `mdformat`/`ruff format --check` would rewrite Python + Markdown assets after recent dependency refresh; capture diff expectations before enabling auto-fix.
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (107 passed, 99% coverage; formatting/tooling helper coverage follow-up remains).
+- ✅ Format: `pnpm fmt -- --check` (Ruff + mdformat + YAML formatter all succeed on current tree).
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
@@ -139,7 +140,7 @@
 
 ## Risks/Notes
 
-- Formatting drift surfaced by `pnpm fmt -- --check` indicates mdformat/Ruff version skew; coordinate with tooling maintainers before regenerating repo-wide to avoid noisy diffs.
+- Formatter stack now enforces Ruff single quotes + mdformat tables; run `pnpm fmt -- --check` before applying fixes to review doc table rewrites and Python quote flips.
 - CLI severity guardrails rely on substring matching to associate notes with tools; monitor for future false positives as telemetry volume grows.
 - Auto-remediation commands default to dry-run; explicit `--apply` required for mutations.
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.
@@ -155,3 +156,4 @@
 - Coverage for select formatting/tooling fixture branches remains at 99%; schedule targeted tests or adjust expectations before raising quality gate thresholds.
 - Ruff auto-fix mode is enabled; `pnpm lint` will rewrite Python sources/tests when issues are detected—communicate before running in shared branches.
 - mdformat rewrites Markdown structure (lists/tables); audit semantic diffs during follow-up documentation edits.
+- `pip-audit` continues to fail in this container due to missing trust anchors; rerun once the SSL root store is corrected or swap to an offline advisory cache.

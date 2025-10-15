@@ -39,26 +39,26 @@ from .doctor import (
 )
 from .scaffolding import ScaffoldAction, ScaffoldStatus, audit_structure, ensure_structure
 
-app = typer.Typer(help="Swiss-army knife for Emperator developers and AI copilots.")
-scaffold_app = typer.Typer(help="Inspect and enforce the documented project layout.")
-doctor_app = typer.Typer(help="Diagnose environment health and suggest fixes.")
-analysis_app = typer.Typer(help="Plan IR generation and analyzer readiness.")
-fix_app = typer.Typer(help="Auto-remediation helpers for common issues.")
-contract_app = typer.Typer(help="Inspect and validate the Project Contract assets.")
+app = typer.Typer(help='Swiss-army knife for Emperator developers and AI copilots.')
+scaffold_app = typer.Typer(help='Inspect and enforce the documented project layout.')
+doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
+analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
+fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
+contract_app = typer.Typer(help='Inspect and validate the Project Contract assets.')
 
-app.add_typer(scaffold_app, name="scaffold")
-app.add_typer(doctor_app, name="doctor")
-app.add_typer(analysis_app, name="analysis")
-app.add_typer(fix_app, name="fix")
-app.add_typer(contract_app, name="contract")
+app.add_typer(scaffold_app, name='scaffold')
+app.add_typer(doctor_app, name='doctor')
+app.add_typer(analysis_app, name='analysis')
+app.add_typer(fix_app, name='fix')
+app.add_typer(contract_app, name='contract')
 
 
 _SUPPORTED_SEVERITIES: tuple[str, ...] = (
-    "info",
-    "low",
-    "medium",
-    "high",
-    "critical",
+    'info',
+    'low',
+    'medium',
+    'high',
+    'critical',
 )
 
 UNSUPPORTED_STORE_MESSAGE = "Unsupported telemetry store. Choose from 'memory', 'jsonl', or 'off'."
@@ -66,79 +66,79 @@ UNSUPPORTED_STORE_MESSAGE = "Unsupported telemetry store. Choose from 'memory', 
 
 ROOT_OPTION = typer.Option(
     None,
-    "--root",
-    help="Override the project root (defaults to the current working directory).",
+    '--root',
+    help='Override the project root (defaults to the current working directory).',
     dir_okay=True,
     file_okay=False,
 )
 
 TELEMETRY_STORE_OPTION = typer.Option(
-    "memory",
-    "--telemetry-store",
-    help="Telemetry backend to use: memory, jsonl, or off.",
+    'memory',
+    '--telemetry-store',
+    help='Telemetry backend to use: memory, jsonl, or off.',
     show_default=False,
 )
 
 TELEMETRY_PATH_OPTION = typer.Option(
     None,
-    "--telemetry-path",
-    help="Directory for telemetry persistence when using the jsonl backend.",
+    '--telemetry-path',
+    help='Directory for telemetry persistence when using the jsonl backend.',
     dir_okay=True,
     file_okay=False,
 )
 
 ANALYSIS_TOOL_OPTION = typer.Option(
     None,
-    "--tool",
-    "-t",
-    help="Execute only the specified analyzer (option can be repeated).",
+    '--tool',
+    '-t',
+    help='Execute only the specified analyzer (option can be repeated).',
 )
 
 ANALYSIS_SEVERITY_OPTION = typer.Option(
     None,
-    "--severity",
-    "-s",
+    '--severity',
+    '-s',
     help=(
-        "Limit execution to analyzer steps that match the selected severities "
-        "(option can be repeated)."
+        'Limit execution to analyzer steps that match the selected severities '
+        '(option can be repeated).'
     ),
 )
 
 INCLUDE_UNREADY_ANALYZERS_OPTION = typer.Option(
     default=False,
-    help="Attempt to run analyzers even if prerequisites are missing.",
+    help='Attempt to run analyzers even if prerequisites are missing.',
 )
-INCLUDE_UNREADY_ANALYZERS_OPTION.param_decls = ("--include-unready",)
+INCLUDE_UNREADY_ANALYZERS_OPTION.param_decls = ('--include-unready',)
 
 SCAFFOLD_DRY_RUN_OPTION = typer.Option(
     default=False,
-    help="Preview actions without writing to disk.",
+    help='Preview actions without writing to disk.',
 )
-SCAFFOLD_DRY_RUN_OPTION.param_decls = ("--dry-run",)
+SCAFFOLD_DRY_RUN_OPTION.param_decls = ('--dry-run',)
 
 APPLY_OPTION = typer.Option(
     default=False,
-    help="Execute recommended remediation commands after the checks.",
+    help='Execute recommended remediation commands after the checks.',
 )
-APPLY_OPTION.param_decls = ("--apply",)
+APPLY_OPTION.param_decls = ('--apply',)
 
 FIX_ONLY_OPTION = typer.Option(
     None,
-    "--only",
-    help="Name(s) of remediation actions to run; omit to execute the full plan.",
+    '--only',
+    help='Name(s) of remediation actions to run; omit to execute the full plan.',
 )
 
 FIX_RUN_MODE_OPTION = typer.Option(
     default=True,
-    help="Preview the remediation steps; pass --apply to execute them.",
+    help='Preview the remediation steps; pass --apply to execute them.',
 )
-FIX_RUN_MODE_OPTION.param_decls = ("--dry-run", "--apply")
+FIX_RUN_MODE_OPTION.param_decls = ('--dry-run', '--apply')
 
 STRICT_OPTION = typer.Option(
     default=False,
-    help="Treat contract validation warnings as errors.",
+    help='Treat contract validation warnings as errors.',
 )
-STRICT_OPTION.param_decls = ("--strict",)
+STRICT_OPTION.param_decls = ('--strict',)
 
 
 @dataclass
@@ -157,9 +157,9 @@ def _get_state(ctx: typer.Context) -> CLIState:
 
 def _status_style(status: CheckStatus) -> str:
     return {
-        CheckStatus.PASS: "green",
-        CheckStatus.WARN: "yellow",
-        CheckStatus.FAIL: "red",
+        CheckStatus.PASS: 'green',
+        CheckStatus.WARN: 'yellow',
+        CheckStatus.FAIL: 'red',
     }[status]
 
 
@@ -176,15 +176,15 @@ def main(
     store_choice = telemetry_store.lower()
     store: TelemetryStore | None
     resolved_path: Path | None = None
-    if store_choice == "off":
+    if store_choice == 'off':
         store = None
-    elif store_choice == "jsonl":
-        resolved_path = (telemetry_path or project_root / ".emperator" / "telemetry").resolve()
+    elif store_choice == 'jsonl':
+        resolved_path = (telemetry_path or project_root / '.emperator' / 'telemetry').resolve()
         store = JSONLTelemetryStore(resolved_path)
-    elif store_choice == "memory":
+    elif store_choice == 'memory':
         store = InMemoryTelemetryStore()
     else:
-        raise typer.BadParameter(UNSUPPORTED_STORE_MESSAGE, param_hint="--telemetry-store")
+        raise typer.BadParameter(UNSUPPORTED_STORE_MESSAGE, param_hint='--telemetry-store')
     ctx.obj = CLIState(
         project_root=project_root,
         console=console,
@@ -192,31 +192,31 @@ def main(
         telemetry_path=resolved_path,
     )
     console.print(
-        f"[bold cyan]Emperator CLI[/] v{__version__} — root: [bold]{project_root}[/]",
+        f'[bold cyan]Emperator CLI[/] v{__version__} — root: [bold]{project_root}[/]',
     )
 
 
 def _render_scaffold_table(console: Console, statuses: Iterable[ScaffoldStatus]) -> None:
-    table = Table(title="Scaffold Status", show_lines=False)
-    table.add_column("Path", style="cyan", overflow="fold")
-    table.add_column("Description", style="white")
-    table.add_column("Exists", justify="center")
-    table.add_column("Action", justify="center")
+    table = Table(title='Scaffold Status', show_lines=False)
+    table.add_column('Path', style='cyan', overflow='fold')
+    table.add_column('Description', style='white')
+    table.add_column('Exists', justify='center')
+    table.add_column('Action', justify='center')
     for status in statuses:
         table.add_row(
             str(status.item.relative_path),
             status.item.description,
-            "✅" if status.exists else "❌",
+            '✅' if status.exists else '❌',
             {
-                ScaffoldAction.NONE: "—",
-                ScaffoldAction.CREATED: "✨ created",
-                ScaffoldAction.PLANNED: "📝 planned",
+                ScaffoldAction.NONE: '—',
+                ScaffoldAction.CREATED: '✨ created',
+                ScaffoldAction.PLANNED: '📝 planned',
             }[status.action],
         )
     console.print(table)
 
 
-@scaffold_app.command("audit")
+@scaffold_app.command('audit')
 def scaffold_audit(ctx: typer.Context) -> None:
     """Display which scaffold items still need attention."""
     state = _get_state(ctx)
@@ -224,7 +224,7 @@ def scaffold_audit(ctx: typer.Context) -> None:
     _render_scaffold_table(state.console, statuses)
 
 
-@scaffold_app.command("ensure")
+@scaffold_app.command('ensure')
 def scaffold_ensure(
     ctx: typer.Context,
     *,
@@ -236,63 +236,63 @@ def scaffold_ensure(
     planned = [status for status in statuses if status.action is not ScaffoldAction.NONE]
     progress = Progress(
         SpinnerColumn(),
-        TextColumn("{task.description}"),
+        TextColumn('{task.description}'),
         console=state.console,
     )
     with progress:
-        task_id = progress.add_task("Reconciling scaffold", total=len(planned) or None)
+        task_id = progress.add_task('Reconciling scaffold', total=len(planned) or None)
         for status in planned:
-            progress.update(task_id, description=f"Preparing {status.item.relative_path}")
+            progress.update(task_id, description=f'Preparing {status.item.relative_path}')
             progress.advance(task_id)
     _render_scaffold_table(state.console, statuses)
     if dry_run:
         state.console.print(
-            "[yellow]Dry run complete. Re-run without --dry-run to materialise the plan.[/]"
+            '[yellow]Dry run complete. Re-run without --dry-run to materialise the plan.[/]'
         )
 
 
 def _render_check_table(console: Console, results: Iterable[DoctorCheckResult]) -> None:
-    table = Table(title="Environment Checks")
-    table.add_column("Check", style="cyan")
-    table.add_column("Status", justify="center")
-    table.add_column("Message", style="white")
-    table.add_column("Remediation", style="magenta")
+    table = Table(title='Environment Checks')
+    table.add_column('Check', style='cyan')
+    table.add_column('Status', justify='center')
+    table.add_column('Message', style='white')
+    table.add_column('Remediation', style='magenta')
     for result in results:
         style = _status_style(result.status)
         table.add_row(
             result.name,
-            f"[{style}]{result.status.value.upper()}[/]",
+            f'[{style}]{result.status.value.upper()}[/]',
             result.message,
-            result.remediation or "—",
+            result.remediation or '—',
         )
     console.print(table)
 
 
 def _render_analysis_report(console: Console, report: AnalysisReport) -> None:
-    language_table = Table(title="Analysis Overview", show_lines=False)
-    language_table.add_column("Language", style="cyan")
-    language_table.add_column("Files", justify="right")
-    language_table.add_column("Samples", style="white")
+    language_table = Table(title='Analysis Overview', show_lines=False)
+    language_table.add_column('Language', style='cyan')
+    language_table.add_column('Files', justify='right')
+    language_table.add_column('Samples', style='white')
     for summary in report.languages:
-        samples = "\n".join(summary.sample_files) or "—"
+        samples = '\n'.join(summary.sample_files) or '—'
         language_table.add_row(summary.language, str(summary.file_count), samples)
     if not report.languages:
-        language_table.add_row("—", "0", "No supported languages detected.")
+        language_table.add_row('—', '0', 'No supported languages detected.')
     console.print(language_table)
 
-    tooling_table = Table(title="Analyzer Tooling", show_lines=False)
-    tooling_table.add_column("Tool", style="cyan")
-    tooling_table.add_column("Status", justify="center")
-    tooling_table.add_column("Details", style="white")
+    tooling_table = Table(title='Analyzer Tooling', show_lines=False)
+    tooling_table.add_column('Tool', style='cyan')
+    tooling_table.add_column('Status', justify='center')
+    tooling_table.add_column('Details', style='white')
     for status in report.tool_statuses:
-        icon = "✅" if status.available else "⚠️"
-        style = "green" if status.available else "yellow"
-        tooling_table.add_row(status.name, f"[{style}]{icon}[/]", status.hint)
+        icon = '✅' if status.available else '⚠️'
+        style = 'green' if status.available else 'yellow'
+        tooling_table.add_row(status.name, f'[{style}]{icon}[/]', status.hint)
     console.print(tooling_table)
 
     if report.hints:
-        hints = "\n".join(f"- **{hint.topic}:** {hint.guidance}" for hint in report.hints)
-        console.print(Panel(Markdown(hints), title="Hints", border_style="cyan"))
+        hints = '\n'.join(f'- **{hint.topic}:** {hint.guidance}' for hint in report.hints)
+        console.print(Panel(Markdown(hints), title='Hints', border_style='cyan'))
 
 
 def _render_analysis_plan(
@@ -304,41 +304,41 @@ def _render_analysis_plan(
     telemetry_path: Path | None,
 ) -> None:
     materialised = tuple(plans)
-    console.print(f"[bold cyan]Telemetry fingerprint:[/] {fingerprint}")
+    console.print(f'[bold cyan]Telemetry fingerprint:[/] {fingerprint}')
     if telemetry_store is None:
-        console.print("[yellow]Telemetry disabled for this session.[/]")
+        console.print('[yellow]Telemetry disabled for this session.[/]')
     else:
         latest = telemetry_store.latest(fingerprint)
         if latest is None:
-            console.print("[yellow]No telemetry recorded for this plan yet.[/]")
+            console.print('[yellow]No telemetry recorded for this plan yet.[/]')
         else:
-            status = "success" if latest.successful else "issues detected"
+            status = 'success' if latest.successful else 'issues detected'
             console.print(
-                "[cyan]Last run:[/] "
-                f"{latest.completed_at.isoformat()} "
-                f"({status}, {len(latest.events)} events, {latest.duration_seconds:.2f}s)"
+                '[cyan]Last run:[/] '
+                f'{latest.completed_at.isoformat()} '
+                f'({status}, {len(latest.events)} events, {latest.duration_seconds:.2f}s)'
             )
     if telemetry_path is not None:
-        console.print(f"[green]Telemetry directory:[/] {telemetry_path}")
+        console.print(f'[green]Telemetry directory:[/] {telemetry_path}')
 
-    table = Table(title="Analysis Execution Plan", show_lines=False)
-    table.add_column("Tool", style="cyan")
-    table.add_column("Ready", justify="center")
-    table.add_column("Summary", style="white")
+    table = Table(title='Analysis Execution Plan', show_lines=False)
+    table.add_column('Tool', style='cyan')
+    table.add_column('Ready', justify='center')
+    table.add_column('Summary', style='white')
     for plan in materialised:
-        icon = "✅" if plan.ready else "⚠️"
-        style = "green" if plan.ready else "yellow"
-        table.add_row(plan.tool, f"[{style}]{icon}[/]", plan.reason)
+        icon = '✅' if plan.ready else '⚠️'
+        style = 'green' if plan.ready else 'yellow'
+        table.add_row(plan.tool, f'[{style}]{icon}[/]', plan.reason)
     console.print(table)
 
     for plan in materialised:
         if not plan.steps:
             continue
-        steps_table = Table(title=f"{plan.tool} Steps", show_lines=False)
-        steps_table.add_column("Description", style="white")
-        steps_table.add_column("Command", style="magenta")
+        steps_table = Table(title=f'{plan.tool} Steps', show_lines=False)
+        steps_table.add_column('Description', style='white')
+        steps_table.add_column('Command', style='magenta')
         for step in plan.steps:
-            steps_table.add_row(step.description, " ".join(step.command))
+            steps_table.add_row(step.description, ' '.join(step.command))
         console.print(steps_table)
 
 
@@ -350,18 +350,18 @@ def _render_run_telemetry(
     telemetry_path: Path | None,
 ) -> None:
     """Display telemetry metadata for a completed analysis run."""
-    console.print(f"[bold cyan]Telemetry fingerprint:[/] {run.fingerprint}")
+    console.print(f'[bold cyan]Telemetry fingerprint:[/] {run.fingerprint}')
     if telemetry_store is None:
-        console.print("[yellow]Telemetry disabled for this session.[/]")
+        console.print('[yellow]Telemetry disabled for this session.[/]')
     else:
-        status = "success" if run.successful else "issues detected"
+        status = 'success' if run.successful else 'issues detected'
         console.print(
-            "[cyan]Run recorded:[/] "
-            f"{run.completed_at.isoformat()} "
-            f"({len(run.events)} events, {run.duration_seconds:.2f}s, {status})"
+            '[cyan]Run recorded:[/] '
+            f'{run.completed_at.isoformat()} '
+            f'({len(run.events)} events, {run.duration_seconds:.2f}s, {status})'
         )
     if telemetry_path is not None:
-        console.print(f"[green]Telemetry directory:[/] {telemetry_path}")
+        console.print(f'[green]Telemetry directory:[/] {telemetry_path}')
 
 
 def _group_events_by_tool(events: Iterable[TelemetryEvent]) -> dict[str, list[TelemetryEvent]]:
@@ -395,12 +395,12 @@ def _format_severities(tool_events: Iterable[TelemetryEvent]) -> str:
         metadata = event.metadata
         if metadata is None:
             continue
-        severity = metadata.get("severity")
+        severity = metadata.get('severity')
         if severity:
             severity_values.add(severity)
     if not severity_values:
-        return "—"
-    return ", ".join(sorted(severity_values))
+        return '—'
+    return ', '.join(sorted(severity_values))
 
 
 def _render_analysis_run_summary(
@@ -413,12 +413,12 @@ def _render_analysis_run_summary(
     events_by_tool = _group_events_by_tool(run.events)
     notes_by_tool, general_notes = _partition_notes_by_tool(run.notes, materialised)
 
-    table = Table(title="Analysis Run Summary", show_lines=False)
-    table.add_column("Tool", style="cyan")
-    table.add_column("Steps", justify="right")
-    table.add_column("Severities", style="white")
-    table.add_column("Result", style="white")
-    table.add_column("Details", style="white")
+    table = Table(title='Analysis Run Summary', show_lines=False)
+    table.add_column('Tool', style='cyan')
+    table.add_column('Steps', justify='right')
+    table.add_column('Severities', style='white')
+    table.add_column('Result', style='white')
+    table.add_column('Details', style='white')
 
     for plan in materialised:
         tool_events = events_by_tool.get(plan.tool, [])
@@ -428,32 +428,32 @@ def _render_analysis_run_summary(
         severity_display = _format_severities(tool_events)
         if not tool_events:
             if not plan.steps:
-                result = "[yellow]No steps[/]"
+                result = '[yellow]No steps[/]'
                 detail = tool_notes[-1] if tool_notes else plan.reason
             else:
-                result = "[yellow]Skipped[/]"
+                result = '[yellow]Skipped[/]'
                 detail = tool_notes[-1] if tool_notes else plan.reason
-            steps_display = "0"
+            steps_display = '0'
         else:
             failures = [event for event in tool_events if event.exit_code != 0]
             steps_display = str(step_count)
             if failures:
-                result = "[red]FAILED[/]"
+                result = '[red]FAILED[/]'
                 detail = (
-                    "; ".join(tool_notes) if tool_notes else f"{len(failures)} failing step(s)."
+                    '; '.join(tool_notes) if tool_notes else f'{len(failures)} failing step(s).'
                 )
             else:
-                result = "[green]Success[/]"
-                detail = "; ".join(tool_notes) if tool_notes else "All steps succeeded."
+                result = '[green]Success[/]'
+                detail = '; '.join(tool_notes) if tool_notes else 'All steps succeeded.'
         table.add_row(plan.tool, steps_display, severity_display, result, detail)
 
     console.print(table)
 
     if general_notes:
-        console.print(Panel("\n".join(general_notes), title="Run Notes", border_style="yellow"))
+        console.print(Panel('\n'.join(general_notes), title='Run Notes', border_style='yellow'))
 
 
-@doctor_app.command("env")
+@doctor_app.command('env')
 def doctor_env(
     ctx: typer.Context,
     *,
@@ -464,17 +464,17 @@ def doctor_env(
     results = run_checks(state.project_root)
     _render_check_table(state.console, results)
     if apply:
-        state.console.print("[cyan]Applying remediation plan...[/]")
+        state.console.print('[cyan]Applying remediation plan...[/]')
         progress = Progress(
             SpinnerColumn(),
-            TextColumn("{task.description}"),
+            TextColumn('{task.description}'),
             console=state.console,
         )
         with progress:
             actions = list(iter_actions())
-            task_id = progress.add_task("Running fixes", total=len(actions))
+            task_id = progress.add_task('Running fixes', total=len(actions))
             for action in actions:
-                progress.update(task_id, description=f"{action.name}")
+                progress.update(task_id, description=f'{action.name}')
                 completed = run_remediation(action, dry_run=False, cwd=state.project_root)
                 progress.advance(task_id)
                 if completed and completed.returncode != 0:
@@ -486,30 +486,30 @@ def doctor_env(
                     if completed.stderr:
                         state.console.print(completed.stderr)
     else:
-        state.console.print("[yellow]Use --apply to run the suggested remediation commands.[/]")
+        state.console.print('[yellow]Use --apply to run the suggested remediation commands.[/]')
 
 
-@analysis_app.command("inspect")
+@analysis_app.command('inspect')
 def analysis_inspect(ctx: typer.Context) -> None:
     """Summarise languages and analyzer readiness with progress feedback."""
     state = _get_state(ctx)
     progress = Progress(
         SpinnerColumn(),
-        TextColumn("{task.description}"),
+        TextColumn('{task.description}'),
         BarColumn(bar_width=None),
         TimeElapsedColumn(),
         console=state.console,
     )
     with progress:
-        task_id = progress.add_task("Detecting repository signals", total=2)
+        task_id = progress.add_task('Detecting repository signals', total=2)
         progress.advance(task_id)
-        progress.update(task_id, description="Building analysis report")
+        progress.update(task_id, description='Building analysis report')
         report = gather_analysis(state.project_root)
         progress.advance(task_id)
     _render_analysis_report(state.console, report)
 
 
-@analysis_app.command("wizard")
+@analysis_app.command('wizard')
 def analysis_wizard(ctx: typer.Context) -> None:
     """Guide developers through preparing the IR pipeline."""
     state = _get_state(ctx)
@@ -517,35 +517,35 @@ def analysis_wizard(ctx: typer.Context) -> None:
     steps: list[str] = []
 
     if report.languages:
-        detected = ", ".join(summary.language for summary in report.languages)
-        steps.append(f"Review detected languages: {detected}.")
+        detected = ', '.join(summary.language for summary in report.languages)
+        steps.append(f'Review detected languages: {detected}.')
     else:
-        steps.append("No supported languages detected — add source files or adjust mappings.")
+        steps.append('No supported languages detected — add source files or adjust mappings.')
 
     for status in report.tool_statuses:
         if status.available:
-            location = status.location or "system PATH"
-            steps.append(f"✅ {status.name} ready at {location}.")
+            location = status.location or 'system PATH'
+            steps.append(f'✅ {status.name} ready at {location}.')
         else:
-            steps.append(f"⚠️ {status.name} missing — {status.hint}")
+            steps.append(f'⚠️ {status.name} missing — {status.hint}')
 
     if report.hints:
-        steps.append("Review the detailed hints below for follow-up actions.")
+        steps.append('Review the detailed hints below for follow-up actions.')
 
-    wizard_lines = "\n".join(f"{idx}. {text}" for idx, text in enumerate(steps, start=1))
+    wizard_lines = '\n'.join(f'{idx}. {text}' for idx, text in enumerate(steps, start=1))
     wizard_panel = Panel(
         Markdown(wizard_lines),
-        title="Interactive Analysis Wizard",
-        border_style="magenta",
+        title='Interactive Analysis Wizard',
+        border_style='magenta',
     )
     state.console.print(wizard_panel)
 
     if report.hints:
-        hints = "\n".join(f"- **{hint.topic}:** {hint.guidance}" for hint in report.hints)
+        hints = '\n'.join(f'- **{hint.topic}:** {hint.guidance}' for hint in report.hints)
         state.console.print(Markdown(hints))
 
 
-@analysis_app.command("plan")
+@analysis_app.command('plan')
 def analysis_plan(ctx: typer.Context) -> None:
     """Surface recommended execution steps for analyzers."""
     state = _get_state(ctx)
@@ -553,10 +553,10 @@ def analysis_plan(ctx: typer.Context) -> None:
     plans = tuple(plan_tool_invocations(report))
     if not plans:
         state.console.print(
-            "[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]"
+            '[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]'
         )
         return
-    fingerprint = fingerprint_analysis(report, plans, metadata={"command": "analysis-plan"})
+    fingerprint = fingerprint_analysis(report, plans, metadata={'command': 'analysis-plan'})
     _render_analysis_plan(
         state.console,
         plans,
@@ -566,7 +566,7 @@ def analysis_plan(ctx: typer.Context) -> None:
     )
 
 
-@analysis_app.command("run")
+@analysis_app.command('run')
 def analysis_run(
     ctx: typer.Context,
     *,
@@ -580,7 +580,7 @@ def analysis_run(
     plans = tuple(plan_tool_invocations(report))
     if not plans:
         state.console.print(
-            "[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]"
+            '[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]'
         )
         return
 
@@ -591,7 +591,7 @@ def analysis_run(
         selected_plans = plans
 
     if not selected_plans:
-        state.console.print("[yellow]No analyzer plans matched the provided filters.[/]")
+        state.console.print('[yellow]No analyzer plans matched the provided filters.[/]')
         return
 
     severity_values = tuple(value.lower() for value in (severity or ()))
@@ -600,28 +600,28 @@ def analysis_run(
         {level for level in unique_severities if level not in _SUPPORTED_SEVERITIES}
     )
     if invalid_severities:
-        supported = ", ".join(_SUPPORTED_SEVERITIES)
-        levels = ", ".join(invalid_severities)
-        message = f"Unsupported severity level(s): {levels}. " f"Supported levels: {supported}."
-        raise typer.BadParameter(message, param_hint="--severity")
+        supported = ', '.join(_SUPPORTED_SEVERITIES)
+        levels = ', '.join(invalid_severities)
+        message = f'Unsupported severity level(s): {levels}. ' f'Supported levels: {supported}.'
+        raise typer.BadParameter(message, param_hint='--severity')
 
     executable_steps = sum(
         len(plan.steps) for plan in selected_plans if plan.ready or include_unready
     )
-    metadata: dict[str, Any] = {"command": "analysis-run", "include_unready": include_unready}
+    metadata: dict[str, Any] = {'command': 'analysis-run', 'include_unready': include_unready}
     if selected_tools:
-        metadata["tools"] = sorted(selected_tools)
+        metadata['tools'] = sorted(selected_tools)
     if unique_severities:
-        metadata["severity_filter"] = list(unique_severities)
+        metadata['severity_filter'] = list(unique_severities)
 
     progress = Progress(
         SpinnerColumn(),
-        TextColumn("{task.description}"),
+        TextColumn('{task.description}'),
         BarColumn(bar_width=None),
         TimeElapsedColumn(),
         console=state.console,
     )
-    task_label = "Executing analyzer steps" if executable_steps else "No executable steps detected"
+    task_label = 'Executing analyzer steps' if executable_steps else 'No executable steps detected'
     with progress:
         task_id = progress.add_task(task_label, total=executable_steps or None)
 
@@ -652,7 +652,7 @@ def analysis_run(
         )
         progress.update(
             task_id,
-            description="Analyzer execution complete",
+            description='Analyzer execution complete',
             completed=executable_steps or 0,
         )
 
@@ -667,14 +667,14 @@ def analysis_run(
 
 def _render_validation_summary(console: Console, result: ContractValidationResult) -> None:
     if result.warnings:
-        warning_table = Table(title="Contract validation warnings", show_header=False)
-        warning_table.add_column("Warning", style="yellow", overflow="fold")
+        warning_table = Table(title='Contract validation warnings', show_header=False)
+        warning_table.add_column('Warning', style='yellow', overflow='fold')
         for warning in result.warnings:
             warning_table.add_row(warning)
         console.print(warning_table)
 
 
-@contract_app.command("validate")
+@contract_app.command('validate')
 def contract_validate(
     ctx: typer.Context,
     *,
@@ -685,12 +685,12 @@ def contract_validate(
     result = validate_contract_spec(strict=strict)
     console = state.console
     if result.is_valid:
-        console.print(Panel("[green]Contract validation passed.[/]", border_style="green"))
+        console.print(Panel('[green]Contract validation passed.[/]', border_style='green'))
         _render_validation_summary(console, result)
         return
 
-    error_table = Table(title="Contract validation errors", show_header=False)
-    error_table.add_column("Error", style="red", overflow="fold")
+    error_table = Table(title='Contract validation errors', show_header=False)
+    error_table.add_column('Error', style='red', overflow='fold')
     for message in result.errors:
         error_table.add_row(message)
     console.print(error_table)
@@ -699,20 +699,20 @@ def contract_validate(
     raise typer.Exit(code=1)
 
 
-@fix_app.command("plan")
+@fix_app.command('plan')
 def fix_plan(ctx: typer.Context) -> None:
     """List the available remediation commands."""
     state = _get_state(ctx)
-    table = Table(title="Auto-remediation Plan")
-    table.add_column("Name", style="cyan")
-    table.add_column("Command", style="white")
-    table.add_column("Description", style="magenta")
+    table = Table(title='Auto-remediation Plan')
+    table.add_column('Name', style='cyan')
+    table.add_column('Command', style='white')
+    table.add_column('Description', style='magenta')
     for action in iter_actions():
-        table.add_row(action.name, " ".join(action.command), action.description)
+        table.add_row(action.name, ' '.join(action.command), action.description)
     state.console.print(table)
 
 
-@fix_app.command("run")
+@fix_app.command('run')
 def fix_run(
     ctx: typer.Context,
     *,
@@ -723,16 +723,16 @@ def fix_run(
     state = _get_state(ctx)
     selected = [action for action in iter_actions() if not only or action.name in only]
     if not selected:
-        state.console.print("[yellow]No remediation actions matched the selection.[/]")
+        state.console.print('[yellow]No remediation actions matched the selection.[/]')
         return
 
     progress = Progress(
         SpinnerColumn(),
-        TextColumn("{task.description}"),
+        TextColumn('{task.description}'),
         console=state.console,
     )
     with progress:
-        task_id = progress.add_task("Executing remediation plan", total=len(selected))
+        task_id = progress.add_task('Executing remediation plan', total=len(selected))
         for action in selected:
             progress.update(task_id, description=action.name)
             result = run_remediation(action, dry_run=dry_run, cwd=state.project_root)
@@ -745,7 +745,7 @@ def fix_run(
                 if result.stderr:
                     state.console.print(result.stderr)
     if dry_run:
-        state.console.print("[yellow]Dry run complete. Re-run with --apply to make changes.[/]")
+        state.console.print('[yellow]Dry run complete. Re-run with --apply to make changes.[/]')
 
 
 def run() -> None:

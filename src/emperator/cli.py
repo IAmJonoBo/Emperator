@@ -28,6 +28,7 @@ from .analysis import (
     gather_analysis,
     plan_tool_invocations,
 )
+from .contract import ContractValidationResult, validate_contract_spec
 from .doctor import (
     CheckStatus,
     DoctorCheckResult,
@@ -42,11 +43,13 @@ scaffold_app = typer.Typer(help='Inspect and enforce the documented project layo
 doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
 analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
 fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
+contract_app = typer.Typer(help='Inspect and validate the Project Contract assets.')
 
 app.add_typer(scaffold_app, name='scaffold')
 app.add_typer(doctor_app, name='doctor')
 app.add_typer(analysis_app, name='analysis')
 app.add_typer(fix_app, name='fix')
+app.add_typer(contract_app, name='contract')
 
 
 _SUPPORTED_SEVERITIES: tuple[str, ...] = (
@@ -126,6 +129,12 @@ FIX_RUN_MODE_OPTION = typer.Option(
     True,
     '--dry-run/--apply',
     help='Preview the remediation steps; pass --apply to execute them.',
+)
+
+STRICT_OPTION = typer.Option(
+    False,
+    '--strict',
+    help='Treat contract validation warnings as errors.',
 )
 
 
@@ -668,6 +677,40 @@ def analysis_run(
         telemetry_path=state.telemetry_path,
     )
     _render_analysis_run_summary(state.console, selected_plans, run)
+
+
+def _render_validation_summary(console: Console, result: ContractValidationResult) -> None:
+    if result.warnings:
+        warning_table = Table(title='Contract validation warnings', show_header=False)
+        warning_table.add_column('Warning', style='yellow', overflow='fold')
+        for warning in result.warnings:
+            warning_table.add_row(warning)
+        console.print(warning_table)
+
+
+@contract_app.command('validate')
+def contract_validate(
+    ctx: typer.Context,
+    strict: bool = STRICT_OPTION,
+) -> None:
+    """Validate the canonical Project Contract specification."""
+
+    state = _get_state(ctx)
+    result = validate_contract_spec(strict=strict)
+    console = state.console
+    if result.is_valid:
+        console.print(Panel('[green]Contract validation passed.[/]', border_style='green'))
+        _render_validation_summary(console, result)
+        return
+
+    error_table = Table(title='Contract validation errors', show_header=False)
+    error_table.add_column('Error', style='red', overflow='fold')
+    for message in result.errors:
+        error_table.add_row(message)
+    console.print(error_table)
+    if not strict:
+        _render_validation_summary(console, result)
+    raise typer.Exit(code=1)
 
 
 @fix_app.command('plan')

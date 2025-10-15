@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 
 import emperator.contract as contract_module
-from emperator import ContractInfo, get_contract_info, get_contract_path, load_contract_spec
+from emperator import (
+    ContractInfo,
+    get_contract_info,
+    get_contract_path,
+    load_contract_spec,
+)
 
 
 def test_get_contract_info_returns_expected_metadata() -> None:
@@ -86,5 +91,389 @@ def test_get_contract_info_requires_info_section(
 
     with pytest.raises(ValueError, match='info'):
         contract_module.get_contract_info()
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_reports_success() -> None:
+    result = contract_module.validate_contract_spec()
+    assert result.is_valid
+    assert result.errors == ()
+
+
+def test_validate_contract_spec_detects_missing_paths(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\ninfo:\n  title: Minimal\n  version: 1.0.0\npaths: {}\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('paths' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_strict_escalates_warnings(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Strict\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec(strict=True)
+    assert not result.is_valid
+    assert any(message.startswith('[strict]') for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_warns_on_version_and_servers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 2.0.0\n'
+        'info:\n'
+        '  title: Legacy\n'
+        '  version: 1.0.0\n'
+        'servers:\n'
+        '  - https://legacy.example\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert result.is_valid
+    assert any('unexpected version' in message for message in result.warnings)
+    assert any('Server entry #1' in message for message in result.warnings)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_contract_endpoint_requirements(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Contract\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /contract:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n'
+        '          content:\n'
+        '            application/json:\n'
+        '              schema:\n'
+        '                type: object\n'
+        '                properties:\n'
+        '                  sourcePath:\n'
+        '                    type: string\n'
+        '                required:\n'
+        '                  - sourcePath\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('contractVersion' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_requires_openapi(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'info:\n'
+        '  title: Missing OpenAPI\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('OpenAPI version' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_requires_info_mapping(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info: []\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('info' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_flags_non_mapping_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Invalid Path\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /broken: invalid\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('must map HTTP verbs' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_flags_non_mapping_operation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Invalid Operation\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /broken:\n'
+        '    get: []\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('must be an object' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_requires_responses(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Missing Responses\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /broken:\n'
+        '    get:\n'
+        '      summary: missing responses\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('must define responses' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_requires_200_response(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Missing 200\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /broken:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '201':\n"
+        '          description: created\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('must define a 200 response' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_contract_response_guards(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Contract\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /contract:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200': broken\n",
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('object response' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+@pytest.mark.parametrize(
+    'response_block, expected_fragment',
+    [
+        (
+            "        '200':\n          description: ok\n",
+            'JSON content block',
+        ),
+        (
+            "        '200':\n          description: ok\n          content: {}\n",
+            '`application/json` content',
+        ),
+        (
+            "        '200':\n          description: ok\n          content:\n            application/json: {}\n",
+            'include a schema',
+        ),
+        (
+            "        '200':\n          description: ok\n          content:\n            application/json:\n              schema:\n                type: object\n",
+            'describe object properties',
+        ),
+    ],
+)
+def test_validate_contract_spec_contract_response_structure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    response_block: str,
+    expected_fragment: str,
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: Contract\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /contract:\n'
+        '    get:\n'
+        '      responses:\n'
+        f'{response_block}',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any(expected_fragment in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_requires_info_fields(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: ""\n'
+        '  version: 1.0.0\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert not result.is_valid
+    assert any('non-empty `title`' in message for message in result.errors)
+
+    contract_module.load_contract_spec.cache_clear()
+
+
+def test_validate_contract_spec_flags_empty_servers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    spec_path = _spec_path(
+        tmp_path,
+        'openapi: 3.1.0\n'
+        'info:\n'
+        '  title: No Servers\n'
+        '  version: 1.0.0\n'
+        'servers: []\n'
+        'paths:\n'
+        '  /healthz:\n'
+        '    get:\n'
+        '      responses:\n'
+        "        '200':\n"
+        '          description: ok\n',
+    )
+    _patch_contract_path(monkeypatch, spec_path)
+    contract_module.load_contract_spec.cache_clear()
+
+    result = contract_module.validate_contract_spec()
+    assert result.is_valid
+    assert any('non-empty list' in message for message in result.warnings)
 
     contract_module.load_contract_spec.cache_clear()

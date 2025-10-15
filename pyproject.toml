@@ -19,6 +19,7 @@ dependencies = [
   "typer ~= 0.19",
   "rich ~= 14.0",
   "shellingham ~= 1.5",
+  "types-PyYAML ~= 6.0",
 ]
 
 [project.optional-dependencies]

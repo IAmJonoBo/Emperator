@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from . import __version__
-from .contract import get_contract_path, load_contract_spec
+from .contract import ContractInfo, get_contract_info
 
 
 def create_app() -> FastAPI:
@@ -24,11 +24,10 @@ def create_app() -> FastAPI:
     @app.get('/contract', tags=['Meta'])
     def contract() -> dict[str, str]:
         """Expose metadata about the current API contract version."""
-        spec = load_contract_spec()
-        info = spec.get('info', {})
+        info: ContractInfo = get_contract_info()
         return {
-            'contractVersion': str(info.get('version', 'unknown')),
-            'sourcePath': str(get_contract_path(relative=True).as_posix()),
+            'contractVersion': info.version,
+            'sourcePath': info.source_path,
         }
 
     return app

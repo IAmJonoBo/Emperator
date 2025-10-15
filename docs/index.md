@@ -6,5 +6,6 @@ Emperator turns software standards into an executable contract that continuously
 - **Operationalize standards:** Use the how-to guides for contract authoring, pipeline integration, and responsible AI-assisted refactors.
 - **Understand the why:** The explanation deep dive maps the Contract→IR→Action pipeline, safety envelope, and extensibility points.
 - **Reference details:** Consult the reference section for rule schemas, toolchain support matrices, SBOM and audit artifacts, and Copilot prompt packs.
+- **Track decisions:** Review the Architecture Decision Records under `docs/adr/` for the rationale behind strategic changes and sprint scopes.
 
 > **Copilot tip:** Add `docs/includes/copilot-prompts.md` to your prompt library so the assistant can surface project-aware scaffolds and review checklists while you work.

@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import shutil
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Protocol, runtime_checkable
 
 __all__ = [
     'AnalysisHint',
@@ -15,6 +19,11 @@ __all__ = [
     'AnalyzerCommand',
     'AnalyzerPlan',
     'ToolStatus',
+    'TelemetryEvent',
+    'TelemetryRun',
+    'TelemetryStore',
+    'InMemoryTelemetryStore',
+    'fingerprint_analysis',
     'detect_languages',
     'gather_analysis',
     'plan_tool_invocations',
@@ -76,6 +85,87 @@ class AnalyzerPlan:
     steps: tuple[AnalyzerCommand, ...]
 
 
+@dataclass(frozen=True)
+class TelemetryEvent:
+    """Telemetry emitted for a single analyzer command execution."""
+
+    tool: str
+    command: tuple[str, ...]
+    exit_code: int
+    duration_seconds: float
+    timestamp: datetime
+    metadata: Mapping[str, str] | None = None
+
+    def to_payload(self) -> dict[str, Any]:
+        """Represent the event as a JSON-serialisable payload."""
+
+        return {
+            'tool': self.tool,
+            'command': list(self.command),
+            'exit_code': self.exit_code,
+            'duration_seconds': self.duration_seconds,
+            'timestamp': self.timestamp.isoformat(),
+            'metadata': dict(self.metadata or {}),
+        }
+
+
+@dataclass(frozen=True)
+class TelemetryRun:
+    """Aggregated telemetry for a full analyzer execution plan."""
+
+    fingerprint: str
+    project_root: Path
+    started_at: datetime
+    completed_at: datetime
+    events: tuple[TelemetryEvent, ...]
+    notes: tuple[str, ...] = ()
+
+    @property
+    def duration_seconds(self) -> float:
+        """Total wall-clock duration for the run."""
+
+        return max(self.completed_at.timestamp() - self.started_at.timestamp(), 0.0)
+
+    @property
+    def successful(self) -> bool:
+        """Whether all recorded events completed successfully."""
+
+        return all(event.exit_code == 0 for event in self.events)
+
+
+@runtime_checkable
+class TelemetryStore(Protocol):
+    """Persistence contract for analyzer telemetry runs."""
+
+    def persist(self, run: TelemetryRun) -> None:
+        """Persist a telemetry run, making it available for later inspection."""
+
+    def latest(self, fingerprint: str) -> TelemetryRun | None:
+        """Return the most recent telemetry run for a fingerprint, if any."""
+
+    def history(self, fingerprint: str) -> tuple[TelemetryRun, ...]:
+        """Return the chronological history for a fingerprint."""
+
+
+class InMemoryTelemetryStore:
+    """Simple telemetry persistence suitable for tests and prototyping."""
+
+    def __init__(self) -> None:
+        self._runs: dict[str, list[TelemetryRun]] = defaultdict(list)
+
+    def persist(self, run: TelemetryRun) -> None:
+        self._runs[run.fingerprint].append(run)
+
+    def latest(self, fingerprint: str) -> TelemetryRun | None:
+        history = self._runs.get(fingerprint)
+        if not history:
+            return None
+        return history[-1]
+
+    def history(self, fingerprint: str) -> tuple[TelemetryRun, ...]:
+        return tuple(self._runs.get(fingerprint, ()))
+
+
 _LANGUAGE_MAP: dict[str, str] = {
     '.py': 'Python',
     '.pyi': 'Python',
@@ -105,6 +195,52 @@ _SKIP_DIRS: frozenset[str] = frozenset(
         '.tox',
     }
 )
+
+
+def fingerprint_analysis(
+    report: AnalysisReport,
+    plans: Iterable[AnalyzerPlan],
+    *,
+    metadata: Mapping[str, Any] | None = None,
+) -> str:
+    """Compute a deterministic fingerprint for caching analyzer telemetry."""
+
+    metadata = metadata or {}
+    root = (report.project_root or Path('.')).resolve()
+    languages = [
+        {
+            'language': summary.language,
+            'file_count': summary.file_count,
+            'sample_files': list(summary.sample_files),
+        }
+        for summary in sorted(report.languages, key=lambda summary: summary.language)
+    ]
+    tool_statuses = [
+        {
+            'name': status.name,
+            'available': status.available,
+            'location': status.location,
+        }
+        for status in sorted(report.tool_statuses, key=lambda status: status.name)
+    ]
+    serialized_plans = [
+        {
+            'tool': plan.tool,
+            'ready': plan.ready,
+            'reason': plan.reason,
+            'steps': [list(step.command) for step in plan.steps],
+        }
+        for plan in sorted(plans, key=lambda plan: plan.tool)
+    ]
+    payload = {
+        'project_root': str(root),
+        'languages': languages,
+        'tool_statuses': tool_statuses,
+        'plans': serialized_plans,
+        'metadata': dict(metadata),
+    }
+    data = json.dumps(payload, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return hashlib.sha256(data).hexdigest()
 
 
 @dataclass(frozen=True)

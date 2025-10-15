@@ -143,8 +143,7 @@ Python portion of the stack.
 - `yamllint` (driven by `.yamllint`) guards our MkDocs configuration and GitHub workflows with strict two-space indentation and safe boolean values while Biome awaits first-party YAML formatting.
 - `shfmt` keeps shell scripts consistent with `set -euo pipefail` defaults.
 - `actionlint` validates GitHub Actions syntax, unused inputs, and indentation before we push workflows.
-- Local hooks `cleanup-apple-cruft` / `ban-apple-cruft` remove macOS Finder artefacts before they can
-  be committed.
+- macOS metadata files are ignored at the Git level; no custom cleanup hooks are required anymore.
 - Biome, ESLint, Ruff, and commitlint all run through pre-commit, so developers get identical checks
   to CI.
 

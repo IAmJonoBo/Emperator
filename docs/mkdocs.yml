@@ -30,6 +30,12 @@ nav:
       - Developer Tooling Reference: reference/developer-tooling.md
       - Governance and Compliance Controls: reference/governance.md
       - Copilot Prompt Patterns: includes/copilot-prompts.md
+  - Architecture Decision Records:
+      - Overview: adr/README.md
+      - ADR-0001: adr/0001-adopt-adr-process.md
+      - ADR-0002: adr/0002-code-hardening-and-telemetry.md
+      - ADR-0003: adr/0003-analyzer-telemetry-architecture.md
+      - Template: adr/0000-template.md
 
 theme:
   name: mkdocs

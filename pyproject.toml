@@ -124,5 +124,8 @@ python_version = "3.11"
 warn_unused_configs = true
 ignore_missing_imports = true
 
+[tool.bandit]
+skips = ["B101"]
+
 [project.scripts]
 emperator = "emperator.cli:run"

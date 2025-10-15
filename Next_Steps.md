@@ -21,9 +21,9 @@
 
 - [x] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: 2025-10-25)
 - [x] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: 2025-10-25)
-- [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: 2025-10-25)
-- [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: 2025-10-28)
-- [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: 2025-10-30)
+- [x] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: 2025-10-25)
+- [x] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: 2025-10-28)
+- [x] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: 2025-10-30)
 - [x] Introduce targeted lint lane (`pnpm lint:changed`) to accelerate feedback loops (Owner: Maintainers, Due: Current pass)
 
 ### Historical completions
@@ -113,6 +113,7 @@
 - ✅ Guardrail digest tracking (`guardrails/yaml-digests.json`) plus CLI verification command and dedicated tests.
 - ✅ Analyzer UX upgrade with severity filters, dry-run simulation, and updated CLI documentation.
 - ✅ Analyzer execution now honours severity metadata during runs and records skipped steps in telemetry notes.
+- ✅ Severity gating surfaced in analysis summaries with PASS/REVIEW/BLOCK badges, run-level escalation notes, and refreshed docs/tests.
 - ✅ JSONL telemetry store ignores corrupted lines, rewrites atomically, and retains valid run history with coverage.
 - ✅ Analyzer execution handles missing binaries gracefully, emitting exit-code notes and telemetry metadata.
 - ⏳ Sprint 4 deliverables (IR builder, Semgrep/CodeQL integration, findings correlation, performance benchmarks) – in planning per `docs/explanation/system-architecture.md`, `docs/reference/toolchain.md`, and `emperator_specs/Sprint_Playbook.md`.
@@ -120,14 +121,14 @@
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (107 passed, 99% coverage; formatting/tooling helper coverage follow-up remains).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (114 passed, 100% coverage across source and test modules).
 - ✅ Format: `pnpm fmt -- --check` (Ruff + mdformat + YAML formatter all succeed on current tree).
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠️ Security: `uv run --with pip-audit pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
 - ✅ Build: `uv run --with build python -m build` (setuptools warns about deprecated license table; schedule SPDX string follow-up).
-- ✅ Contract: `emperator contract validate --strict` to gate OpenAPI changes.
+- ✅ Contract: `uv run --extra dev emperator contract validate --strict` enforced via dedicated CI job prior to lint/tests/build.
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
 - ✅ Guardrails: `emperator guardrails verify` succeeds with digests tracked in `guardrails/yaml-digests.json`.
 
@@ -156,7 +157,8 @@
 - Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.
 - Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.
 - Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.
-- Coverage for select formatting/tooling fixture branches remains at 99%; schedule targeted tests or adjust expectations before raising quality gate thresholds.
+- Maintain 100% coverage for analysis/CLI modules; tighten review on future changes that introduce untested branches.
+- CI now blocks on the contract validation gate; coordinate rollout communications so contributors expect the additional job latency.
 - Ruff auto-fix mode is enabled; `pnpm lint` will rewrite Python sources/tests when issues are detected—communicate before running in shared branches.
 - `pnpm lint:changed` requires `uv` and pnpm to be on PATH; ensure developer workstations install tooling via `scripts/setup-tooling.sh` before relying on the quick pass.
 - mdformat rewrites Markdown structure (lists/tables); audit semantic diffs during follow-up documentation edits.

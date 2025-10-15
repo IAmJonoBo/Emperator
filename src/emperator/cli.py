@@ -388,19 +388,71 @@ def _partition_notes_by_tool(
     return notes_by_tool, general_notes
 
 
-def _format_severities(tool_events: Iterable[TelemetryEvent]) -> str:
-    """Return a comma-separated list of severities recorded for tool events."""
-    severity_values: set[str] = set()
+_SEVERITY_ORDER: tuple[str, ...] = ('info', 'low', 'medium', 'high', 'critical')
+_SEVERITY_RANK: dict[str, int] = {level: index for index, level in enumerate(_SEVERITY_ORDER)}
+
+
+def _summarise_severities(tool_events: Iterable[TelemetryEvent]) -> tuple[str, str | None]:
+    """Summarise severities for a tool, returning display text and highest level."""
+    counts: dict[str, int] = {}
+    highest: str | None = None
     for event in tool_events:
         metadata = event.metadata
         if metadata is None:
             continue
         severity = metadata.get('severity')
-        if severity:
-            severity_values.add(severity)
-    if not severity_values:
-        return '—'
-    return ', '.join(sorted(severity_values))
+        if not severity:
+            continue
+        level = severity.lower()
+        counts[level] = counts.get(level, 0) + 1
+        rank = _SEVERITY_RANK.get(level)
+        if rank is None:
+            # Treat unknown severities as review material.
+            highest = level
+            continue
+        if highest is None or _SEVERITY_RANK.get(highest, -1) < rank:
+            highest = level
+    if not counts:
+        return '—', None
+    ordered_levels = sorted(
+        counts,
+        key=lambda level: _SEVERITY_RANK.get(level, -1),
+        reverse=True,
+    )
+    display_parts = [
+        f'{level} ({counts[level]})' if counts[level] > 1 else level for level in ordered_levels
+    ]
+    return ', '.join(display_parts), highest
+
+
+def _severity_gate_status(tool: str, highest: str | None) -> tuple[str, str | None]:
+    """Return a Rich-rendered gate badge and optional run-level note."""
+    if highest is None:
+        return '[green]PASS[/]', None
+    level = highest.lower()
+    rank = _SEVERITY_RANK.get(level)
+    if rank is None:
+        unknown_message = (
+            'Severity gate triggered for '
+            f"{tool}: unknown severity '{highest}' detected; manual review required."
+        )
+        return '[yellow]REVIEW[/]', unknown_message
+    if rank >= _SEVERITY_RANK['high']:
+        block_message = (
+            'Severity gate triggered for '
+            f'{tool}: highest severity {level} requires blocking remediation.'
+        )
+        return '[red]BLOCK[/]', block_message
+    note: str | None
+    if rank >= _SEVERITY_RANK['medium']:
+        note = (
+            'Severity gate triggered for '
+            f'{tool}: highest severity {level} requires manual review.'
+        )
+    else:
+        note = None
+    badge = '[yellow]REVIEW[/]' if note else '[green]PASS[/]'
+    return badge, note
 
 
 def _render_analysis_run_summary(
@@ -417,6 +469,7 @@ def _render_analysis_run_summary(
     table.add_column('Tool', style='cyan')
     table.add_column('Steps', justify='right')
     table.add_column('Severities', style='white')
+    table.add_column('Gate', style='white')
     table.add_column('Result', style='white')
     table.add_column('Details', style='white')
 
@@ -425,7 +478,10 @@ def _render_analysis_run_summary(
         stored_notes = notes_by_tool.get(plan.tool)
         tool_notes: list[str] = stored_notes if stored_notes is not None else []
         step_count = len(tool_events)
-        severity_display = _format_severities(tool_events)
+        severity_display, highest_severity = _summarise_severities(tool_events)
+        gate_badge, gate_note = _severity_gate_status(plan.tool, highest_severity)
+        if gate_note:
+            general_notes.append(gate_note)
         if not tool_events:
             if not plan.steps:
                 result = '[yellow]No steps[/]'
@@ -445,7 +501,7 @@ def _render_analysis_run_summary(
             else:
                 result = '[green]Success[/]'
                 detail = '; '.join(tool_notes) if tool_notes else 'All steps succeeded.'
-        table.add_row(plan.tool, steps_display, severity_display, result, detail)
+        table.add_row(plan.tool, steps_display, severity_display, gate_badge, result, detail)
 
     console.print(table)
 

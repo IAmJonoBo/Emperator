@@ -15,9 +15,9 @@ class CheckStatus(Enum):
     """Outcome of a doctor check."""
 
     # Status strings are UI labels, not secrets.
-    PASS = 'pass'  # nosec B105
-    WARN = 'warn'
-    FAIL = 'fail'
+    PASS = "pass"  # nosec B105  # noqa: S105
+    WARN = "warn"
+    FAIL = "fail"
 
 
 @dataclass(frozen=True)
@@ -41,117 +41,114 @@ class RemediationAction:
 
 def _python_version_check(minimum: tuple[int, int]) -> DoctorCheckResult:
     version = sys.version_info
-    current = f'{version.major}.{version.minor}.{version.micro}'
-    target = f'{minimum[0]}.{minimum[1]}'
+    current = f"{version.major}.{version.minor}.{version.micro}"
+    target = f"{minimum[0]}.{minimum[1]}"
     if (version.major, version.minor) >= minimum:
         return DoctorCheckResult(
-            name='Python runtime',
+            name="Python runtime",
             status=CheckStatus.PASS,
-            message=f'Python {current} detected (>= {target}).',
+            message=f"Python {current} detected (>= {target}).",
         )
     return DoctorCheckResult(
-        name='Python runtime',
+        name="Python runtime",
         status=CheckStatus.FAIL,
-        message=f'Python {current} is below required {target}.',
-        remediation='Upgrade the interpreter used for development and CI runs.',
+        message=f"Python {current} is below required {target}.",
+        remediation="Upgrade the interpreter used for development and CI runs.",
     )
 
 
 def _virtualenv_check(project_root: Path) -> DoctorCheckResult:
-    venv = project_root / '.venv'
+    venv = project_root / ".venv"
     if venv.exists():
         return DoctorCheckResult(
-            name='Virtualenv',
+            name="Virtualenv",
             status=CheckStatus.PASS,
-            message=f'Detected virtual environment at {venv}.',
+            message=f"Detected virtual environment at {venv}.",
         )
     return DoctorCheckResult(
-        name='Virtualenv',
+        name="Virtualenv",
         status=CheckStatus.WARN,
-        message='No managed virtual environment was found.',
-        remediation='Run `./scripts/setup-tooling.sh` to create and populate .venv.',
+        message="No managed virtual environment was found.",
+        remediation="Run `./scripts/setup-tooling.sh` to create and populate .venv.",
     )
 
 
 def _pnpm_check() -> DoctorCheckResult:
-    pnpm = shutil.which('pnpm')
+    pnpm = shutil.which("pnpm")
     if pnpm:
         return DoctorCheckResult(
-            name='pnpm availability',
+            name="pnpm availability",
             status=CheckStatus.PASS,
-            message=f'pnpm detected at {pnpm}.',
+            message=f"pnpm detected at {pnpm}.",
         )
     return DoctorCheckResult(
-        name='pnpm availability',
+        name="pnpm availability",
         status=CheckStatus.WARN,
-        message='pnpm is not on PATH.',
-        remediation='Install pnpm to manage JavaScript tooling (see https://pnpm.io/installation).',
+        message="pnpm is not on PATH.",
+        remediation="Install pnpm to manage JavaScript tooling (see https://pnpm.io/installation).",
     )
 
 
 def _uv_check() -> DoctorCheckResult:
-    uv = shutil.which('uv')
+    uv = shutil.which("uv")
     if uv:
         return DoctorCheckResult(
-            name='uv CLI availability',
+            name="uv CLI availability",
             status=CheckStatus.PASS,
-            message=f'uv detected at {uv}.',
+            message=f"uv detected at {uv}.",
         )
     return DoctorCheckResult(
-        name='uv CLI availability',
+        name="uv CLI availability",
         status=CheckStatus.WARN,
-        message='uv CLI is not on PATH.',
-        remediation='Install uv to manage Python environments (https://github.com/astral-sh/uv).',
+        message="uv CLI is not on PATH.",
+        remediation="Install uv to manage Python environments (https://github.com/astral-sh/uv).",
     )
 
 
 def _script_check(project_root: Path, script_name: str, description: str) -> DoctorCheckResult:
-    script_path = project_root / 'scripts' / script_name
+    script_path = project_root / "scripts" / script_name
     if script_path.exists():
         return DoctorCheckResult(
             name=description,
             status=CheckStatus.PASS,
-            message=f'Found {script_path}.',
+            message=f"Found {script_path}.",
         )
     return DoctorCheckResult(
         name=description,
         status=CheckStatus.FAIL,
-        message=f'Missing expected helper script: {script_path}.',
-        remediation='Restore the helper script or regenerate it from project templates.',
+        message=f"Missing expected helper script: {script_path}.",
+        remediation="Restore the helper script or regenerate it from project templates.",
     )
 
 
 def run_checks(project_root: Path) -> list[DoctorCheckResult]:
     """Execute all standard doctor checks."""
-
-    checks = [
+    return [
         _python_version_check((3, 11)),
         _virtualenv_check(project_root),
         _pnpm_check(),
         _uv_check(),
-        _script_check(project_root, 'setup-tooling.sh', 'Tooling bootstrap script'),
+        _script_check(project_root, "setup-tooling.sh", "Tooling bootstrap script"),
     ]
-    return checks
 
 
 def default_remediations() -> tuple[RemediationAction, ...]:
     """Provide the default remediation plan developers can opt into."""
-
     return (
         RemediationAction(
-            name='Sync Python tooling',
-            command=('bash', 'scripts/setup-tooling.sh'),
-            description='Create the local virtual environment and install dev dependencies.',
+            name="Sync Python tooling",
+            command=("bash", "scripts/setup-tooling.sh"),
+            description="Create the local virtual environment and install dev dependencies.",
         ),
         RemediationAction(
-            name='Install lint hooks',
-            command=('bash', 'scripts/setup-linting.sh'),
-            description='Refresh linting configuration and git hooks.',
+            name="Install lint hooks",
+            command=("bash", "scripts/setup-linting.sh"),
+            description="Refresh linting configuration and git hooks.",
         ),
         RemediationAction(
-            name='Install JS toolchain',
-            command=('pnpm', 'install'),
-            description='Ensure Node-based developer tooling is installed.',
+            name="Install JS toolchain",
+            command=("pnpm", "install"),
+            description="Ensure Node-based developer tooling is installed.",
         ),
     )
 
@@ -163,12 +160,11 @@ def run_remediation(
     cwd: Path | None = None,
 ) -> subprocess.CompletedProcess[str] | None:
     """Execute a remediation action if not in dry-run mode."""
-
     if dry_run:
         return None
     # Commands are curated remediation steps and never accept untrusted input.
     try:
-        return subprocess.run(  # nosec B603
+        return subprocess.run(  # nosec B603  # noqa: S603
             action.command,
             cwd=cwd,
             check=False,
@@ -179,14 +175,13 @@ def run_remediation(
         return subprocess.CompletedProcess(
             action.command,
             returncode=127,
-            stdout='',
+            stdout="",
             stderr=str(exc),
         )
 
 
 def iter_actions(actions: Iterable[RemediationAction] | None = None) -> Iterable[RemediationAction]:
     """Iterate over the remediation actions, defaulting to the curated plan."""
-
     if actions is None:
         actions = default_remediations()
     return actions

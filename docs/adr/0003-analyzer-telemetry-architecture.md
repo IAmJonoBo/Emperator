@@ -31,16 +31,16 @@ Introduce first-class telemetry primitives inside `emperator.analysis`:
 1. **Telemetry data model** — `TelemetryEvent` captures per-command data, while `TelemetryRun`
    aggregates a full plan execution, including duration calculations, success heuristics, and freeform
    notes for cache provenance.
-2. **Pluggable store contract** — `TelemetryStore` defines the persistence protocol. A simple
+1. **Pluggable store contract** — `TelemetryStore` defines the persistence protocol. A simple
    `InMemoryTelemetryStore` implementation unblocks tests and CLI prototypes, while future commits can
    layer durable stores without breaking callers.
-3. **Deterministic fingerprinting** — `fingerprint_analysis(...)` normalises language detection output,
+1. **Deterministic fingerprinting** — `fingerprint_analysis(...)` normalises language detection output,
    tool availability, analyzer steps, and optional metadata into a SHA-256 digest. The fingerprint keys
    persistence lookups and doubles as a cache invalidation mechanism when plans drift.
-4. **Designated storage path** — Subsequent persistence work will default to
+1. **Designated storage path** — Subsequent persistence work will default to
    `.emperator/telemetry/*.jsonl`, retaining one JSON-L lines file per fingerprint with rolling history
    limits. The directory lives in `.gitignore` to keep telemetry local by default.
-5. **CLI integration roadmap** — The CLI will accept `--telemetry-store` hooks, default to the in-memory
+1. **CLI integration roadmap** — The CLI will accept `--telemetry-store` hooks, default to the in-memory
    implementation for dry-runs, and persist to disk when the JSONL backend lands. Historical runs will
    hydrate “last seen” banners in `emperator analysis plan` output.
 

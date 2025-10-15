@@ -3,9 +3,9 @@
 This tutorial takes you from zero to a working Emperator run in a fresh repository. You will:
 
 1. Install the CLI and supporting toolchain.
-2. Author a minimal Project Contract that encodes one style rule and one security guardrail.
-3. Execute the Contract→IR→Action pipeline locally and review the resulting fixes and reports.
-4. Wire the command into a pre-commit hook so every change benefits from the same enforcement loop.
+1. Author a minimal Project Contract that encodes one style rule and one security guardrail.
+1. Execute the Contract→IR→Action pipeline locally and review the resulting fixes and reports.
+1. Wire the command into a pre-commit hook so every change benefits from the same enforcement loop.
 
 ## Prerequisites
 

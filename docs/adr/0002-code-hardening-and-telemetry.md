@@ -36,8 +36,8 @@ caching.
 Run a focused sprint covering:
 
 1. Removal of redundant Apple-specific cleanup automation and workflows.
-2. Establishment of an ADR system with templates to track new governance decisions.
-3. Definition of telemetry requirements for analyzer runs, including storage format, retention,
+1. Establishment of an ADR system with templates to track new governance decisions.
+1. Definition of telemetry requirements for analyzer runs, including storage format, retention,
    privacy posture, and integration with the CLI.
 
 ## Consequences

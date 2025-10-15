@@ -73,10 +73,39 @@ const resolveUv = () => {
   return null;
 };
 
+const uvBinary = resolveUv();
+if (!uvBinary) {
+  logError(
+    "pnpm fmt requires uv on PATH (or UV_BIN) so Ruff can format and sort imports. Install uv from https://docs.astral.sh/uv/ and retry."
+  );
+  process.exit(1);
+}
+
 const tasks = [];
 
 const yamlArgs = wantsCheck ? ["--", "--check"] : [];
 tasks.push(() => runScript("fmt:yaml", yamlArgs));
+
+const markdownTargets = [
+  "README.md",
+  "Next_Steps.md",
+  "IMPLEMENT_THEN_DELETE.md",
+  "AGENTS.md",
+  "docs",
+];
+
+tasks.push(() =>
+  runCommand(uvBinary, [
+    "run",
+    "--extra",
+    "dev",
+    "mdformat",
+    ...(wantsCheck ? ["--check"] : []),
+    "--extension",
+    "gfm",
+    ...markdownTargets,
+  ])
+);
 
 if (wantsCheck) {
   tasks.push(() =>
@@ -91,14 +120,6 @@ if (wantsCheck) {
   );
 } else {
   tasks.push(() => runScript("fmt:biome"));
-}
-
-const uvBinary = resolveUv();
-if (!uvBinary) {
-  logError(
-    "pnpm fmt requires uv on PATH (or UV_BIN) so Ruff can format and sort imports. Install uv from https://docs.astral.sh/uv/ and retry."
-  );
-  process.exit(1);
 }
 
 tasks.push(() =>

@@ -147,6 +147,11 @@ if [[ ! -f "pnpm-lock.yaml" ]]; then
   exit 1
 fi
 
+CACHE_ROOT="${ROOT_DIR}/.cache"
+export PRE_COMMIT_HOME="${PRE_COMMIT_HOME:-${CACHE_ROOT}/pre-commit}"
+export UV_CACHE_DIR="${UV_CACHE_DIR:-${CACHE_ROOT}/uv}"
+mkdir -p "${PRE_COMMIT_HOME}" "${UV_CACHE_DIR}"
+
 if ! command -v pnpm >/dev/null 2>&1; then
   log_error "pnpm is required. Install it from https://pnpm.io/installation"
   exit 1

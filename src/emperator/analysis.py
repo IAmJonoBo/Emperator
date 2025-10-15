@@ -293,6 +293,13 @@ _SKIP_DIRS: frozenset[str] = frozenset(
         'build',
         '__pycache__',
         '.tox',
+        'site',
+        '.cache',
+        '.sarif',
+        '.emperator',
+        '.pnpm-store',
+        'htmlcov',
+        '.hypothesis',
     }
 )
 

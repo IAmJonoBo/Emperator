@@ -130,7 +130,8 @@ resolve_repo_root() {
 
   local script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if repo_root="$(find_repo_root "${script_dir}")"; then
+  repo_root="$(find_repo_root "${script_dir}")"
+  if [[ -n "${repo_root}" ]]; then
     echo "${repo_root}"
     return 0
   fi

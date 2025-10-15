@@ -112,6 +112,8 @@ FIX_RUN_MODE_OPTION = typer.Option(
 
 @dataclass
 class CLIState:
+    """Holds CLI context including project root, console, and telemetry configuration."""
+
     project_root: Path
     console: Console
     telemetry_store: TelemetryStore | None

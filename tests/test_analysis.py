@@ -104,9 +104,7 @@ def test_plan_tool_invocations_semgrep_ready(tmp_path: Path) -> None:
     """Semgrep should produce a ready plan when the tool is available."""
 
     report = AnalysisReport(
-        languages=(
-            LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),
-        ),
+        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
         tool_statuses=(
             ToolStatus(
                 name='Semgrep',
@@ -153,9 +151,7 @@ def test_plan_tool_invocations_codeql_languages(tmp_path: Path) -> None:
     assert '--language=python' in create_command
     assert '--language=javascript' in create_command
     analyze_steps = [
-        step
-        for step in codeql_plan.steps
-        if 'codeql/javascript-queries' in step.command
+        step for step in codeql_plan.steps if 'codeql/javascript-queries' in step.command
     ]
     assert analyze_steps
     output_flag = str(Path('artifacts') / 'codeql-javascript.sarif')
@@ -166,9 +162,7 @@ def test_plan_tool_invocations_handles_missing_tool(tmp_path: Path) -> None:
     """Plans should surface hints when analyzers are unavailable."""
 
     report = AnalysisReport(
-        languages=(
-            LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),
-        ),
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
         tool_statuses=(
             ToolStatus(
                 name='CodeQL',

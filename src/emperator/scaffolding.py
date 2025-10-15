@@ -52,8 +52,7 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         Path('contract/policy/policy.rego'),
         'OPA policy bundle',
         stub=(
-            'package emperator.policy\n\n'
-            '# TODO: Encode repository-wide policy rules using Rego.\n'
+            'package emperator.policy\n\n# TODO: Encode repository-wide policy rules using Rego.\n'
         ),
     ),
     ScaffoldItem(
@@ -118,9 +117,7 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
     ScaffoldItem(
         Path('infra/terraform/modules/README.md'),
         'Terraform modules index',
-        stub=(
-            '# Terraform Modules\n\n' 'TODO: Document reusable modules exposed by the platform.\n'
-        ),
+        stub=('# Terraform Modules\n\nTODO: Document reusable modules exposed by the platform.\n'),
     ),
     ScaffoldItem(
         Path('infra/terraform/envs/dev'),

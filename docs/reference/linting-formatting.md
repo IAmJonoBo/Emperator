@@ -46,9 +46,10 @@ Biome runs via two scripts:
 - `pnpm fmt` delegates to `scripts/run-format.mjs`, which formats YAML (`scripts/format-yaml.mjs`),
   runs `biome format --write .`, then executes `uv run ruff format .` followed by
   `uv run ruff check . --select I --fix` to keep Python sources aligned and imports sorted. Append
-  `--all` to include a full `uv run ruff check . --fix` sweep after the import-only pass. Install
-  `uv` (or run `scripts/setup-tooling.sh`) before invoking the formatter so the Ruff commands are
-  available.
+  `--all` to include a full `uv run ruff check . --fix` sweep after the import-only pass, or
+  `--check` to execute the same pipeline without writing to disk (`biome format --write=false`,
+  `ruff format --check`, and YAML diff detection). Install `uv` (or run `scripts/setup-tooling.sh`)
+  before invoking the formatter so the Ruff commands are available.
 - `pnpm check` executes `biome check .` without writes and is the first half of `pnpm lint`.
 
 ESLint supplements Biome with rules that require type/module awareness. `eslint.config.js` imports
@@ -71,9 +72,11 @@ Biome does not yet format YAML, so we layer dedicated tooling on top:
 
 - `pnpm fmt` runs `scripts/format-yaml.mjs` before invoking Biome. The script recursively walks the
   repository (respecting the same ignore paths as the rest of the toolchain), round-trips tracked
-  `.yml`/`.yaml` documents through the [`yaml`](https://eemeli.org/yaml/) serializer with a two-space indent and
-  120-character line width, and rewrites files when changes are detected. The YAML stringifier
-  preserves comments and key order, so configuration files remain human-friendly.
+  `.yml`/`.yaml` documents through the [`yaml`](https://eemeli.org/yaml/) serializer with a two-space
+  indent and 120-character line width by default, and rewrites files when changes are detected. Pass
+  `FORMAT_YAML_INDENT`/`FORMAT_YAML_WIDTH` to tweak those defaults on the fly, or `--check` to report
+  required edits without touching the filesystem. The YAML stringifier preserves comments, key order,
+  and multi-document separators, so configuration files remain human-friendly.
 - `yamllint` runs inside pre-commit (and therefore `scripts/setup-tooling.sh`) with the
   configuration defined in `.yamllint`. It enforces two-space indentation, consistent sequence
   padding, safe booleans, and a 120-character line limit that keeps MkDocs configuration readable.

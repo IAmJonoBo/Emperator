@@ -36,6 +36,50 @@ Each rule compiled from the contract exposes the following fields in Emperator o
 
 Rules authored in CUE, Rego, or metadata YAML should populate these fields so Emperator can render uniform diagnostics.
 
+### IR-Related Metadata (Sprint 4+)
+
+Additional fields for rules that leverage the Intermediate Representation:
+
+| Field               | Meaning                                                                           | Example Value                        |
+| ------------------- | --------------------------------------------------------------------------------- | ------------------------------------ |
+| `ir_analysis_level` | IR layer required: `cst` (syntax tree), `semantic` (CodeQL), `pattern` (Semgrep). | `"semantic"`                         |
+| `symbols_required`  | Symbol types needed for analysis (e.g., functions, classes, imports).             | `["function", "import"]`             |
+| `cross_file`        | Whether rule requires multi-file analysis (dependency graph).                     | `false`                              |
+| `query_language`    | Query engine: `semgrep`, `codeql`, `tree-sitter-query`.                           | `"codeql"`                           |
+| `query_path`        | Path to query file in `rules/` directory.                                         | `"rules/codeql/layer-violations.ql"` |
+| `cache_key`         | Optional cache key for expensive analysis results.                                | `"layering-check-v1"`                |
+| `performance_tier`  | Expected execution time: `fast` (\<1s), `medium` (\<10s), `slow` (>10s).          | `"medium"`                           |
+| `fix_transformer`   | Transformer class for automated fixes (Sprint 5+).                                | `"RenameTransformer"`                |
+| `fix_risk_tier`     | Risk tier for automated fix: `0` (formatting) to `3` (architectural).             | `1`                                  |
+
+**Example Contract Rule with IR Metadata:**
+
+```yaml
+# contract/rules/layering-violations.yaml
+rules:
+  - id: LayeringPolicy.ControllerToDB
+    description: Controllers must not directly call database layer; use service layer
+    source: contract/policy/architecture.rego#layer_violations
+    severity: high
+    auto_apply: false
+    safety_tier: high
+    tags: [architecture, layering]
+    evidence:
+      - https://martinfowler.com/bliki/PresentationDomainDataLayering.html
+    
+    # IR-specific metadata
+    ir_analysis_level: semantic
+    symbols_required: [function, import]
+    cross_file: true
+    query_language: codeql
+    query_path: rules/codeql/controller-to-db.ql
+    performance_tier: medium
+    
+    # Fix metadata (Sprint 5)
+    fix_transformer: LayerViolationFixTransformer
+    fix_risk_tier: 3
+```
+
 ## Severity guidance
 
 | Severity   | When to use                                                                  | Default enforcement                                               |

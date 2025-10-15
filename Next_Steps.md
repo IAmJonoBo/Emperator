@@ -2,19 +2,38 @@
 
 ## Tasks
 
+### Sprint 4 – IR & Analysis Integration (per `emperator_specs/Sprint_Playbook.md`)
+
+- [ ] Finalise IR builder backlog slice (Tree-sitter ingestion, incremental updates, cache strategy) referencing `docs/explanation/system-architecture.md` (Owner: AI, Due: 2025-10-22)
+- [ ] Map Semgrep rule translation workflow from contract conventions to runnable packs and document storage in `docs/how-to/ci-integration.md` (Owner: Maintainers, Due: 2025-10-24)
+- [ ] Prototype CodeQL database generation pipeline with cache hints and CLI integration (Owner: Maintainers, Due: 2025-10-27)
+- [ ] Design findings-to-contract correlation model aligned with `docs/reference/contract-spec.md` and `docs/reference/toolchain.md` (Owner: AI, Due: 2025-10-27)
+- [ ] Record performance benchmarks (IR build time, analyzer execution) and acceptance thresholds for Sprint 4 demo (Owner: Maintainers, Due: 2025-10-29)
+
+### Sprint 5 – Safety Envelope Preparation (per `emperator_specs/Project_Plan.md`)
+
+- [ ] Draft rollback + double-run validation checklist using guidance from `docs/explanation/security-safety.md` (Owner: Maintainers, Due: 2025-11-03)
+- [ ] Enumerate codemod safety tiers and gating rules for `emperator apply` with links to `docs/how-to/ai-assisted-refactors.md` (Owner: AI, Due: 2025-11-04)
+- [ ] Identify telemetry enhancements required for automated fix audits (pre/post-run data capture, provenance) referencing `docs/adr/0003-analyzer-telemetry-architecture.md` (Owner: Maintainers, Due: 2025-11-05)
+- [ ] Align documentation updates (tutorial walkthrough, governance reference) for safety envelope rollout (Owner: AI, Due: 2025-11-06)
+
+### Outstanding Platform Hygiene
+
+- [ ] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: 2025-10-25)
+- [ ] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: 2025-10-25)
+- [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: 2025-10-25)
+- [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: 2025-10-28)
+- [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: 2025-10-30)
+
+### Historical completions
+
 - [x] Adopt Ruff `ALL` baseline, staged linting, and SARIF workflows per IMPLEMENT_THEN_DELETE.md (Owner: AI, Due: Current pass)
 - [x] Integrate Markdown formatting and cache environment exports across tooling scripts (Owner: AI, Due: Current pass)
 - [x] Repair contract and formatter tests after formatter/lint migration (Owner: AI, Due: Current pass)
-- [ ] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: Next pass)
-- [ ] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: Next pass)
 - [x] Add contract validation CLI command with structural checks and strict mode (Owner: AI, Due: Current pass)
 - [x] Update CLI documentation to cover contract validation workflows (Owner: AI, Due: Current pass)
 - [x] Refactor Typer option definitions to satisfy Ruff boolean argument rules while retaining CLI flags (Owner: AI, Due: Current pass)
 - [x] Re-run full lint/test/type/build pipeline after Ruff refactor (Owner: AI, Due: Current pass)
-- [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: Next pass)
-- [ ] Groom Sprint 4 backlog for IR & analysis integration per `emperator_specs/Sprint_Playbook.md` (Owner: AI, Due: Next pass)
-- [ ] Outline Sprint 5 safety envelope milestones and dependencies from `emperator_specs/Project_Plan.md` (Owner: Maintainers, Due: Next pass)
-- [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: Next pass)
 - [x] Resolve CLI telemetry summary typing regression and severity deduplication (Owner: AI, Due: Current pass)
 - [x] Extend analysis run tests for severity filters, metadata capture, and validation errors (Owner: AI, Due: Current pass)
 - [x] Establish scaffolding CLI and environment doctor (Owner: AI, Due: T+0)
@@ -39,12 +58,12 @@
 - [x] Record severity filter selections in telemetry + documentation updates (Owner: AI, Due: Current pass)
 - [x] Harden telemetry store against corrupted JSONL entries and add atomic writes (Owner: AI, Due: Current pass)
 - [x] Surface analyzer runner OSErrors as telemetry events with actionable notes (Owner: AI, Due: Current pass)
-- [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: Next pass)
 
 ## Steps
 
-- Upcoming: align Sprint 4 backlog for IR/analyzer integration using `emperator_specs/Sprint_Playbook.md` as guidance and capture dependencies in backlog tooling.
-- Upcoming: draft Sprint 5 safety envelope milestones from `emperator_specs/Project_Plan.md` and identify telemetry/prerequisite workstreams.
+- Current focus: translating Sprint 4 backlog items into actionable engineering tickets covering IR ingestion, analyzer orchestration, and performance benchmarks (`emperator_specs/Sprint_Playbook.md`).
+- In progress: documenting how Semgrep, CodeQL, and IR caches interact using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` as shared context for contributors.
+- Planned: codifying Sprint 5 safety envelope requirements (rollback workflow, telemetry, documentation) informed by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
 - Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.
 - Completed: established contract validation CLI with strict-mode escalation and tabled warnings in output.
 - Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
@@ -92,20 +111,20 @@
 - ✅ Analyzer execution now honours severity metadata during runs and records skipped steps in telemetry notes.
 - ✅ JSONL telemetry store ignores corrupted lines, rewrites atomically, and retains valid run history with coverage.
 - ✅ Analyzer execution handles missing binaries gracefully, emitting exit-code notes and telemetry metadata.
+- ⏳ Sprint 4 deliverables (IR builder, Semgrep/CodeQL integration, findings correlation, performance benchmarks) – in planning per `docs/explanation/system-architecture.md`, `docs/reference/toolchain.md`, and `emperator_specs/Sprint_Playbook.md`.
+- ⏳ Sprint 5 deliverables (safety envelope, rollback playbooks, telemetry uplift) – discovery underway guided by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
 
 ## Quality Gates
 
 - ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (106 passed, 99% coverage; formatting/tooling helper coverage follow-up remains).
-- ✅ Format: `pnpm fmt` and `pnpm fmt -- --check`.
+- ❌ Format: `pnpm fmt -- --check` currently fails because `mdformat`/`ruff format --check` would rewrite Python + Markdown assets after recent dependency refresh; capture diff expectations before enabling auto-fix.
 - ✅ Lint: `pnpm lint`.
-- ✅ Lint (SARIF generation): `pnpm lint:sarif`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠️ Security: `uv run --with pip-audit pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
-- ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
+- ✅ Build: `uv run --with build python -m build` (setuptools warns about deprecated license table; schedule SPDX string follow-up).
 - ✅ Contract: `emperator contract validate --strict` to gate OpenAPI changes.
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
-- ✅ Format check: `pnpm fmt -- --check` (dry-run pipeline clean after YAML tooling hardening).
 - ✅ Guardrails: `emperator guardrails verify` succeeds with digests tracked in `guardrails/yaml-digests.json`.
 
 ## Links
@@ -116,10 +135,11 @@
 - Analyzer run usage: `emperator analysis run` (telemetry-backed analyzer execution).
 - Analyzer plan usage: `emperator analysis plan` (Semgrep/CodeQL command scaffolding).
 - Telemetry design: `docs/adr/0003-analyzer-telemetry-architecture.md`, `src/emperator/analysis.py` telemetry helpers.
-- Linting & formatting workflow reference: `docs/reference/linting-formatting.md`.
+- Toolchain + safety context: `docs/reference/toolchain.md`, `docs/explanation/system-architecture.md`, `docs/explanation/security-safety.md`, `docs/how-to/ci-integration.md`, `docs/how-to/ai-assisted-refactors.md`.
 
 ## Risks/Notes
 
+- Formatting drift surfaced by `pnpm fmt -- --check` indicates mdformat/Ruff version skew; coordinate with tooling maintainers before regenerating repo-wide to avoid noisy diffs.
 - CLI severity guardrails rely on substring matching to associate notes with tools; monitor for future false positives as telemetry volume grows.
 - Auto-remediation commands default to dry-run; explicit `--apply` required for mutations.
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.

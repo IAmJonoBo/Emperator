@@ -4,6 +4,9 @@
 
 - [x] Add contract validation CLI command with structural checks and strict mode (Owner: AI, Due: Current pass)
 - [x] Update CLI documentation to cover contract validation workflows (Owner: AI, Due: Current pass)
+- [x] Refactor Typer option definitions to satisfy Ruff boolean argument rules while retaining CLI flags (Owner: AI, Due: Current pass)
+- [x] Re-run full lint/test/type/build pipeline after Ruff refactor (Owner: AI, Due: Current pass)
+- [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: Next pass)
 - [ ] Groom Sprint 4 backlog for IR & analysis integration per `emperator_specs/Sprint_Playbook.md` (Owner: AI, Due: Next pass)
 - [ ] Outline Sprint 5 safety envelope milestones and dependencies from `emperator_specs/Project_Plan.md` (Owner: Maintainers, Due: Next pass)
 - [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: Next pass)
@@ -59,6 +62,7 @@
 - Completed: enforced analyzer command severity metadata, CLI validation errors, and telemetry capture for severity filters.
 - Completed: hardened JSONL telemetry store to skip malformed entries and rewrite atomically.
 - Completed: improved analyzer execution resilience by capturing missing binary errors in telemetry output.
+- Completed: refactored Typer option helpers to appease Ruff `FBT003` while keeping `--apply`/`--dry-run` ergonomics intact and reran validation suite.
 
 ## Deliverables
 
@@ -84,7 +88,7 @@
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (82 passed, 100% coverage).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (108 passed, 99% coverage; follow up on remaining formatting/tooling fixture branches).
 - ✅ Lint: `pnpm lint`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
@@ -118,3 +122,4 @@
 - Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.
 - Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.
 - Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.
+- Coverage for select formatting/tooling fixture branches remains at 99%; schedule targeted tests or adjust expectations before raising quality gate thresholds.

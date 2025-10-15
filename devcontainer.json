@@ -9,7 +9,12 @@
   "postCreateCommand": "pipx install uv || true && pnpm -v || corepack enable pnpm",
   "customizations": {
     "vscode": {
-      "extensions": ["charliermarsh.ruff", "usernamehw.errorlens", "eamodio.gitlens"]
+      "extensions": [
+        "charliermarsh.ruff",
+        "usernamehw.errorlens",
+        "eamodio.gitlens",
+        "ms-python.python"
+      ]
     }
   }
 }

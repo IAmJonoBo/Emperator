@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "usernamehw.errorlens",
+    "eamodio.gitlens",
+    "ms-python.python"
+  ]
+}

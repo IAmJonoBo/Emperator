@@ -189,7 +189,9 @@ ensure_uv() {
 }
 
 prepare_python() {
-  local uv_bin lock_args=() sync_args=(--extra dev)
+  local uv_bin
+  local lock_args=()
+  local sync_args=(--extra dev)
 
   uv_bin="$(ensure_uv)"
   export UV_BIN="${uv_bin}"
@@ -212,7 +214,11 @@ prepare_python() {
     else
       log_info "Generating uv.lock with the latest compatible versions"
     fi
-    "${uv_bin}" lock "${lock_args[@]}"
+    if ((${#lock_args[@]} > 0)); then
+      "${uv_bin}" lock "${lock_args[@]}"
+    else
+      "${uv_bin}" lock
+    fi
     log_info "Syncing Python environment (dev extras included)"
     "${uv_bin}" sync "${sync_args[@]}"
   fi
@@ -237,6 +243,26 @@ prepare_node() {
   "${lint_script}" "${args[@]}"
 }
 
+install_git_hooks() {
+  if [[ ${MODE} == "ci" ]]; then
+    log_info "Skipping Git hook installation (CI mode)"
+    return
+  fi
+
+  if ! command -v pre-commit >/dev/null 2>&1; then
+    log_warn "pre-commit not found; skipping Git hook installation"
+    return
+  fi
+
+  log_info "Ensuring Git hooks are installed"
+  if ! pre-commit install --install-hooks >/dev/null; then
+    log_warn "Failed to install pre-commit hook"
+  fi
+  if ! pre-commit install --install-hooks --hook-type commit-msg >/dev/null; then
+    log_warn "Failed to install commit-msg hook"
+  fi
+}
+
 if [[ ${RUN_PYTHON} == true ]]; then
   prepare_python
 else
@@ -248,5 +274,7 @@ if [[ ${RUN_NODE} == true ]]; then
 else
   log_warn "Skipping JavaScript/TypeScript tooling setup"
 fi
+
+install_git_hooks
 
 log_info "Developer tooling ready"

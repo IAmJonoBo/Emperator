@@ -7,8 +7,9 @@
     "fmt:yaml": "node ./scripts/format-yaml.mjs",
     "fmt:biome": "biome format --write .",
     "commitlint": "commitlint",
-    "lint:eslint": "eslint --max-warnings=0 .",
-    "lint": "pnpm check && pnpm lint:eslint",
+    "lint:ruff": "uv run ruff check .",
+    "lint:eslint": "eslint --max-warnings=0 --no-warn-ignored .",
+    "lint": "pnpm lint:ruff && pnpm check && pnpm lint:eslint",
     "setup:lint": "bash scripts/setup-linting.sh",
     "setup:tooling": "bash scripts/setup-tooling.sh"
   },

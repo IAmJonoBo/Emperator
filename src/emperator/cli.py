@@ -39,7 +39,10 @@ from .doctor import (
 )
 from .scaffolding import ScaffoldAction, ScaffoldStatus, audit_structure, ensure_structure
 
-app = typer.Typer(help='Swiss-army knife for Emperator developers and AI copilots.')
+app = typer.Typer(
+    help='Swiss-army knife for Emperator developers and AI copilots.',
+    no_args_is_help=False,
+)
 scaffold_app = typer.Typer(help='Inspect and enforce the documented project layout.')
 doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
 analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
@@ -140,6 +143,12 @@ STRICT_OPTION = typer.Option(
 )
 STRICT_OPTION.param_decls = ('--strict',)
 
+VERSION_OPTION = typer.Option(
+    default=False,
+    help='Show version and exit.',
+)
+VERSION_OPTION.param_decls = ('--version', '-v')
+
 
 @dataclass
 class CLIState:
@@ -163,15 +172,25 @@ def _status_style(status: CheckStatus) -> str:
     }[status]
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
     root: Path | None = ROOT_OPTION,
     telemetry_store: str = TELEMETRY_STORE_OPTION,
     telemetry_path: Path | None = TELEMETRY_PATH_OPTION,
+    version: bool = VERSION_OPTION,  # noqa: FBT001
 ) -> None:
     """Initialise CLI context and greet the user."""
     console = Console()
+    if version:
+        console.print(f'Emperator CLI version {__version__}')
+        raise typer.Exit(0)
+
+    # If invoked without a command, show help
+    if ctx.invoked_subcommand is None:
+        console.print('[yellow]No command specified. Use --help to see available commands.[/]')
+        raise typer.Exit(0)
+
     project_root = (root or Path.cwd()).resolve()
     store_choice = telemetry_store.lower()
     store: TelemetryStore | None

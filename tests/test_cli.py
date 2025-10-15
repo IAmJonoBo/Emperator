@@ -1265,3 +1265,27 @@ def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:
     monkeypatch.setattr(cli_module, 'app', fake_app)
     cli_module.run()
     assert called.get('invoked') is True
+
+
+def test_cli_version_flag_shows_version() -> None:
+    """Version flag should display the version and exit."""
+    result = runner.invoke(app, ['--version'], env={'NO_COLOR': '1'})
+    assert result.exit_code == 0, result.stdout
+    assert 'Emperator CLI version' in result.stdout
+    assert '0.1.0' in result.stdout
+
+
+def test_cli_version_flag_short_form() -> None:
+    """Short version flag (-v) should also work."""
+    result = runner.invoke(app, ['-v'], env={'NO_COLOR': '1'})
+    assert result.exit_code == 0, result.stdout
+    assert 'Emperator CLI version' in result.stdout
+
+
+def test_cli_no_command_shows_message() -> None:
+    """Invoking CLI without command should show helpful message."""
+    result = runner.invoke(app, [], env={'NO_COLOR': '1'})
+    assert result.exit_code == 0, result.stdout
+    assert 'No command specified' in result.stdout
+    assert 'Use --help' in result.stdout
+

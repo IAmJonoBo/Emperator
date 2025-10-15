@@ -1,8 +1,8 @@
 # ADR-0005: Safety Envelope Design for Automated Code Fixes
 
-**Status:** Accepted  
-**Date:** 2025-10-15  
-**Deciders:** AI (Copilot), Maintainers  
+**Status:** Accepted\
+**Date:** 2025-10-15\
+**Deciders:** AI (Copilot), Maintainers\
 **Technical Story:** Sprint 5 – Automated Fix & Safety Envelope
 
 ## Context
@@ -10,10 +10,10 @@
 Emperator aims to automatically remediate contract violations by applying code transformations. This automation introduces significant risk:
 
 1. **Correctness Risk:** Transformation could introduce bugs or break functionality
-2. **Semantic Risk:** Changes could alter program behavior unintentionally
-3. **Test Risk:** Inadequate test coverage could hide regressions
-4. **Rollback Risk:** Failed fixes could leave codebase in broken state
-5. **Trust Risk:** Developers may distrust automated changes without transparency
+1. **Semantic Risk:** Changes could alter program behavior unintentionally
+1. **Test Risk:** Inadequate test coverage could hide regressions
+1. **Rollback Risk:** Failed fixes could leave codebase in broken state
+1. **Trust Risk:** Developers may distrust automated changes without transparency
 
 Industry examples of automated refactoring:
 
@@ -27,11 +27,11 @@ Key insight from research: **Automated fixes are only safe when validated throug
 ## Decision Drivers
 
 1. **Safety First:** Never apply a fix that breaks tests or introduces new violations
-2. **Transparency:** Developers must understand what changes are proposed and why
-3. **Rollback Capability:** Must be able to undo any automated change instantly
-4. **Risk Stratification:** Different validation requirements for different risk levels
-5. **Developer Trust:** Build confidence through provenance and audit trails
-6. **Performance:** Validation must complete in reasonable time (<5min for typical fixes)
+1. **Transparency:** Developers must understand what changes are proposed and why
+1. **Rollback Capability:** Must be able to undo any automated change instantly
+1. **Risk Stratification:** Different validation requirements for different risk levels
+1. **Developer Trust:** Build confidence through provenance and audit trails
+1. **Performance:** Validation must complete in reasonable time (\<5min for typical fixes)
 
 ## Options Considered
 
@@ -186,7 +186,7 @@ Implement a **tiered safety envelope** with **multi-layer validation** and **aut
 
 **Tier 1: Localized Refactors**
 
-- **Scope:** Single function or small module, <10 lines changed
+- **Scope:** Single function or small module, \<10 lines changed
 - **Validation:** Static analysis + unit tests for affected code
 - **Tests:** Run tests that cover modified functions
 - **Automation:** Auto-apply with test verification
@@ -590,7 +590,7 @@ Track in telemetry:
 - [Safety in Automated Refactoring Research](https://dl.acm.org/doi/10.1145/3180155.3180242)
 - Sprint 5 Planning: `docs/explanation/sprint-5-safety-envelope.md`
 
----
+______________________________________________________________________
 
 **Status Log:**
 

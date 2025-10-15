@@ -5,6 +5,7 @@
 ### Sprint 4 – IR & Analysis Integration (per `docs/explanation/sprint-4-ir-analysis.md`)
 
 **Week 1: IR Foundation (T+0 to T+5 days)**
+
 - [ ] Implement `IRBuilder` with Tree-sitter integration for Python (Owner: AI, Due: 2025-10-17)
 - [ ] Add Python symbol extraction (functions, classes, imports) (Owner: AI, Due: 2025-10-18)
 - [ ] Create cache schema and persistence layer in `.emperator/ir-cache/` (Owner: AI, Due: 2025-10-19)
@@ -12,6 +13,7 @@
 - [ ] Document IR cache format in `docs/reference/ir-format.md` (Owner: AI, Due: 2025-10-20)
 
 **Week 2: Semgrep Integration (T+5 to T+10 days)**
+
 - [ ] Implement Semgrep rule generator from contract conventions (Owner: Maintainers, Due: 2025-10-22)
 - [ ] Map CUE conventions to Semgrep patterns (Owner: Maintainers, Due: 2025-10-23)
 - [ ] Extract security rules from Rego policies (Owner: Maintainers, Due: 2025-10-23)
@@ -19,12 +21,14 @@
 - [ ] Integrate with `analysis run` command and add validation tests (Owner: Maintainers, Due: 2025-10-24)
 
 **Week 3: CodeQL Pipeline (T+10 to T+15 days)**
+
 - [ ] Implement CodeQL database manager with lifecycle commands (Owner: Maintainers, Due: 2025-10-26)
 - [ ] Create query library for security checks in `rules/codeql/` (Owner: Maintainers, Due: 2025-10-27)
 - [ ] Add CLI commands: `emperator analysis codeql create/query/list/prune` (Owner: Maintainers, Due: 2025-10-27)
 - [ ] Document query development workflow in `docs/how-to/develop-codeql-queries.md` (Owner: Maintainers, Due: 2025-10-27)
 
 **Week 4: Correlation & Benchmarks (T+15 to T+20 days)**
+
 - [ ] Implement correlation engine linking findings to contract rules (Owner: AI, Due: 2025-10-28)
 - [ ] Add remediation guidance extraction from contract metadata (Owner: AI, Due: 2025-10-28)
 - [ ] Create benchmark suite in `tests/benchmarks/` (Owner: Maintainers, Due: 2025-10-29)
@@ -33,6 +37,7 @@
 - [ ] Prepare Sprint 4 demo with artifacts in `examples/sprint-4-demo/` (Owner: Maintainers, Due: 2025-10-29)
 
 **Documentation Updates:**
+
 - [ ] Create `docs/explanation/ir-architecture.md` (Owner: AI, Due: 2025-10-20)
 - [ ] Create `docs/how-to/use-ir-cache.md` (Owner: AI, Due: 2025-10-21)
 - [ ] Update `docs/reference/toolchain.md` with Tree-sitter/CodeQL requirements (Owner: AI, Due: 2025-10-22)
@@ -41,6 +46,7 @@
 ### Sprint 5 – Automated Fix & Safety Envelope (per `docs/explanation/sprint-5-safety-envelope.md`)
 
 **Week 1: Risk Classification & LibCST Foundation (T+0 to T+5 days)**
+
 - [ ] Implement risk classifier with four-tier system (0-3) (Owner: AI, Due: 2025-10-31)
 - [ ] Create LibCST transformer base classes and registry (Owner: AI, Due: 2025-11-01)
 - [ ] Implement RenameTransformer and DeprecatedAPITransformer (Owner: AI, Due: 2025-11-02)
@@ -49,6 +55,7 @@
 - [ ] Document transformer catalog in `docs/reference/fix-transformers.md` (Owner: AI, Due: 2025-11-03)
 
 **Week 2: Validation Pipeline (T+5 to T+10 days)**
+
 - [ ] Implement validation orchestrator with pre/post-check coordination (Owner: Maintainers, Due: 2025-11-04)
 - [ ] Add pre-check validation (static analysis, test execution) (Owner: Maintainers, Due: 2025-11-05)
 - [ ] Implement post-check validation (syntax, diff scope, re-run tests) (Owner: Maintainers, Due: 2025-11-05)
@@ -57,6 +64,7 @@
 - [ ] Create CLI command: `emperator fix validate` (Owner: Maintainers, Due: 2025-11-06)
 
 **Week 3: Rollback & Approval Workflows (T+10 to T+15 days)**
+
 - [ ] Implement rollback manager with git stash/commit strategies (Owner: Maintainers, Due: 2025-11-08)
 - [ ] Add provenance metadata to commit messages with full audit trail (Owner: Maintainers, Due: 2025-11-09)
 - [ ] Create interactive approval CLI for Tier 2+ fixes (Owner: AI, Due: 2025-11-10)
@@ -64,6 +72,7 @@
 - [ ] Enhance telemetry with fix outcome tracking and rollback events (Owner: Maintainers, Due: 2025-11-11)
 
 **Week 4: OpenRewrite, Property Tests, Documentation (T+15 to T+20 days)**
+
 - [ ] Integrate OpenRewrite for Java/Kotlin transformations (Owner: Maintainers, Due: 2025-11-12)
 - [ ] Create OpenRewrite recipe generator from contract rules (Owner: Maintainers, Due: 2025-11-12)
 - [ ] Implement property-based tests with Hypothesis (idempotence, syntax preservation) (Owner: AI, Due: 2025-11-13)
@@ -73,6 +82,7 @@
 - [ ] Prepare Sprint 5 demo with fix application scenarios (Owner: Maintainers, Due: 2025-11-15)
 
 **Documentation Updates:**
+
 - [ ] Create `docs/explanation/safety-envelope-design.md` (comprehensive design doc) (Owner: AI, Due: 2025-11-03)
 - [ ] Update `docs/how-to/ai-assisted-refactors.md` with fix tier guidance (Owner: AI, Due: 2025-11-05)
 - [ ] Update `docs/explanation/security-safety.md` with validation strategies (Owner: AI, Due: 2025-11-06)

@@ -1,8 +1,8 @@
 # ADR-0004: IR Builder Architecture and Caching Strategy
 
-**Status:** Accepted  
-**Date:** 2025-10-15  
-**Deciders:** AI (Copilot), Maintainers  
+**Status:** Accepted\
+**Date:** 2025-10-15\
+**Deciders:** AI (Copilot), Maintainers\
 **Technical Story:** Sprint 4 – IR & Analysis Integration
 
 ## Context
@@ -10,10 +10,10 @@
 Emperator requires a unified Intermediate Representation (IR) of codebases to enable contract enforcement across multiple languages. The IR must support:
 
 1. **Polyglot parsing:** Parse Python, JavaScript, Java, Go, C/C++, and other languages uniformly
-2. **Incremental updates:** Re-parse only changed files to maintain fast feedback loops
-3. **Symbol extraction:** Identify functions, classes, imports for analysis
-4. **Caching:** Persist parse results to avoid redundant work
-5. **Integration:** Feed Semgrep, CodeQL, and custom analyzers
+1. **Incremental updates:** Re-parse only changed files to maintain fast feedback loops
+1. **Symbol extraction:** Identify functions, classes, imports for analysis
+1. **Caching:** Persist parse results to avoid redundant work
+1. **Integration:** Feed Semgrep, CodeQL, and custom analyzers
 
 Prior art includes:
 
@@ -24,12 +24,12 @@ Prior art includes:
 
 ## Decision Drivers
 
-1. **Performance:** Initial parse must complete in <5s per 1000 files
-2. **Incrementality:** Updates must process in <500ms for 10 changed files
-3. **Correctness:** Must handle incomplete/invalid code gracefully
-4. **Extensibility:** Easy to add new languages and analysis passes
-5. **Simplicity:** Avoid complex dependency graphs initially
-6. **Offline-first:** No external API calls required
+1. **Performance:** Initial parse must complete in \<5s per 1000 files
+1. **Incrementality:** Updates must process in \<500ms for 10 changed files
+1. **Correctness:** Must handle incomplete/invalid code gracefully
+1. **Extensibility:** Easy to add new languages and analysis passes
+1. **Simplicity:** Avoid complex dependency graphs initially
+1. **Offline-first:** No external API calls required
 
 ## Options Considered
 
@@ -185,8 +185,8 @@ Implement a **Tree-sitter-based IR builder** with **filesystem caching** and **c
 **Triggers:**
 
 1. **Content Change:** File hash differs → re-parse
-2. **Schema Upgrade:** Cache version mismatch → re-parse all
-3. **Manual Prune:** User runs `emperator ir cache prune`
+1. **Schema Upgrade:** Cache version mismatch → re-parse all
+1. **Manual Prune:** User runs `emperator ir cache prune`
 
 **Invalidation Logic:**
 
@@ -376,7 +376,7 @@ Track in telemetry:
 - [LSP Specification](https://microsoft.github.io/language-server-protocol/)
 - Sprint 4 Planning: `docs/explanation/sprint-4-ir-analysis.md`
 
----
+______________________________________________________________________
 
 **Status Log:**
 

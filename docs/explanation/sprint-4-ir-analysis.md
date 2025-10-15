@@ -156,8 +156,8 @@ class SymbolExtractor:
 **Language Priority:**
 
 1. Python (immediate)
-2. JavaScript/TypeScript (Sprint 4.5)
-3. Java, Go, C/C++ (Phase 3)
+1. JavaScript/TypeScript (Sprint 4.5)
+1. Java, Go, C/C++ (Phase 3)
 
 #### 1.3 Cache Strategy
 
@@ -222,16 +222,19 @@ class SemgrepRuleGenerator:
 **Rule Categories:**
 
 1. **Naming Conventions:** Extract from `contract/conventions.cue`
+
    - `snake_case` for Python functions
    - `PascalCase` for classes
    - Module path structure
-   
-2. **Security Patterns:** From `contract/policy/*.rego`
+
+1. **Security Patterns:** From `contract/policy/*.rego`
+
    - Banned function calls (e.g., `eval`, `exec`)
    - SQL injection patterns
    - Hardcoded secrets
-   
-3. **Architectural Rules:** Layering violations
+
+1. **Architectural Rules:** Layering violations
+
    - Controller → Service → Repository
    - Import restrictions by module
 
@@ -243,7 +246,7 @@ class SemgrepRuleGenerator:
 
 Update `docs/how-to/author-contract.md`:
 
-```markdown
+````markdown
 ## Semgrep Rule Generation
 
 When you add a naming convention in `contract/conventions.cue`:
@@ -255,7 +258,7 @@ naming: {
         message: "Function names must use snake_case"
     }
 }
-```
+````
 
 Emperator automatically generates a Semgrep rule:
 
@@ -273,7 +276,8 @@ rules:
 ```
 
 Regenerate rules with: `emperator contract compile --rules`
-```
+
+````
 
 ### 3. CodeQL Database Pipeline
 
@@ -314,7 +318,7 @@ class CodeQLManager:
         
     def invalidate_cache(self, source_root: Path, language: str) -> None:
         """Remove cached database when source changes significantly."""
-```
+````
 
 **CLI Integration:**
 
@@ -338,25 +342,28 @@ emperator analysis codeql list
 **Query Categories:**
 
 1. **Security:** `security-queries.ql`
+
    - SQL injection detection
    - Path traversal
    - Command injection
-   
-2. **Dataflow:** `dataflow-queries.ql`
+
+1. **Dataflow:** `dataflow-queries.ql`
+
    - Untrusted data flow to sinks
    - Sensitive data exposure
-   
-3. **Architecture:** `architecture-queries.ql`
+
+1. **Architecture:** `architecture-queries.ql`
+
    - Layer boundary violations
    - Circular dependencies
 
 **Query Development Workflow:**
 
 1. Write query in QL language
-2. Test against sample vulnerable code
-3. Validate findings match expectations
-4. Document query rationale and remediation
-5. Add to contract-driven query pack
+1. Test against sample vulnerable code
+1. Validate findings match expectations
+1. Document query rationale and remediation
+1. Add to contract-driven query pack
 
 #### 3.3 Cache Strategy
 
@@ -366,7 +373,7 @@ emperator analysis codeql list
 
 **Invalidation Triggers:**
 
-- >10% of files modified since last database creation
+- > 10% of files modified since last database creation
 - Language toolchain version change
 - Explicit `--refresh` flag
 
@@ -412,9 +419,9 @@ class CorrelationEngine:
 **Correlation Strategy:**
 
 1. **Direct ID Match:** Finding rule ID matches contract rule ID
-2. **Metadata Match:** Tags, categories align with contract sections
-3. **Pattern Match:** Finding pattern similar to contract rule pattern
-4. **Fallback:** Generic remediation based on severity
+1. **Metadata Match:** Tags, categories align with contract sections
+1. **Pattern Match:** Finding pattern similar to contract rule pattern
+1. **Fallback:** Generic remediation based on severity
 
 **Output Format:**
 
@@ -474,8 +481,8 @@ deny[finding] {
 **Repository Profiles:**
 
 1. **Small:** 100 files, 10k LOC
-2. **Medium:** 1000 files, 100k LOC
-3. **Large:** 10k files, 1M LOC
+1. **Medium:** 1000 files, 100k LOC
+1. **Large:** 10k files, 1M LOC
 
 **Measured Operations:**
 
@@ -516,14 +523,14 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 
 **Sprint 4 Demo Targets:**
 
-| Metric | Small Repo | Medium Repo | Large Repo |
-|--------|-----------|-------------|-----------|
-| Initial IR Parse | ≤5s | ≤30s | ≤5min |
-| Incremental Update (10 files) | ≤200ms | ≤500ms | ≤1s |
-| Semgrep Execution | ≤10s | ≤30s | ≤2min |
-| CodeQL DB Creation | ≤30s | ≤5min | ≤20min |
-| CodeQL Query (single) | ≤5s | ≤15s | ≤1min |
-| Full Analysis Run | ≤1min | ≤5min | ≤20min |
+| Metric                        | Small Repo | Medium Repo | Large Repo |
+| ----------------------------- | ---------- | ----------- | ---------- |
+| Initial IR Parse              | ≤5s        | ≤30s        | ≤5min      |
+| Incremental Update (10 files) | ≤200ms     | ≤500ms      | ≤1s        |
+| Semgrep Execution             | ≤10s       | ≤30s        | ≤2min      |
+| CodeQL DB Creation            | ≤30s       | ≤5min       | ≤20min     |
+| CodeQL Query (single)         | ≤5s        | ≤15s        | ≤1min      |
+| Full Analysis Run             | ≤1min      | ≤5min       | ≤20min     |
 
 **Quality Gates:**
 
@@ -653,14 +660,17 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 **Scenarios:**
 
 1. **End-to-End Analysis:**
+
    - Parse → Generate Rules → Execute → Correlate
    - Verify SARIF output matches expectations
-   
-2. **Cache Invalidation:**
+
+1. **Cache Invalidation:**
+
    - Modify file → Parse → Verify cache miss
    - Revert file → Parse → Verify cache hit
-   
-3. **Multi-Language:**
+
+1. **Multi-Language:**
+
    - Mixed Python/JavaScript repo
    - Verify language-specific rules apply correctly
 
@@ -677,21 +687,25 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 ### New Documents
 
 1. **`docs/explanation/ir-architecture.md`**
+
    - IR design philosophy
    - Parser service internals
    - Cache strategy rationale
-   
-2. **`docs/how-to/use-ir-cache.md`**
+
+1. **`docs/how-to/use-ir-cache.md`**
+
    - Cache management commands
    - Troubleshooting cache issues
    - Performance tuning
-   
-3. **`docs/reference/ir-format.md`**
+
+1. **`docs/reference/ir-format.md`**
+
    - Cache schema specification
    - Versioning strategy
    - Migration guide
-   
-4. **`docs/how-to/develop-codeql-queries.md`**
+
+1. **`docs/how-to/develop-codeql-queries.md`**
+
    - Query development workflow
    - Testing queries
    - Integration with contract
@@ -699,18 +713,22 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 ### Updated Documents
 
 1. **`docs/reference/toolchain.md`**
+
    - Add Tree-sitter, CodeQL requirements
    - Update version matrix
-   
-2. **`docs/how-to/ci-integration.md`**
+
+1. **`docs/how-to/ci-integration.md`**
+
    - IR caching in CI
    - Benchmark execution
-   
-3. **`docs/cli.md`**
+
+1. **`docs/cli.md`**
+
    - New `ir` and `codeql` subcommands
    - Updated `analysis run` behavior
-   
-4. **`docs/explanation/system-architecture.md`**
+
+1. **`docs/explanation/system-architecture.md`**
+
    - IR layer details
    - Analysis pipeline flow
 
@@ -777,26 +795,31 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 **Agenda:**
 
 1. **IR Builder Demo (10 min)**
+
    - Parse sample repo, show progress
    - Demonstrate cache hit on re-run
    - Display symbol extraction output
-   
-2. **Rule Generation Demo (5 min)**
+
+1. **Rule Generation Demo (5 min)**
+
    - Show contract convention
    - Generate Semgrep rules
    - Execute rules and show findings
-   
-3. **CodeQL Integration Demo (5 min)**
+
+1. **CodeQL Integration Demo (5 min)**
+
    - Create database
    - Run security queries
    - Show SARIF output
-   
-4. **Correlation Demo (5 min)**
+
+1. **Correlation Demo (5 min)**
+
    - Display correlated findings
    - Show remediation guidance
    - Demo exemption flow
-   
-5. **Performance Benchmarks (5 min)**
+
+1. **Performance Benchmarks (5 min)**
+
    - Present baseline metrics
    - Compare against targets
    - Discuss optimization opportunities

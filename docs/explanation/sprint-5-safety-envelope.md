@@ -178,10 +178,10 @@ class RiskClassifier:
 **Classification Heuristics:**
 
 1. **Lines Changed:** ≤3 → Tier 0-1, >10 → Tier 2-3
-2. **Scope:** Single function → Tier 1, Module-wide → Tier 2
-3. **Type Changes:** None → Tier 1, Signature changes → Tier 3
-4. **Test Coverage:** ≥90% → Lower tier, <50% → Higher tier
-5. **Contract Metadata:** Explicit `auto_apply: true` → Tier 0-1
+1. **Scope:** Single function → Tier 1, Module-wide → Tier 2
+1. **Type Changes:** None → Tier 1, Signature changes → Tier 3
+1. **Test Coverage:** ≥90% → Lower tier, \<50% → Higher tier
+1. **Contract Metadata:** Explicit `auto_apply: true` → Tier 0-1
 
 ### 2. LibCST Python Engine
 
@@ -224,13 +224,13 @@ class TypeAnnotationTransformer(EperatorTransformer):
 
 **Transformer Catalog:**
 
-| Transformer | Tier | Description | Contract Source |
-|------------|------|-------------|-----------------|
-| `RenameTransformer` | 1 | Fix naming violations | `conventions.cue#naming` |
-| `DeprecatedAPITransformer` | 1 | Replace banned functions | `policy/security.rego` |
-| `TypeAnnotationTransformer` | 2 | Add type hints | `conventions.cue#typing` |
-| `ExtractMethodTransformer` | 2 | Reduce function complexity | `policy/complexity.rego` |
-| `LayerViolationFixTransformer` | 3 | Fix architectural issues | `policy/architecture.rego` |
+| Transformer                    | Tier | Description                | Contract Source            |
+| ------------------------------ | ---- | -------------------------- | -------------------------- |
+| `RenameTransformer`            | 1    | Fix naming violations      | `conventions.cue#naming`   |
+| `DeprecatedAPITransformer`     | 1    | Replace banned functions   | `policy/security.rego`     |
+| `TypeAnnotationTransformer`    | 2    | Add type hints             | `conventions.cue#typing`   |
+| `ExtractMethodTransformer`     | 2    | Reduce function complexity | `policy/complexity.rego`   |
+| `LayerViolationFixTransformer` | 3    | Fix architectural issues   | `policy/architecture.rego` |
 
 #### 2.2 Transform Execution (`src/emperator/fix/python/engine.py`)
 
@@ -269,9 +269,9 @@ class LibCSTEngine:
 **Safety Measures:**
 
 1. **Syntax Preservation:** LibCST maintains formatting and comments
-2. **Parse Validation:** Re-parse transformed code before writing
-3. **Atomic Updates:** Write to temp file, validate, then replace
-4. **Diff Generation:** Produce unified diff for review
+1. **Parse Validation:** Re-parse transformed code before writing
+1. **Atomic Updates:** Write to temp file, validate, then replace
+1. **Diff Generation:** Produce unified diff for review
 
 #### 2.3 Testing Strategy
 
@@ -425,21 +425,25 @@ class ValidationOrchestrator:
 **Validation Checks:**
 
 1. **Static Analysis:**
+
    - Ruff/Mypy for Python
    - ESLint for JavaScript
    - Biome for JSON/YAML
-   
-2. **Test Execution:**
+
+1. **Test Execution:**
+
    - Unit tests (fast)
    - Integration tests (for Tier 2+)
    - Contract validation tests
-   
-3. **Diff Scope Verification:**
+
+1. **Diff Scope Verification:**
+
    - Changed lines within expected range
    - No unintended file modifications
    - Formatting consistent
-   
-4. **Performance Checks:**
+
+1. **Performance Checks:**
+
    - No significant perf regression
    - Memory usage within limits
 
@@ -447,12 +451,12 @@ class ValidationOrchestrator:
 
 **Tier-Based Test Suites:**
 
-| Tier | Test Scope | Timeout |
-|------|-----------|---------|
-| 0 | None (formatting only) | N/A |
-| 1 | Unit tests touching modified code | 30s |
-| 2 | Full unit + integration suite | 5min |
-| 3 | Full suite + manual smoke tests | 20min |
+| Tier | Test Scope                        | Timeout |
+| ---- | --------------------------------- | ------- |
+| 0    | None (formatting only)            | N/A     |
+| 1    | Unit tests touching modified code | 30s     |
+| 2    | Full unit + integration suite     | 5min    |
+| 3    | Full suite + manual smoke tests   | 20min   |
 
 **Optimization:**
 
@@ -512,16 +516,19 @@ class RollbackManager:
 **Rollback Strategies:**
 
 1. **In-Memory Snapshot:**
+
    - Store original file content in memory
    - Fast rollback for single-file fixes
-   - Limited to fixes <100MB
-   
-2. **Git Stash:**
+   - Limited to fixes \<100MB
+
+1. **Git Stash:**
+
    - Use `git stash` before applying fix
    - Atomic rollback via `git stash pop`
    - Works for large changesets
-   
-3. **Git Commit + Revert:**
+
+1. **Git Commit + Revert:**
+
    - Create commit, then revert on failure
    - Full audit trail preserved
    - Best for CI environments
@@ -707,10 +714,10 @@ jobs:
 **Properties to Verify:**
 
 1. **Idempotence:** `transform(transform(code)) == transform(code)`
-2. **Syntax Validity:** `parse(transform(code)).success == true`
-3. **Test Preservation:** `tests(code) == tests(transform(code))`
-4. **Type Safety:** `typecheck(transform(code)).success == typecheck(code).success`
-5. **Semantic Equivalence:** `eval(code) == eval(transform(code))` (for pure functions)
+1. **Syntax Validity:** `parse(transform(code)).success == true`
+1. **Test Preservation:** `tests(code) == tests(transform(code))`
+1. **Type Safety:** `typecheck(transform(code)).success == typecheck(code).success`
+1. **Semantic Equivalence:** `eval(code) == eval(transform(code))` (for pure functions)
 
 #### 7.2 Hypothesis Integration
 
@@ -752,7 +759,7 @@ def test_transformation_preserves_public_api(class_source: str):
 
 **`docs/how-to/apply-fixes-safely.md`**
 
-```markdown
+````markdown
 # Applying Fixes Safely
 
 ## Overview
@@ -791,7 +798,7 @@ emperator fix apply --dry-run
 
 # Apply with rollback on test failure
 emperator fix apply --verify-tests --rollback-on-fail
-```
+````
 
 ### Interactive Review (Tier 2+)
 
@@ -847,16 +854,17 @@ Before applying fixes in production:
 ### Fix Applied but Tests Fail
 
 1. Check test isolation (shared state?)
-2. Verify test coverage is adequate
-3. Review transformer logic
-4. Report issue with reproducible example
+1. Verify test coverage is adequate
+1. Review transformer logic
+1. Report issue with reproducible example
 
 ### Rollback Not Working
 
 1. Check git status (`git status`)
-2. Verify rollback strategy configuration
-3. Use manual git revert as backup
-4. Consult `docs/reference/troubleshooting.md`
+1. Verify rollback strategy configuration
+1. Use manual git revert as backup
+1. Consult `docs/reference/troubleshooting.md`
+
 ```
 
 **`docs/explanation/safety-envelope-design.md`**
@@ -1146,3 +1154,4 @@ Sprint 5 establishes the trust foundation for autonomous code improvement.
 - [Security & Safety Explanation](security-safety.md)
 - [System Architecture](system-architecture.md)
 - [Contract Specification](../reference/contract-spec.md)
+```

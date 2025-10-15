@@ -2,6 +2,12 @@
 
 Emperator reinforces software governance by generating auditable artefacts, enforcing policy-as-code, and keeping a verifiable trail of every automated change. This reference outlines the key mechanisms teams rely on during audits and compliance reviews.
 
+## Architecture Decision Records
+
+- Maintain the ADR log under `docs/adr/`, using zero-padded numbering and the shared template.
+- Capture context, evaluated options, the final decision, and follow-up work for every strategic change.
+- Reference ADR IDs in related pull requests, contract updates, and `Next_Steps.md` entries so auditors can trace the rationale quickly.
+
 ## SBOM production and validation
 
 - Run `emperator sbom --format cyclonedx --output sbom/app.json` in CI after successful checks.

@@ -130,7 +130,6 @@ def run_checks(project_root: Path) -> list[DoctorCheckResult]:
         _pnpm_check(),
         _uv_check(),
         _script_check(project_root, 'setup-tooling.sh', 'Tooling bootstrap script'),
-        _script_check(project_root, 'cleanup-macos-cruft.sh', 'macOS cleanup helper'),
     ]
     return checks
 

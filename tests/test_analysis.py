@@ -3,15 +3,22 @@
 from __future__ import annotations
 
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
     from emperator.analysis import (
         AnalysisHint,
         AnalysisReport,
+        AnalyzerCommand,
+        AnalyzerPlan,
+        InMemoryTelemetryStore,
         LanguageSummary,
+        TelemetryEvent,
+        TelemetryRun,
         ToolStatus,
         detect_languages,
+        fingerprint_analysis,
         gather_analysis,
         plan_tool_invocations,
     )
@@ -20,9 +27,15 @@ except ModuleNotFoundError:  # pragma: no cover - allow running tests without in
     from emperator.analysis import (
         AnalysisHint,
         AnalysisReport,
+        AnalyzerCommand,
+        AnalyzerPlan,
+        InMemoryTelemetryStore,
         LanguageSummary,
+        TelemetryEvent,
+        TelemetryRun,
         ToolStatus,
         detect_languages,
+        fingerprint_analysis,
         gather_analysis,
         plan_tool_invocations,
     )
@@ -206,3 +219,119 @@ def test_plan_tool_invocations_handles_no_supported_languages(tmp_path: Path) ->
     assert codeql_plan.ready is False
     assert 'No CodeQL-supported languages' in codeql_plan.reason
     assert codeql_plan.steps == ()
+
+
+def test_fingerprint_analysis_reflects_plan_changes(tmp_path: Path) -> None:
+    """Changing analyzer plans should result in a distinct fingerprint."""
+
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+
+    base_plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with the selected configuration over the repository.',
+                ),
+            ),
+        ),
+    )
+    alternate_plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=(
+                        'semgrep',
+                        'scan',
+                        '--config=p/ci',
+                        '--metrics=off',
+                        str(tmp_path),
+                    ),
+                    description='Run Semgrep with the selected configuration over the repository.',
+                ),
+            ),
+        ),
+    )
+
+    digest_default = fingerprint_analysis(report, base_plan)
+    digest_alternate = fingerprint_analysis(report, alternate_plan)
+    assert digest_default != digest_alternate
+
+
+def test_in_memory_store_persists_runs(tmp_path: Path) -> None:
+    """In-memory telemetry store should persist and expose run history."""
+
+    store = InMemoryTelemetryStore()
+    report = AnalysisReport(
+        languages=(LanguageSummary(language='Python', file_count=1, sample_files=('src/app.py',)),),
+        tool_statuses=(
+            ToolStatus(
+                name='Semgrep',
+                available=True,
+                location='/usr/bin/semgrep',
+                hint='Available at /usr/bin/semgrep',
+            ),
+        ),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready at /usr/bin/semgrep.',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with the selected configuration over the repository.',
+                ),
+            ),
+        ),
+    )
+    fingerprint = fingerprint_analysis(report, plan)
+    started_at = datetime.now(UTC)
+    event = TelemetryEvent(
+        tool='Semgrep',
+        command=plan[0].steps[0].command,
+        exit_code=0,
+        duration_seconds=1.2,
+        timestamp=started_at,
+        metadata={'config': 'auto'},
+    )
+    payload = event.to_payload()
+    assert payload['tool'] == 'Semgrep'
+    assert payload['command'][-1] == str(tmp_path)
+    assert payload['metadata']['config'] == 'auto'
+    run = TelemetryRun(
+        fingerprint=fingerprint,
+        project_root=tmp_path,
+        started_at=started_at,
+        completed_at=started_at,
+        events=(event,),
+        notes=('cached',),
+    )
+
+    assert store.latest('missing') is None
+    store.persist(run)
+    assert store.latest(fingerprint) == run
+    assert store.history(fingerprint) == (run,)
+    assert run.successful is True
+    assert run.duration_seconds == 0.0

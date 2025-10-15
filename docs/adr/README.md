@@ -15,3 +15,9 @@ and remain easy to reference from the contract, docs, and code comments.
 See `0000-template.md` for the canonical structure and metadata expectations. All new ADRs should be
 committed alongside supporting tests, contract updates, or documentation changes that enforce the
 decision.
+
+## Index
+
+- [ADR-0001: Adopt a Repository-wide ADR Process](0001-adopt-adr-process.md)
+- [ADR-0002: Sprint Focus on Code Hardening and Analyzer Telemetry](0002-code-hardening-and-telemetry.md)
+- [ADR-0003: Analyzer Telemetry Architecture and Caching Strategy](0003-analyzer-telemetry-architecture.md)

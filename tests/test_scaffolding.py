@@ -18,8 +18,8 @@ def test_audit_marks_items_missing(tmp_path: Path) -> None:
 
 def test_ensure_creates_stub_files(tmp_path: Path) -> None:
     statuses = ensure_structure(tmp_path, dry_run=False)
-    policy_path = tmp_path / 'emperator' / 'contract' / 'policy' / 'policy.rego'
-    semgrep_path = tmp_path / 'emperator' / 'rules' / 'semgrep' / 'ruleset.yaml'
+    policy_path = tmp_path / 'contract' / 'policy' / 'policy.rego'
+    semgrep_path = tmp_path / 'rules' / 'semgrep' / 'ruleset.yaml'
     assert policy_path.exists()
     assert 'TODO' in policy_path.read_text(encoding='utf-8')
     assert semgrep_path.exists()

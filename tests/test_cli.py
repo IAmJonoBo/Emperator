@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+from emperator.cli import app
+from emperator.doctor import RemediationAction
 from typer.testing import CliRunner
 
 from emperator import cli as cli_module
-from emperator.cli import app
-from emperator.doctor import RemediationAction
 
 runner = CliRunner()
 
@@ -21,7 +21,7 @@ def test_cli_scaffold_ensure_creates_structure(tmp_path: Path) -> None:
         env={'NO_COLOR': '1'},
     )
     assert result.exit_code == 0, result.stdout
-    policy_path = tmp_path / 'emperator' / 'contract' / 'policy' / 'policy.rego'
+    policy_path = tmp_path / 'contract' / 'policy' / 'policy.rego'
     assert policy_path.exists()
     assert 'TODO' in policy_path.read_text(encoding='utf-8')
 
@@ -44,7 +44,7 @@ def test_cli_scaffold_ensure_dry_run(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.stdout
     assert 'Dry run complete' in result.stdout
-    assert not (tmp_path / 'emperator').exists()
+    assert not (tmp_path / 'contract').exists()
 
 
 def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
@@ -55,7 +55,7 @@ def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.stdout
     assert 'Environment Checks' in result.stdout
-    assert 'Tooling bootstrap script' in result.stdout
+    assert 'Tooling bootstrap' in result.stdout
 
 
 def test_cli_fix_plan_lists_actions() -> None:

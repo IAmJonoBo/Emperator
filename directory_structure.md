@@ -1,6 +1,6 @@
 # Emperator Directory Structure
 
-emperor/
+Emperator/
 ├─ contract/                     # Executable rules & blueprints (the “Project Contract”)
 │  ├─ api/                       # OpenAPI/GraphQL/Proto specs
 │  ├─ policy/                    # OPA/Rego policies (*.rego)

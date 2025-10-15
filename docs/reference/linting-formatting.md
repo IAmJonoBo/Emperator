@@ -119,7 +119,7 @@ virtualenv created in `.venv`:
 
 ```bash
 source .venv/bin/activate
-mypy emperator/src
+mypy src/emperator
 pytest
 ```
 

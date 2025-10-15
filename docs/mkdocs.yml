@@ -3,6 +3,8 @@ site_description: Frontier-grade development orchestration documentation organiz
 site_url: https://IAmJonoBo.github.io/Emperator/
 repo_url: https://github.com/IAmJonoBo/Emperator
 repo_name: IAmJonoBo/Emperator
+docs_dir: .
+site_dir: ../site
 
 nav:
   - Home: index.md
@@ -24,6 +26,7 @@ nav:
       - Project Contract Reference: reference/contract-spec.md
       - Toolchain Matrix: reference/toolchain.md
       - Linting and Formatting Reference: reference/linting-formatting.md
+      - CLI Reference: cli.md
       - Developer Tooling Reference: reference/developer-tooling.md
       - Governance and Compliance Controls: reference/governance.md
       - Copilot Prompt Patterns: includes/copilot-prompts.md

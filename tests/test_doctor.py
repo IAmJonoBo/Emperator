@@ -6,9 +6,8 @@ from collections.abc import Iterable
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 import emperator.doctor as doctor
+import pytest
 
 
 def test_python_version_check_handles_failure(monkeypatch: pytest.MonkeyPatch) -> None:

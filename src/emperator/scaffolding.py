@@ -44,12 +44,12 @@ class ScaffoldStatus:
 
 _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
     ScaffoldItem(
-        Path('emperator'),
-        'Root implementation workspace',
+        Path('contract'),
+        'Contract artifacts workspace',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/contract/policy/policy.rego'),
+        Path('contract/policy/policy.rego'),
         'OPA policy bundle',
         stub=(
             'package emperator.policy\n\n'
@@ -57,17 +57,17 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         ),
     ),
     ScaffoldItem(
-        Path('emperator/contract/conventions/naming.cue'),
+        Path('contract/conventions/naming.cue'),
         'CUE conventions contract',
         stub=('// TODO: Declare naming, layout, and validation constraints using CUE.\n'),
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/base'),
+        Path('infra/k8s/base'),
         'Kustomize base overlay',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/base/kustomization.yaml'),
+        Path('infra/k8s/base/kustomization.yaml'),
         'Kustomize base manifest',
         stub=(
             '# TODO: Populate shared Kubernetes resources for all environments.\n'
@@ -77,12 +77,12 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         ),
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/overlays/dev'),
+        Path('infra/k8s/overlays/dev'),
         'Development overlay',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/overlays/dev/kustomization.yaml'),
+        Path('infra/k8s/overlays/dev/kustomization.yaml'),
         'Development kustomization overlay',
         stub=(
             '# TODO: Reference dev-specific patches and resources.\n'
@@ -94,12 +94,12 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         ),
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/overlays/prod'),
+        Path('infra/k8s/overlays/prod'),
         'Production overlay',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/k8s/overlays/prod/kustomization.yaml'),
+        Path('infra/k8s/overlays/prod/kustomization.yaml'),
         'Production kustomization overlay',
         stub=(
             '# TODO: Reference prod-specific patches and resources.\n'
@@ -111,39 +111,39 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         ),
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/modules'),
+        Path('infra/terraform/modules'),
         'Reusable Terraform modules',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/modules/README.md'),
+        Path('infra/terraform/modules/README.md'),
         'Terraform modules index',
         stub=(
             '# Terraform Modules\n\n' 'TODO: Document reusable modules exposed by the platform.\n'
         ),
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/envs/dev'),
+        Path('infra/terraform/envs/dev'),
         'Terraform dev environment',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/envs/dev/main.tf'),
+        Path('infra/terraform/envs/dev/main.tf'),
         'Terraform dev stack',
         stub=('// TODO: Define dev environment infrastructure resources.\n'),
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/envs/prod'),
+        Path('infra/terraform/envs/prod'),
         'Terraform prod environment',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/infra/terraform/envs/prod/main.tf'),
+        Path('infra/terraform/envs/prod/main.tf'),
         'Terraform prod stack',
         stub=('// TODO: Define production infrastructure resources.\n'),
     ),
     ScaffoldItem(
-        Path('emperator/rules/semgrep/ruleset.yaml'),
+        Path('rules/semgrep/ruleset.yaml'),
         'Semgrep ruleset stub',
         stub=(
             'rules:\n'
@@ -155,12 +155,12 @@ _SCAFFOLD_ITEMS: tuple[ScaffoldItem, ...] = (
         ),
     ),
     ScaffoldItem(
-        Path('emperator/rules/codeql/queries'),
+        Path('rules/codeql/queries'),
         'CodeQL query workspace',
         is_directory=True,
     ),
     ScaffoldItem(
-        Path('emperator/rules/codeql/queries/EmperatorTodo.ql'),
+        Path('rules/codeql/queries/EmperatorTodo.ql'),
         'CodeQL query placeholder',
         stub=(
             '/** TODO: Implement a CodeQL query enforcing contract guarantees. */\n'

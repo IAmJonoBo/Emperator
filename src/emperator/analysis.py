@@ -236,16 +236,24 @@ class JSONLTelemetryStore:
                 line = line.strip()
                 if not line:
                     continue
-                payload = json.loads(line)
-                runs.append(TelemetryRun.from_payload(payload))
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                try:
+                    runs.append(TelemetryRun.from_payload(payload))
+                except (KeyError, TypeError, ValueError):
+                    continue
         return runs
 
     def _write_runs(self, fingerprint: str, runs: Iterable[TelemetryRun]) -> None:
         path = self._path_for(fingerprint)
-        with path.open('w', encoding='utf-8') as handle:
+        temp_path = path.with_suffix(path.suffix + '.tmp')
+        with temp_path.open('w', encoding='utf-8') as handle:
             for run in runs:
                 json.dump(run.to_payload(), handle, sort_keys=True)
                 handle.write('\n')
+        temp_path.replace(path)
 
     def persist(self, run: TelemetryRun) -> None:
         history = self._read_runs(run.fingerprint)
@@ -389,6 +397,70 @@ def _extract_exit_code(result: Any) -> int:
     raise TypeError('Runner result must expose an exit code via returncode or exit_code.')
 
 
+def _invoke_runner(
+    runner: AnalyzerRunner,
+    command: tuple[str, ...],
+    *,
+    cwd: Path,
+) -> tuple[Any, str | None]:
+    """Execute a command and capture OSError failures as exit code 127."""
+
+    try:
+        return runner(command, cwd=cwd), None
+    except OSError as exc:
+        message = str(exc)
+        result = subprocess.CompletedProcess(
+            command,
+            returncode=127,
+            stdout='',
+            stderr=message,
+        )
+        return result, message
+
+
+def _run_plan_step(
+    plan: AnalyzerPlan,
+    step: AnalyzerCommand,
+    *,
+    runner: AnalyzerRunner,
+    root: Path,
+    time_fn: Callable[[], datetime],
+    on_step_start: Callable[[AnalyzerPlan, AnalyzerCommand], None] | None,
+    on_step_complete: Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None,
+) -> tuple[TelemetryEvent, tuple[str, ...]]:
+    """Execute a single analyzer step and return telemetry with notes."""
+
+    if on_step_start is not None:
+        on_step_start(plan, step)
+    started_at = time_fn()
+    result, error_message = _invoke_runner(runner, step.command, cwd=root)
+    completed_at = time_fn()
+    duration = max((completed_at - started_at).total_seconds(), 0.0)
+    exit_code = _extract_exit_code(result)
+    event_metadata: dict[str, str] = {'description': step.description}
+    if step.severity is not None:
+        event_metadata['severity'] = step.severity
+    if error_message is not None:
+        event_metadata['error'] = error_message
+    event = TelemetryEvent(
+        tool=plan.tool,
+        command=step.command,
+        exit_code=exit_code,
+        duration_seconds=duration,
+        timestamp=completed_at,
+        metadata=event_metadata,
+    )
+    if on_step_complete is not None:
+        on_step_complete(plan, step, exit_code, duration)
+    notes: list[str] = []
+    command_text = ' '.join(step.command)
+    if error_message is not None:
+        notes.append(f"Failed to launch {plan.tool} command '{command_text}': {error_message}.")
+    if exit_code != 0:
+        notes.append(f"{plan.tool} command '{command_text}' encountered exit code {exit_code}.")
+    return event, tuple(notes)
+
+
 def _severity_execution_decision(
     step: AnalyzerCommand,
     severity_filter: tuple[str, ...] | None,
@@ -472,32 +544,17 @@ def execute_analysis_plan(
         if not steps_to_run:
             continue
         for step in steps_to_run:
-            if on_step_start is not None:
-                on_step_start(plan, step)
-            step_started = time_fn()
-            result = runner_fn(step.command, cwd=root)
-            step_completed = time_fn()
-            duration = max((step_completed - step_started).total_seconds(), 0.0)
-            exit_code = _extract_exit_code(result)
-            event_metadata: dict[str, str] = {'description': step.description}
-            if step.severity is not None:
-                event_metadata['severity'] = step.severity
-            event = TelemetryEvent(
-                tool=plan.tool,
-                command=step.command,
-                exit_code=exit_code,
-                duration_seconds=duration,
-                timestamp=step_completed,
-                metadata=event_metadata,
+            event, step_notes = _run_plan_step(
+                plan,
+                step,
+                runner=runner_fn,
+                root=root,
+                time_fn=time_fn,
+                on_step_start=on_step_start,
+                on_step_complete=on_step_complete,
             )
             events.append(event)
-            if on_step_complete is not None:
-                on_step_complete(plan, step, exit_code, duration)
-            if exit_code != 0:
-                notes.append(
-                    f"{plan.tool} command '{' '.join(step.command)}' "
-                    f'encountered exit code {exit_code}.'
-                )
+            notes.extend(step_notes)
 
     completed_at = events[-1].timestamp if events else started_at
     run = TelemetryRun(

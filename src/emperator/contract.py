@@ -16,10 +16,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Any, TypeGuard, cast
 
-yaml = cast(Any, importlib.import_module("yaml"))
+yaml = cast(Any, importlib.import_module('yaml'))
 
-CONTRACT_FILENAME = "platform.v1.yaml"
-CONTRACT_RELATIVE_DIR = Path("contract") / "api"
+CONTRACT_FILENAME = 'platform.v1.yaml'
+CONTRACT_RELATIVE_DIR = Path('contract') / 'api'
 CONTRACT_REPOSITORY_PATH = CONTRACT_RELATIVE_DIR / CONTRACT_FILENAME
 
 
@@ -65,10 +65,10 @@ def load_contract_spec() -> Mapping[str, Any]:
     data without repeatedly touching the filesystem.
     """
     contract_path = get_contract_path()
-    with contract_path.open(encoding="utf-8") as handle:
+    with contract_path.open(encoding='utf-8') as handle:
         raw_spec = yaml.safe_load(handle)
     if not isinstance(raw_spec, dict):  # pragma: no cover - defensive guard
-        msg = "Contract specification must be a mapping at the document root."
+        msg = 'Contract specification must be a mapping at the document root.'
         raise TypeError(msg)
     return MappingProxyType(cast(dict[str, Any], raw_spec))
 
@@ -84,31 +84,31 @@ def _coerce_optional(value: object) -> str | None:
 def get_contract_info() -> ContractInfo:
     """Return normalized metadata extracted from the OpenAPI ``info`` section."""
     spec = load_contract_spec()
-    info = spec.get("info")
+    info = spec.get('info')
     if not isinstance(info, Mapping):
-        msg = "Contract spec missing ``info`` section."
+        msg = 'Contract spec missing ``info`` section.'
         raise TypeError(msg)
 
-    title = _coerce_optional(info.get("title"))
-    version = _coerce_optional(info.get("version"))
+    title = _coerce_optional(info.get('title'))
+    version = _coerce_optional(info.get('version'))
     if title is None or version is None:
-        msg = "Contract info must define non-empty ``title`` and ``version``."
+        msg = 'Contract info must define non-empty ``title`` and ``version``.'
         raise ValueError(msg)
 
-    raw_contact = info.get("contact")
+    raw_contact = info.get('contact')
     contact = raw_contact if isinstance(raw_contact, Mapping) else {}
 
-    raw_license = info.get("license")
+    raw_license = info.get('license')
     license_block = raw_license if isinstance(raw_license, Mapping) else {}
 
     return ContractInfo(
         title=title,
         version=version,
-        summary=_coerce_optional(info.get("summary")),
-        contact_name=_coerce_optional(contact.get("name")),
-        contact_url=_coerce_optional(contact.get("url")),
-        license_name=_coerce_optional(license_block.get("name")),
-        license_url=_coerce_optional(license_block.get("url")),
+        summary=_coerce_optional(info.get('summary')),
+        contact_name=_coerce_optional(contact.get('name')),
+        contact_url=_coerce_optional(contact.get('url')),
+        license_name=_coerce_optional(license_block.get('name')),
+        license_url=_coerce_optional(license_block.get('url')),
         source_path=str(get_contract_path(relative=True).as_posix()),
     )
 
@@ -131,37 +131,37 @@ def _is_mapping(value: object) -> TypeGuard[Mapping[str, Any]]:
 
 
 def _check_contract_response_schema(responses: Mapping[str, Any], issues: list[str]) -> None:
-    response = responses.get("200")
+    response = responses.get('200')
     if not _is_mapping(response):
-        issues.append("`/contract` 200 response must be an object response.")
+        issues.append('`/contract` 200 response must be an object response.')
         return
     response_mapping = cast(Mapping[str, Any], response)
-    content = response_mapping.get("content")
+    content = response_mapping.get('content')
     if not _is_mapping(content):
-        issues.append("`/contract` 200 response must define a JSON content block.")
+        issues.append('`/contract` 200 response must define a JSON content block.')
         return
     content_mapping = cast(Mapping[str, Any], content)
-    json_block = content_mapping.get("application/json")
+    json_block = content_mapping.get('application/json')
     if not _is_mapping(json_block):
-        issues.append("`/contract` 200 response must describe `application/json` content.")
+        issues.append('`/contract` 200 response must describe `application/json` content.')
         return
     json_mapping = cast(Mapping[str, Any], json_block)
-    schema = json_mapping.get("schema")
+    schema = json_mapping.get('schema')
     if not _is_mapping(schema):
-        issues.append("`/contract` 200 response must include a schema definition.")
+        issues.append('`/contract` 200 response must include a schema definition.')
         return
     schema_mapping = cast(Mapping[str, Any], schema)
-    properties = schema_mapping.get("properties")
+    properties = schema_mapping.get('properties')
     if not _is_mapping(properties):
-        issues.append("`/contract` response schema must describe object properties.")
+        issues.append('`/contract` response schema must describe object properties.')
         return
-    required = schema_mapping.get("required")
+    required = schema_mapping.get('required')
     required_set = set(required or ()) if isinstance(required, list) else set()
-    for field in ("contractVersion", "sourcePath"):
+    for field in ('contractVersion', 'sourcePath'):
         if field not in properties:
-            issues.append(f"`/contract` response must define the `{field}` property.")
+            issues.append(f'`/contract` response must define the `{field}` property.')
         if field not in required_set:
-            issues.append(f"`/contract` response must mark `{field}` as required.")
+            issues.append(f'`/contract` response must mark `{field}` as required.')
 
 
 def _validate_openapi_version(
@@ -169,62 +169,62 @@ def _validate_openapi_version(
     errors: list[str],
     warnings: list[str],
 ) -> None:
-    version = spec.get("openapi")
+    version = spec.get('openapi')
     if not isinstance(version, str):
-        errors.append("Contract must declare an OpenAPI version string under `openapi`.")
+        errors.append('Contract must declare an OpenAPI version string under `openapi`.')
         return
-    if not version.startswith("3."):
-        warnings.append(f"Contract targets OpenAPI 3.x; unexpected version detected ({version}).")
+    if not version.startswith('3.'):
+        warnings.append(f'Contract targets OpenAPI 3.x; unexpected version detected ({version}).')
 
 
 def _validate_info_section(spec: Mapping[str, Any], errors: list[str]) -> None:
-    info = spec.get("info")
+    info = spec.get('info')
     if not _is_mapping(info):
-        errors.append("Contract must define an `info` object with metadata.")
+        errors.append('Contract must define an `info` object with metadata.')
         return
     missing_fields = [
-        field for field in ("title", "version") if _coerce_optional(info.get(field)) is None
+        field for field in ('title', 'version') if _coerce_optional(info.get(field)) is None
     ]
-    messages = [f"Contract info must set a non-empty `{field}` value." for field in missing_fields]
+    messages = [f'Contract info must set a non-empty `{field}` value.' for field in missing_fields]
     errors.extend(messages)
 
 
 def _validate_servers(spec: Mapping[str, Any], warnings: list[str]) -> None:
-    servers = spec.get("servers")
+    servers = spec.get('servers')
     if servers is None:
-        warnings.append("Contract should declare at least one server entry.")
+        warnings.append('Contract should declare at least one server entry.')
         return
     if not isinstance(servers, list) or not servers:
-        warnings.append("Contract servers must be a non-empty list of server objects.")
+        warnings.append('Contract servers must be a non-empty list of server objects.')
         return
     for index, server in enumerate(servers):
         if not _is_mapping(server):
-            warnings.append(f"Server entry #{index + 1} must be an object.")
+            warnings.append(f'Server entry #{index + 1} must be an object.')
 
 
 def _validate_paths(spec: Mapping[str, Any], errors: list[str]) -> None:
-    paths = spec.get("paths")
+    paths = spec.get('paths')
     if not _is_mapping(paths) or not paths:
-        errors.append("Contract must include at least one path definition under `paths`.")
+        errors.append('Contract must include at least one path definition under `paths`.')
         return
     for path, path_item in paths.items():
         if not _is_mapping(path_item):
-            errors.append(f"Path `{path}` must map HTTP verbs to operation objects.")
+            errors.append(f'Path `{path}` must map HTTP verbs to operation objects.')
             continue
         path_mapping = cast(Mapping[str, Any], path_item)
         for verb, operation in path_mapping.items():
             if not _is_mapping(operation):
-                errors.append(f"Operation `{verb}` under `{path}` must be an object.")
+                errors.append(f'Operation `{verb}` under `{path}` must be an object.')
                 continue
             operation_mapping = cast(Mapping[str, Any], operation)
-            responses = operation_mapping.get("responses")
+            responses = operation_mapping.get('responses')
             if not _is_mapping(responses) or not responses:
-                errors.append(f"Operation `{verb}` under `{path}` must define responses.")
+                errors.append(f'Operation `{verb}` under `{path}` must define responses.')
                 continue
             responses_mapping = cast(Mapping[str, Any], responses)
-            if "200" not in responses_mapping:
-                errors.append(f"Operation `{verb}` under `{path}` must define a 200 response.")
-            if path == "/contract":
+            if '200' not in responses_mapping:
+                errors.append(f'Operation `{verb}` under `{path}` must define a 200 response.')
+            if path == '/contract':
                 _check_contract_response_schema(responses_mapping, errors)
 
 
@@ -240,7 +240,7 @@ def validate_contract_spec(*, strict: bool = False) -> ContractValidationResult:
     _validate_paths(spec, errors)
 
     if strict and warnings:
-        errors.extend(f"[strict] {message}" for message in warnings)
+        errors.extend(f'[strict] {message}' for message in warnings)
         warnings = []
 
     return ContractValidationResult(errors=tuple(errors), warnings=tuple(warnings))

@@ -169,6 +169,12 @@ Install the hooks automatically with `scripts/setup-tooling.sh` (development mod
 - Biome's JSON reporter prints a stability warning before the JSON payload. Our SARIF bundler strips
   that line automatically, but if you hit `Biome JSON reporter did not produce parseable output`,
   upgrade Biome with `pnpm upgrade @biomejs/biome` and re-run `pnpm lint:sarif`.
+- `mdformat` aggressively normalises tables and nested lists. Run `pnpm fmt -- --check` first when
+  editing long-form docs so you can review the diff before applying fixes, and keep manual table
+  spacing minimal so mdformat's alignment pass is idempotent.
+- Ruff's formatter now standardises on single quotes. We disable the conflicting `flake8-quotes`
+  (`Q000`/`Q003`) checks in `pyproject.toml`; if other quote-style rules surface, prefer adjusting the
+  formatter configuration over reintroducing lint-only enforcement.
 
 ## Commit hygiene: Commitlint
 

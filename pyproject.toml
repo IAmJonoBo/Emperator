@@ -77,6 +77,8 @@ ignore = [
   "TCH001",  # allow direct typing imports for clarity
   "TCH002",
   "TCH003",
+  "Q000",  # Ruff formatter enforces single quotes, disable conflicting lint
+  "Q003",
 ]
 
 [tool.ruff.lint.per-file-ignores]

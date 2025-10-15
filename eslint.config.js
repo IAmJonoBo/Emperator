@@ -14,6 +14,7 @@ const ignoredPaths = [
   ".venv/",
   ".pnpm-store/",
   "coverage/",
+  ".cache/",
   "**/._*",
 ];
 

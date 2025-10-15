@@ -164,6 +164,15 @@ def _get_state(ctx: typer.Context) -> CLIState:
     return ctx.ensure_object(CLIState)
 
 
+def _resolve_telemetry_path(project_root: Path, target: Path | None) -> Path:
+    """Resolve telemetry storage relative to the configured project root."""
+    if target is None:
+        return (project_root / '.emperator' / 'telemetry').resolve()
+    if target.is_absolute():
+        return target.resolve()
+    return (project_root / target).resolve()
+
+
 def _status_style(status: CheckStatus) -> str:
     return {
         CheckStatus.PASS: 'green',
@@ -195,10 +204,13 @@ def main(
     store_choice = telemetry_store.lower()
     store: TelemetryStore | None
     resolved_path: Path | None = None
+    if telemetry_path is not None and store_choice != 'jsonl':
+        message = 'The --telemetry-path option requires the jsonl telemetry store.'
+        raise typer.BadParameter(message, param_hint='--telemetry-path')
     if store_choice == 'off':
         store = None
     elif store_choice == 'jsonl':
-        resolved_path = (telemetry_path or project_root / '.emperator' / 'telemetry').resolve()
+        resolved_path = _resolve_telemetry_path(project_root, telemetry_path)
         store = JSONLTelemetryStore(resolved_path)
     elif store_choice == 'memory':
         store = InMemoryTelemetryStore()

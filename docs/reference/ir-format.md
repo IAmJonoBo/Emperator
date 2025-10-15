@@ -8,7 +8,7 @@ The IR cache stores parsed code representations to avoid re-parsing unchanged fi
 
 ## Cache Directory Structure
 
-```
+```bash
 .emperator/ir-cache/
 ├── manifest.json          # Cache metadata and file index
 └── files/
@@ -238,7 +238,7 @@ When cache format changes:
 
 ## Security Considerations
 
-### Content Hashing
+### Security: Content Hashing
 
 - SHA-256 prevents collision attacks
 - Deterministic hashing ensures reproducibility

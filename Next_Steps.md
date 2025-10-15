@@ -22,14 +22,14 @@
 - [x] Generate rule packs in `contract/generated/semgrep/` (Owner: AI, Completed: 2025-10-15)
 - [x] Integrate with CLI and add validation tests (Owner: AI, Completed: 2025-10-15)
 
-**Week 3: CodeQL Pipeline (T+10 to T+15 days)**
+#### Week 3: CodeQL Pipeline (T+10 to T+15 days)
 
 - [x] Implement CodeQL database manager with lifecycle commands (Owner: Maintainers, Completed: Current pass)
 - [x] Create query library for security checks in `rules/codeql/` (Owner: Maintainers, Completed: Current pass)
 - [x] Add CLI commands: `emperator analysis codeql create/query/list/prune` (Owner: Maintainers, Completed: Current pass)
 - [x] Document query development workflow in `docs/how-to/develop-codeql-queries.md` (Owner: Maintainers, Completed: Current pass)
 
-**Week 4: Correlation & Benchmarks (T+15 to T+20 days)**
+#### Week 4: Correlation & Benchmarks (T+15 to T+20 days)
 
 - [ ] Implement correlation engine linking findings to contract rules (Owner: AI, Due: 2025-10-28)
 - [ ] Add remediation guidance extraction from contract metadata (Owner: AI, Due: 2025-10-28)
@@ -47,7 +47,7 @@
 
 ### Sprint 5 – Automated Fix & Safety Envelope (per `docs/explanation/sprint-5-safety-envelope.md`)
 
-**Week 1: Risk Classification & LibCST Foundation (T+0 to T+5 days)**
+#### Week 1: Risk Classification & LibCST Foundation (T+0 to T+5 days)
 
 - [ ] Implement risk classifier with four-tier system (0-3) (Owner: AI, Due: 2025-10-31)
 - [ ] Create LibCST transformer base classes and registry (Owner: AI, Due: 2025-11-01)
@@ -56,7 +56,7 @@
 - [ ] Write unit tests for transformers with ≥95% coverage (Owner: AI, Due: 2025-11-03)
 - [ ] Document transformer catalog in `docs/reference/fix-transformers.md` (Owner: AI, Due: 2025-11-03)
 
-**Week 2: Validation Pipeline (T+5 to T+10 days)**
+#### Week 2: Validation Pipeline (T+5 to T+10 days)
 
 - [ ] Implement validation orchestrator with pre/post-check coordination (Owner: Maintainers, Due: 2025-11-04)
 - [ ] Add pre-check validation (static analysis, test execution) (Owner: Maintainers, Due: 2025-11-05)
@@ -65,7 +65,7 @@
 - [ ] Add test selection logic to reduce validation time (Owner: Maintainers, Due: 2025-11-06)
 - [ ] Create CLI command: `emperator fix validate` (Owner: Maintainers, Due: 2025-11-06)
 
-**Week 3: Rollback & Approval Workflows (T+10 to T+15 days)**
+#### Week 3: Rollback & Approval Workflows (T+10 to T+15 days)
 
 - [ ] Implement rollback manager with git stash/commit strategies (Owner: Maintainers, Due: 2025-11-08)
 - [ ] Add provenance metadata to commit messages with full audit trail (Owner: Maintainers, Due: 2025-11-09)
@@ -73,7 +73,7 @@
 - [ ] Build batch approval workflow for efficient review (Owner: AI, Due: 2025-11-10)
 - [ ] Enhance telemetry with fix outcome tracking and rollback events (Owner: Maintainers, Due: 2025-11-11)
 
-**Week 4: OpenRewrite, Property Tests, Documentation (T+15 to T+20 days)**
+#### Week 4: OpenRewrite, Property Tests, Documentation (T+15 to T+20 days)
 
 - [ ] Integrate OpenRewrite for Java/Kotlin transformations (Owner: Maintainers, Due: 2025-11-12)
 - [ ] Create OpenRewrite recipe generator from contract rules (Owner: Maintainers, Due: 2025-11-12)

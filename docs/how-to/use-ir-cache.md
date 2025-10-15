@@ -14,7 +14,7 @@ emperator ir parse --language python
 
 Expected output:
 
-```
+```bash
 Parsing python files in /path/to/project
 ✓ Parsed 1523 files in 12.34s
   Cache hit rate: 0.0%
@@ -30,7 +30,7 @@ emperator ir cache info
 
 Output:
 
-```
+```bash
 IR Cache Statistics
   Location: /path/to/project/.emperator/ir-cache
   Cached files: 1523
@@ -47,7 +47,7 @@ emperator ir parse --language python
 
 Expected output with cache hits:
 
-```
+```bash
 Parsing python files in /path/to/project
 ✓ Parsed 1523 files in 0.89s
   Cache hit rate: 99.3%
@@ -127,7 +127,7 @@ emperator ir cache prune --older-than 90
 
 Expected output:
 
-```
+```bash
 ✓ Removed 42 old cache entries
 ```
 
@@ -433,12 +433,12 @@ class CustomExtractor(SymbolExtractor):
     def extract_symbols(self, tree, language):
         # Start with default extraction
         symbols = list(super().extract_symbols(tree, language))
-        
+
         # Add custom logic
         if language == 'python':
             # Extract decorators, docstrings, etc.
             pass
-        
+
         return tuple(symbols)
 
 # Use custom extractor

@@ -10,6 +10,7 @@
     "lint:ruff": "uv run ruff check .",
     "lint:eslint": "eslint --max-warnings=0 --no-warn-ignored --cache --cache-location .cache/eslint --ext .js,.cjs,.mjs,.ts,.tsx,.jsx .",
     "lint:staged": "bash ./scripts/lint-staged.sh",
+    "lint:changed": "node ./scripts/lint-changed.mjs",
     "lint:sarif": "node ./scripts/run-lint-sarif.mjs",
     "lint": "pnpm lint:ruff && pnpm check && pnpm lint:eslint",
     "setup:lint": "bash scripts/setup-linting.sh",

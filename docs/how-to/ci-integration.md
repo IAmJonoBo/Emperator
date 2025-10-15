@@ -6,6 +6,7 @@ Emperator’s contract enforcement is most effective when it runs consistently f
 
 - Install Emperator and supporting tools (`semgrep`, `codeql`, formatters) in developer environments via `pre-commit` or language-specific toolchains.
 - Add the pre-commit hook described in the tutorial so local commits run `emperator apply --diff --color` before code reaches the central repository.
+- Use `pnpm lint:changed` to lint only the files touched in your branch before escalating to the full `pnpm lint` pipeline.
 - Encourage developers to run `emperator check --strict --no-fix` in feature branches to preview CI outcomes.
 
 ## 2. Stage checks in CI

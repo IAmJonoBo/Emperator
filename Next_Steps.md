@@ -24,6 +24,7 @@
 - [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: 2025-10-25)
 - [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: 2025-10-28)
 - [ ] Explore automated severity gating for analyzer output summarisation (Owner: Maintainers, Due: 2025-10-30)
+- [x] Introduce targeted lint lane (`pnpm lint:changed`) to accelerate feedback loops (Owner: Maintainers, Due: Current pass)
 
 ### Historical completions
 
@@ -64,6 +65,7 @@
 - Current focus: translating Sprint 4 backlog items into actionable engineering tickets covering IR ingestion, analyzer orchestration, and performance benchmarks (`emperator_specs/Sprint_Playbook.md`).
 - In progress: documenting how Semgrep, CodeQL, and IR caches interact using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` as shared context for contributors.
 - Planned: codifying Sprint 5 safety envelope requirements (rollback workflow, telemetry, documentation) informed by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
+- Completed: shipped `pnpm lint:changed` for quick Ruff/Biome/ESLint passes on changed files to complement the full lint suite.
 - Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.
 - Completed: established contract validation CLI with strict-mode escalation and tabled warnings in output.
 - Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
@@ -104,6 +106,7 @@
 - ✅ Delivery blueprint (`emperator_specs/Project_Plan.md`) and sprint playbook (`emperator_specs/Sprint_Playbook.md`).
 - ✅ Analyzer execution plans for Semgrep and CodeQL surfaced via CLI (`analysis plan`) with defensive doctor integrations.
 - ✅ Analyzer execution helper + `analysis run` command with telemetry persistence, filtering, and Rich progress output.
+- ✅ Targeted lint command (`pnpm lint:changed`) to run Ruff, Biome, and ESLint against changed files for faster local loops.
 - ✅ Formatter regression tests (`tests/test_formatting.py`) covering YAML multi-docs, environment tuning, and `pnpm fmt --check` flow.
 - ✅ ADR log bootstrapped (`docs/adr/` + governance/index references) documenting sprint focus areas.
 - ✅ Telemetry design captured in ADR-0003 with accompanying analysis module primitives and unit tests.
@@ -155,5 +158,6 @@
 - Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.
 - Coverage for select formatting/tooling fixture branches remains at 99%; schedule targeted tests or adjust expectations before raising quality gate thresholds.
 - Ruff auto-fix mode is enabled; `pnpm lint` will rewrite Python sources/tests when issues are detected—communicate before running in shared branches.
+- `pnpm lint:changed` requires `uv` and pnpm to be on PATH; ensure developer workstations install tooling via `scripts/setup-tooling.sh` before relying on the quick pass.
 - mdformat rewrites Markdown structure (lists/tables); audit semantic diffs during follow-up documentation edits.
 - `pip-audit` continues to fail in this container due to missing trust anchors; rerun once the SSL root store is corrected or swap to an offline advisory cache.

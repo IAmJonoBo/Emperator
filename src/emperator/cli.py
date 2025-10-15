@@ -102,22 +102,22 @@ ANALYSIS_SEVERITY_OPTION = typer.Option(
 )
 
 INCLUDE_UNREADY_ANALYZERS_OPTION = typer.Option(
-    False,
-    '--include-unready',
+    default=False,
     help='Attempt to run analyzers even if prerequisites are missing.',
 )
+INCLUDE_UNREADY_ANALYZERS_OPTION.param_decls = ('--include-unready',)
 
 SCAFFOLD_DRY_RUN_OPTION = typer.Option(
-    False,
-    '--dry-run',
+    default=False,
     help='Preview actions without writing to disk.',
 )
+SCAFFOLD_DRY_RUN_OPTION.param_decls = ('--dry-run',)
 
 APPLY_OPTION = typer.Option(
-    False,
-    '--apply',
+    default=False,
     help='Execute recommended remediation commands after the checks.',
 )
+APPLY_OPTION.param_decls = ('--apply',)
 
 FIX_ONLY_OPTION = typer.Option(
     None,
@@ -126,16 +126,16 @@ FIX_ONLY_OPTION = typer.Option(
 )
 
 FIX_RUN_MODE_OPTION = typer.Option(
-    True,
-    '--dry-run/--apply',
+    default=True,
     help='Preview the remediation steps; pass --apply to execute them.',
 )
+FIX_RUN_MODE_OPTION.param_decls = ('--dry-run', '--apply')
 
 STRICT_OPTION = typer.Option(
-    False,
-    '--strict',
+    default=False,
     help='Treat contract validation warnings as errors.',
 )
+STRICT_OPTION.param_decls = ('--strict',)
 
 
 @dataclass

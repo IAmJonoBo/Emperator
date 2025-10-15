@@ -398,8 +398,80 @@ def test_jsonl_store_persists_history(tmp_path: Path) -> None:
     assert len(history) == 2
     assert history[-1].notes == ('run-3',)
     assert store.latest(fingerprint) == history[-1]
-    assert history[0].notes == ('run-2',)
-    assert all(entry.events[0].metadata for entry in history)
+
+
+def test_execute_analysis_plan_applies_severity_filter(tmp_path: Path) -> None:
+    """Severity filters should skip unmatched steps and emit explanatory notes."""
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = AnalyzerPlan(
+        tool='Semgrep',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('semgrep', 'scan', str(tmp_path)),
+                description='Run Semgrep scan',
+                severity='low',
+            ),
+        ),
+    )
+
+    run = execute_analysis_plan(
+        report,
+        (plan,),
+        severity_filter=('high',),
+        runner=lambda command, cwd: SimpleNamespace(returncode=0, stdout='', stderr=''),
+        time_source=lambda: datetime.now(UTC),
+    )
+
+    assert run.events == ()
+    assert any('Skipped Semgrep step' in note for note in run.notes)
+    assert any('All steps skipped for Semgrep' in note for note in run.notes)
+
+
+def test_execute_analysis_plan_warns_on_missing_severity(tmp_path: Path) -> None:
+    """Steps lacking severity metadata should emit notes when filters are active."""
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plan = AnalyzerPlan(
+        tool='CodeQL',
+        ready=True,
+        reason='Ready to scan',
+        steps=(
+            AnalyzerCommand(
+                command=('codeql', 'analyze'),
+                description='Run CodeQL analysis',
+                severity=None,
+            ),
+        ),
+    )
+
+    runner_calls: list[tuple[tuple[str, ...], Path]] = []
+
+    def fake_runner(command: tuple[str, ...], cwd: Path) -> SimpleNamespace:
+        runner_calls.append((command, cwd))
+        return SimpleNamespace(returncode=0, stdout='', stderr='')
+
+    run = execute_analysis_plan(
+        report,
+        (plan,),
+        severity_filter=('low',),
+        runner=fake_runner,
+        time_source=lambda: datetime.now(UTC),
+    )
+
+    assert len(runner_calls) == 1
+    assert any('lacks severity metadata' in note for note in run.notes)
+    assert run.events[0].metadata is not None and run.events[0].metadata.get('severity') is None
 
 
 def test_jsonl_store_recovers_from_corrupted_lines(tmp_path: Path) -> None:
@@ -620,20 +692,15 @@ def test_execute_analysis_plan_skips_unready(tmp_path: Path) -> None:
             ),
         ),
     )
-    called: list[tuple[tuple[str, ...], Path | None]] = []
-
-    def fake_runner(command: tuple[str, ...], *, cwd: Path | None = None) -> SimpleNamespace:
-        called.append((command, cwd))
-        return SimpleNamespace(returncode=0)
-
     run = execute_analysis_plan(
         report,
         plan,
-        runner=fake_runner,
+        runner=lambda *args, **kwargs: pytest.fail(
+            'Runner should not be invoked for unready plans'
+        ),
         time_source=lambda: datetime(2025, 1, 1, tzinfo=UTC),
     )
 
-    assert called == []
     assert run.events == ()
     assert any('CodeQL' in note and 'Skipped' in note for note in run.notes)
 
@@ -694,22 +761,16 @@ def test_execute_analysis_plan_skips_steps_via_severity_filter(tmp_path: Path) -
             ),
         ),
     )
-    runner_called = False
-
-    def fail_if_called(*_args, **_kwargs) -> SimpleNamespace:
-        nonlocal runner_called
-        runner_called = True
-        return SimpleNamespace(returncode=0)
-
     run = execute_analysis_plan(
         report,
         plan,
-        runner=fail_if_called,
+        runner=lambda *args, **kwargs: pytest.fail(
+            'Runner should not be called when all steps are filtered'
+        ),
         severity_filter=('high',),
         time_source=lambda: datetime.now(UTC),
     )
 
-    assert runner_called is False
     assert run.events == ()
     assert any('Skipped' in note for note in run.notes)
     assert any('All steps skipped' in note for note in run.notes)

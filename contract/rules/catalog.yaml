@@ -1,0 +1,27 @@
+rules:
+  - id: security.ban-eval
+    description: Disallow dynamic code execution via eval for security hardening.
+    severity: high
+    source: contract/policy/security.rego#ban_eval
+    tags: [ security, injection ]
+    remediation:
+      summary: Replace eval() with safer parsing helpers or refactor to remove dynamic execution.
+      steps:
+        - Prefer ast.literal_eval() for trusted literals.
+        - Use json.loads() when decoding JSON payloads.
+        - Refactor business logic to avoid executing arbitrary strings.
+      references:
+        - https://owasp.org/www-community/attacks/Code_Injection
+        - docs/explanation/security-safety.md#banned-functions
+  - id: style.naming.pascal-case
+    description: Public Python classes must use PascalCase naming to aid readability.
+    severity: medium
+    source: contract/conventions/naming.cue#classes
+    tags: [ style, naming, python ]
+    remediation:
+      summary: Rename classes to PascalCase and update all references.
+      steps:
+        - Update the class declaration to PascalCase.
+        - Adjust imports and references to the renamed class.
+      references:
+        - docs/how-to/ai-assisted-refactors.md#naming-conventions

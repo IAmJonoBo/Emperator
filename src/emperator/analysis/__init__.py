@@ -20,6 +20,13 @@ from .codeql import (
     CodeQLManagerError,
     CodeQLUnavailableError,
 )
+from .correlation import (
+    AnalysisFinding,
+    CorrelatedFinding,
+    CorrelationEngine,
+    ExemptionStatus,
+    FindingLocation,
+)
 
 __all__ = [
     'AnalysisHint',
@@ -43,6 +50,11 @@ __all__ = [
     'CodeQLManager',
     'CodeQLManagerError',
     'CodeQLUnavailableError',
+    'AnalysisFinding',
+    'FindingLocation',
+    'CorrelationEngine',
+    'CorrelatedFinding',
+    'ExemptionStatus',
 ]
 
 

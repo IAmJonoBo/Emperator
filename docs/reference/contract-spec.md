@@ -4,14 +4,15 @@ Use this page to look up the canonical structure, rule metadata fields, severity
 
 ## Directory layout
 
-| Path                       | Description                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `contract/conventions.cue` | CUE schemas for naming conventions, file layout, formatter preferences, and architectural wiring. |
-| `contract/api/`            | OpenAPI or GraphQL interface specs that drive scaffolding and contract-aware tests.               |
-| `contract/policy/`         | OPA Rego modules defining deny/warn rules, dependency allowlists, and governance policies.        |
-| `contract/generators/`     | Codemod recipes, code templates, and scaffolding scripts keyed by language and rule.              |
-| `contract/exemptions.yaml` | Optional registry of approved waivers with owner, expiry, and mitigation notes.                   |
-| `contract/README.md`       | Human-readable change log, review checklist, and links to external standards.                     |
+| Path                          | Description                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `contract/conventions.cue`    | CUE schemas for naming conventions, file layout, formatter preferences, and architectural wiring. |
+| `contract/api/`               | OpenAPI or GraphQL interface specs that drive scaffolding and contract-aware tests.               |
+| `contract/policy/`            | OPA Rego modules defining deny/warn rules, dependency allowlists, and governance policies.        |
+| `contract/generators/`        | Codemod recipes, code templates, and scaffolding scripts keyed by language and rule.              |
+| `contract/rules/catalog.yaml` | Canonical rule metadata catalog consumed by analyzers and the correlation engine.                 |
+| `contract/exemptions.yaml`    | Optional registry of approved waivers with owner, expiry, and mitigation notes.                   |
+| `contract/README.md`          | Human-readable change log, review checklist, and links to external standards.                     |
 
 > **Current status:** Rule generators and contract-aware assets remain planned work. `contract/generators/` and `contract/generated/` presently contain scaffolding only; Semgrep and CodeQL packs described in Sprint 4 have not been produced yet.
 
@@ -23,7 +24,7 @@ Use this page to look up the canonical structure, rule metadata fields, severity
 
 ## Rule metadata schema
 
-Each rule compiled from the contract exposes the following fields in Emperator outputs and reports:
+Each rule compiled from the contract exposes the following fields in Emperator outputs and reports. The canonical source of this metadata is `contract/rules/catalog.yaml`, which powers the analyzer correlation engine and upcoming rule generators:
 
 | Field         | Meaning                                                                                                |
 | ------------- | ------------------------------------------------------------------------------------------------------ |

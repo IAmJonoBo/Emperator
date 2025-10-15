@@ -94,18 +94,35 @@ const markdownTargets = [
   "docs",
 ];
 
-tasks.push(() =>
-  runCommand(uvBinary, [
-    "run",
-    "--extra",
-    "dev",
-    "mdformat",
-    ...(wantsCheck ? ["--check"] : []),
-    "--extension",
-    "gfm",
-    ...markdownTargets,
-  ])
-);
+const existingMarkdownTargets = markdownTargets.filter((target) => {
+  const absolute = path.resolve(target);
+  try {
+    accessSync(absolute, constants.F_OK);
+    return true;
+  } catch (error) {
+    const code = error?.code ?? "";
+    if (code !== "ENOENT" && code !== "ENOTDIR") {
+      throw error;
+    }
+    logInfo(`Skipping missing Markdown target: ${target}`);
+    return false;
+  }
+});
+
+if (existingMarkdownTargets.length > 0) {
+  tasks.push(() =>
+    runCommand(uvBinary, [
+      "run",
+      "--extra",
+      "dev",
+      "mdformat",
+      ...(wantsCheck ? ["--check"] : []),
+      "--extension",
+      "gfm",
+      ...existingMarkdownTargets,
+    ])
+  );
+}
 
 if (wantsCheck) {
   tasks.push(() =>

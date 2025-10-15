@@ -8,11 +8,12 @@ from textwrap import dedent, indent
 import pytest
 
 import emperator.contract as contract_module
-from emperator import (
-    ContractInfo,
-    get_contract_info,
-    get_contract_path,
-    load_contract_spec,
+from emperator import ContractInfo, get_contract_info, get_contract_path, load_contract_spec
+from emperator.contract_rules import (
+    ContractRule,
+    ExemptionRecord,
+    load_contract_rules,
+    load_exemptions,
 )
 
 
@@ -509,3 +510,177 @@ def test_validate_contract_spec_flags_empty_servers(
     assert any('non-empty list' in message for message in result.warnings)
 
     contract_module.load_contract_spec.cache_clear()
+
+
+def test_load_contract_rules_supports_custom_catalog(tmp_path: Path) -> None:
+    catalog = tmp_path / 'rules.yaml'
+    catalog.write_text(
+        dedent(
+            """
+            rules:
+              - id: sample.rule
+                description: Example contract rule
+                severity: medium
+                source: contract/sample
+                tags: [example, demo]
+                remediation:
+                  summary: Fix the issue.
+                  steps:
+                    - Step one
+                  references:
+                    - https://example.test
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    rules = load_contract_rules(catalog)
+    assert isinstance(rules, tuple)
+    assert len(rules) == 1
+    rule = rules[0]
+    assert isinstance(rule, ContractRule)
+    assert rule.id == 'sample.rule'
+    assert rule.remediation is not None
+    assert rule.remediation.references == ('https://example.test',)
+
+
+def test_load_exemptions_accepts_optional_catalog(tmp_path: Path) -> None:
+    exemptions = tmp_path / 'exemptions.yaml'
+    exemptions.write_text(
+        dedent(
+            """
+            exemptions:
+              - rule: sample.rule
+                path: src/demo.py
+                line: 12
+                owner: demo
+                justification: Temporary demo exemption
+                expires: 2099-12-31
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    records = load_exemptions(exemptions)
+    assert isinstance(records, tuple)
+    assert len(records) == 1
+    record = records[0]
+    assert isinstance(record, ExemptionRecord)
+    assert record.rule_id == 'sample.rule'
+    assert record.path == Path('src/demo.py')
+    assert record.expires is not None
+
+
+def test_load_exemptions_returns_empty_for_missing_file(tmp_path: Path) -> None:
+    missing = tmp_path / 'does-not-exist.yaml'
+    assert load_exemptions(missing) == ()
+
+
+def test_load_contract_rules_uses_repository_catalog() -> None:
+    rules = load_contract_rules()
+    identifiers = {rule.id for rule in rules}
+    assert 'security.ban-eval' in identifiers
+    assert 'style.naming.pascal-case' in identifiers
+
+
+def test_load_contract_rules_ignores_incomplete_entries(tmp_path: Path) -> None:
+    catalog = tmp_path / 'rules.yaml'
+    catalog.write_text(
+        dedent(
+            """
+            rules:
+              - id: valid.rule
+                description: Describes the rule
+                severity: low
+                source: contract/sample
+                tags: compliance
+              - id: missing-fields
+                description: ''
+                severity: low
+                source: ''
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    rules = load_contract_rules(catalog)
+    assert len(rules) == 1
+    assert rules[0].id == 'valid.rule'
+
+
+def test_load_exemptions_handles_invalid_dates(tmp_path: Path) -> None:
+    catalog = tmp_path / 'exemptions.yaml'
+    catalog.write_text(
+        dedent(
+            """
+            exemptions:
+              - rule: example
+                path: src/example.py
+                expires: not-a-date
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    records = load_exemptions(catalog)
+    assert len(records) == 1
+    assert records[0].expires is None
+
+
+def test_load_contract_rules_handles_missing_metadata(tmp_path: Path) -> None:
+    catalog = tmp_path / 'rules.yaml'
+    catalog.write_text(
+        dedent(
+            """
+            rules:
+              - 42
+              - id: missing.tags
+                description: Handles missing tags
+                severity: medium
+                source: contract/sample
+                remediation:
+                  summary: ''
+                  steps: []
+              - id: numeric.tags
+                description: Tags stored as number
+                severity: low
+                source: contract/sample
+                tags: 123
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    rules = load_contract_rules(catalog)
+    assert len(rules) == 2
+    first, second = rules
+    assert first.tags == () and first.remediation is None
+    assert second.tags == ()
+
+
+def test_load_contract_rules_returns_empty_for_non_mapping(tmp_path: Path) -> None:
+    catalog = tmp_path / 'rules.yaml'
+    catalog.write_text('[]', encoding='utf8')
+    assert load_contract_rules(catalog) == ()
+
+
+def test_load_exemptions_skips_non_mapping_entries(tmp_path: Path) -> None:
+    catalog = tmp_path / 'exemptions.yaml'
+    catalog.write_text(
+        dedent(
+            """
+            exemptions:
+              - 42
+              - rule: sample
+                path: src/example.py
+                expires: ''
+              - rule: missing-path
+                path: ''
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+
+    records = load_exemptions(catalog)
+    assert len(records) == 1
+    assert records[0].expires is None

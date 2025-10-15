@@ -140,6 +140,52 @@ def test_run_format_rejects_conflicting_flags() -> None:
     assert '--all cannot be combined with --check' in combined_output
 
 
+def test_run_format_skips_missing_markdown_targets(tmp_path: Path) -> None:
+    """The formatter should ignore optional Markdown targets when absent."""
+    uv_stub = tmp_path / 'uv'
+    uv_log = tmp_path / 'uv.log'
+    uv_stub.write_text(
+        textwrap.dedent(
+            f"""
+            #!/usr/bin/env bash
+            printf '%s\n' "$0 $*" >> {uv_log}
+            exit 0
+            """
+        ).strip(),
+        encoding='utf8',
+    )
+    uv_stub.chmod(0o755)
+
+    pnpm_stub = tmp_path / 'pnpm'
+    pnpm_stub.write_text(
+        '#!/usr/bin/env bash\nexit 0\n',
+        encoding='utf8',
+    )
+    pnpm_stub.chmod(0o755)
+
+    env = {
+        **os.environ,
+        'UV_BIN': str(uv_stub),
+        'npm_execpath': str(pnpm_stub),
+        'PATH': f"{tmp_path}{os.pathsep}{os.environ.get('PATH', '')}",
+    }
+
+    completed = subprocess.run(
+        ['node', str(RUN_FORMAT_SCRIPT), '--check'],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+    assert completed.returncode == 0, completed.stderr + completed.stdout
+
+    mdformat_invocations = uv_log.read_text(encoding='utf8').splitlines()
+    assert any('--extension gfm' in line for line in mdformat_invocations)
+    assert all('IMPLEMENT_THEN_DELETE.md' not in line for line in mdformat_invocations)
+
+
 def test_yaml_formatter_raises_for_parse_errors(tmp_path: Path) -> None:
     """Surface parse errors so callers can triage malformed YAML quickly."""
     contents = """

@@ -389,6 +389,12 @@ emperator analysis codeql list
 
 #### 4.1 Correlation Engine (`src/emperator/analysis/correlation.py`)
 
+> **Status update:** Implemented in `src/emperator/analysis/correlation.py` with
+> `AnalysisFinding`, `CorrelationEngine`, and supporting dataclasses. The engine
+> reads rule metadata from `contract/rules/catalog.yaml` and merges optional
+> waivers from `contract/exemptions.yaml` to flag active exemptions alongside
+> remediation guidance.
+
 ```python
 @dataclass
 class CorrelatedFinding:

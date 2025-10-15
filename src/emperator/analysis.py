@@ -5,10 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
@@ -24,6 +25,7 @@ __all__ = [
     'TelemetryStore',
     'InMemoryTelemetryStore',
     'JSONLTelemetryStore',
+    'execute_analysis_plan',
     'fingerprint_analysis',
     'detect_languages',
     'gather_analysis',
@@ -336,6 +338,119 @@ def fingerprint_analysis(
     }
     data = json.dumps(payload, sort_keys=True, separators=(',', ':')).encode('utf-8')
     return hashlib.sha256(data).hexdigest()
+
+
+@runtime_checkable
+class AnalyzerRunner(Protocol):
+    """Protocol describing how analyzer commands are executed."""
+
+    def __call__(
+        self,
+        command: tuple[str, ...],
+        *,
+        cwd: Path | None = None,
+    ) -> Any:
+        """Execute a command and return an object exposing an exit code."""
+
+
+def _default_runner(
+    command: tuple[str, ...],
+    *,
+    cwd: Path | None = None,
+) -> subprocess.CompletedProcess[str]:
+    """Execute analyzer commands via subprocess without raising on failure."""
+
+    return subprocess.run(  # nosec B603 - analyzer commands run in controlled contexts
+        command,
+        cwd=cwd,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+
+def _extract_exit_code(result: Any) -> int:
+    """Normalise exit codes from subprocess results or custom runners."""
+
+    if isinstance(result, int):
+        return int(result)
+    if hasattr(result, 'returncode'):
+        return int(result.returncode)
+    if hasattr(result, 'exit_code'):
+        return int(result.exit_code)
+    raise TypeError('Runner result must expose an exit code via returncode or exit_code.')
+
+
+def execute_analysis_plan(
+    report: AnalysisReport,
+    plans: Iterable[AnalyzerPlan],
+    *,
+    telemetry_store: TelemetryStore | None = None,
+    metadata: Mapping[str, Any] | None = None,
+    include_unready: bool = False,
+    runner: AnalyzerRunner | None = None,
+    time_source: Callable[[], datetime] | None = None,
+    on_step_start: Callable[[AnalyzerPlan, AnalyzerCommand], None] | None = None,
+    on_step_complete: Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None = None,
+) -> TelemetryRun:
+    """Execute analyzer plans, capture telemetry, and persist run metadata."""
+
+    materialised = tuple(plans)
+    time_fn = time_source or (lambda: datetime.now(UTC))
+    root = (report.project_root or Path.cwd()).resolve()
+    fingerprint = fingerprint_analysis(report, materialised, metadata=metadata)
+    runner_fn: AnalyzerRunner = runner or _default_runner
+    events: list[TelemetryEvent] = []
+    notes: list[str] = []
+    started_at = time_fn()
+
+    for plan in materialised:
+        if not plan.ready:
+            if include_unready:
+                notes.append(f'Forced execution for {plan.tool}: {plan.reason}')
+            else:
+                notes.append(f'Skipped {plan.tool}: {plan.reason}')
+                continue
+        if not plan.steps:
+            notes.append(f'No steps defined for {plan.tool}.')
+            continue
+        for step in plan.steps:
+            if on_step_start is not None:
+                on_step_start(plan, step)
+            step_started = time_fn()
+            result = runner_fn(step.command, cwd=root)
+            step_completed = time_fn()
+            duration = max((step_completed - step_started).total_seconds(), 0.0)
+            exit_code = _extract_exit_code(result)
+            event = TelemetryEvent(
+                tool=plan.tool,
+                command=step.command,
+                exit_code=exit_code,
+                duration_seconds=duration,
+                timestamp=step_completed,
+                metadata={'description': step.description},
+            )
+            events.append(event)
+            if on_step_complete is not None:
+                on_step_complete(plan, step, exit_code, duration)
+            if exit_code != 0:
+                notes.append(
+                    f"{plan.tool} command '{' '.join(step.command)}' "
+                    f'encountered exit code {exit_code}.'
+                )
+
+    completed_at = events[-1].timestamp if events else started_at
+    run = TelemetryRun(
+        fingerprint=fingerprint,
+        project_root=root,
+        started_at=started_at,
+        completed_at=completed_at,
+        events=tuple(events),
+        notes=tuple(notes),
+    )
+    if telemetry_store is not None:
+        telemetry_store.persist(run)
+    return run
 
 
 @dataclass(frozen=True)

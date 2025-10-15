@@ -33,3 +33,6 @@ Outputs are rendered with Rich progress spinners and colour-coded tables for qui
 - `emperator analysis plan`: synthesise an execution plan for supported analyzers, including the exact Semgrep and CodeQL commands to run and whether the tools are ready to execute.
   When telemetry persistence is enabled the command also surfaces the plan fingerprint, last run
   timestamp, and the on-disk telemetry directory (if applicable).
+- `emperator analysis run [--tool NAME --include-unready]`: execute analyzer plans, stream per-command progress, and persist telemetry for every step.
+  Use `--tool` multiple times to narrow execution to specific analyzers and `--include-unready` to force tools that still report missing prerequisites.
+  The CLI prints a summary table with success/failure indicators and records the run fingerprint so you can compare results against cached telemetry.

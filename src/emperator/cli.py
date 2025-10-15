@@ -48,12 +48,14 @@ doctor_app = typer.Typer(help='Diagnose environment health and suggest fixes.')
 analysis_app = typer.Typer(help='Plan IR generation and analyzer readiness.')
 fix_app = typer.Typer(help='Auto-remediation helpers for common issues.')
 contract_app = typer.Typer(help='Inspect and validate the Project Contract assets.')
+ir_app = typer.Typer(help='Intermediate Representation (IR) operations for code analysis.')
 
 app.add_typer(scaffold_app, name='scaffold')
 app.add_typer(doctor_app, name='doctor')
 app.add_typer(analysis_app, name='analysis')
 app.add_typer(fix_app, name='fix')
 app.add_typer(contract_app, name='contract')
+app.add_typer(ir_app, name='ir')
 
 
 _SUPPORTED_SEVERITIES: tuple[str, ...] = (
@@ -833,6 +835,126 @@ def fix_run(
                     state.console.print(result.stderr)
     if dry_run:
         state.console.print('[yellow]Dry run complete. Re-run with --apply to make changes.[/]')
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ IR Commands                                                            │
+# └────────────────────────────────────────────────────────────────────────┘
+
+
+@ir_app.command('parse')
+def ir_parse(
+    ctx: typer.Context,
+    language: str = typer.Option(
+        'python',
+        '--language',
+        '-l',
+        help='Programming language to parse (python, javascript, etc.).',
+    ),
+) -> None:
+    """Parse source files and build IR cache.
+
+    This command parses source files in the specified language and builds
+    an intermediate representation (IR) cache for fast incremental analysis.
+    """
+    state = _get_state(ctx)
+    state.console.print(f'[bold]Parsing {language} files in {state.project_root}[/]')
+
+    try:
+        from emperator.ir import CacheManager, IRBuilder
+
+        cache_dir = state.project_root / '.emperator' / 'ir-cache'
+        builder = IRBuilder(cache_dir=cache_dir)
+        snapshot = builder.parse_directory(state.project_root, languages=(language,))
+
+        # Save to cache
+        manager = CacheManager(cache_dir)
+        manager.save_snapshot(snapshot)
+
+        state.console.print(
+            f'[green]✓[/] Parsed {snapshot.total_files} files '
+            f'in {snapshot.parse_time_seconds:.2f}s'
+        )
+        state.console.print(f'  Cache hit rate: {snapshot.cache_hit_rate:.1f}%')
+        if snapshot.files_with_errors > 0:
+            state.console.print(
+                f'  [yellow]⚠[/] {snapshot.files_with_errors} files with syntax errors'
+            )
+
+    except ImportError as e:
+        state.console.print(f'[red]✗[/] IR dependencies not installed: {e}')
+        state.console.print('Install with: uv pip install tree-sitter tree-sitter-python')
+        raise typer.Exit(code=1) from None
+
+
+@ir_app.command('cache')
+def ir_cache(
+    ctx: typer.Context,
+    action: str = typer.Argument(
+        'info',
+        help='Action to perform: info, prune, or clear',
+    ),
+    older_than: int = typer.Option(
+        30,
+        '--older-than',
+        help='Days threshold for pruning cache entries',
+    ),
+) -> None:
+    """Manage IR cache.
+
+    Actions:
+    - info: Display cache statistics
+    - prune: Remove old cache entries
+    - clear: Delete all cache data
+    """
+    state = _get_state(ctx)
+    cache_dir = state.project_root / '.emperator' / 'ir-cache'
+
+    if action == 'info':
+        if not cache_dir.exists():
+            state.console.print('[yellow]No IR cache found[/]')
+            return
+
+        try:
+            import json
+
+            manifest_path = cache_dir / 'manifest.json'
+            if manifest_path.exists():
+                manifest = json.loads(manifest_path.read_text())
+                file_count = len(manifest.get('files', {}))
+                state.console.print('[bold]IR Cache Statistics[/]')
+                state.console.print(f'  Location: {cache_dir}')
+                state.console.print(f'  Cached files: {file_count}')
+                state.console.print(f'  Version: {manifest.get("version", "unknown")}')
+            else:
+                state.console.print('[yellow]Cache manifest not found[/]')
+        except (OSError, json.JSONDecodeError) as e:
+            state.console.print(f'[red]✗[/] Error reading cache: {e}')
+
+    elif action == 'prune':
+        try:
+            from emperator.ir import CacheManager
+
+            manager = CacheManager(cache_dir)
+            removed = manager.prune(older_than_days=older_than)
+            state.console.print(f'[green]✓[/] Removed {removed} old cache entries')
+        except ImportError as e:
+            state.console.print(f'[red]✗[/] IR dependencies not installed: {e}')
+            raise typer.Exit(code=1) from None
+
+    elif action == 'clear':
+        if cache_dir.exists():
+            import shutil
+
+            shutil.rmtree(cache_dir)
+            state.console.print('[green]✓[/] Cache cleared')
+        else:
+            state.console.print('[yellow]No cache to clear[/]')
+
+    else:
+        state.console.print(f'[red]✗[/] Unknown action: {action}')
+        state.console.print('Valid actions: info, prune, clear')
+        raise typer.Exit(code=1)
 
 
 def run() -> None:

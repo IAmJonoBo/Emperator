@@ -77,3 +77,19 @@ def legacy_handler():
 5. Increment the contract version tag and note changes in `contract/README.md`.
 
 Keep this reference close during contract updates to ensure every rule remains actionable, auditable, and aligned with the wider engineering standards.
+
+## Programmatic access
+
+Runtime components can rely on :mod:`emperator.contract` for strongly-typed helpers
+when they need to surface contract metadata. ``get_contract_path()`` returns the
+authoritative repository location, ``load_contract_spec()`` exposes the parsed
+OpenAPI document as an immutable mapping, and ``get_contract_info()`` condenses the
+``info`` section into a :class:`emperator.contract.ContractInfo` dataclass.
+
+```python
+from emperator.contract import ContractInfo, get_contract_info
+
+info: ContractInfo = get_contract_info()
+print(info.version)
+print(info.source_path)
+```

@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from emperator import __version__, create_app, get_contract_path, load_contract_spec
+from emperator import (
+    ContractInfo,
+    __version__,
+    create_app,
+    get_contract_info,
+    get_contract_path,
+    load_contract_spec,
+)
 
 
 def test_contract_version_matches_package_version() -> None:
@@ -25,8 +32,9 @@ def test_contract_endpoint_reports_path_and_version() -> None:
     response = client.get('/contract')
     assert response.status_code == 200
     payload = response.json()
-    assert payload['contractVersion'] == __version__
-    assert payload['sourcePath'] == str(get_contract_path(relative=True))
+    info: ContractInfo = get_contract_info()
+    assert payload['contractVersion'] == info.version
+    assert payload['sourcePath'] == info.source_path
 
 
 def test_contract_file_exists_on_disk() -> None:

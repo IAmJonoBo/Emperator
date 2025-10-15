@@ -8,8 +8,10 @@
 - [x] Install `types-PyYAML` or adjust contract loader to satisfy mypy (Owner: AI, Due: Current pass)
 - [x] Investigate pytest coverage warning (`No data was collected`) and ensure reports generate (Owner: AI, Due: Current pass)
 - [x] Ship analysis planning CLI (inspect + wizard) with developer hints (Owner: AI, Due: Current pass)
+- [x] Extend doctor checks for uv CLI and harden remediation execution failures (Owner: AI, Due: Current pass)
+- [x] Prototype Semgrep/CodeQL invocation flow using new analysis scaffolding (Owner: AI, Due: Current pass)
 - [ ] Track SPDX license string remediation for `pyproject.toml` (Owner: Maintainers, Due: Future release)
-- [ ] Prototype Semgrep/CodeQL invocation flow using new analysis scaffolding (Owner: AI, Due: Next pass)
+- [ ] Model analyzer execution telemetry + caching strategy for follow-up automation (Owner: AI, Due: Next pass)
 
 ## Steps
 
@@ -18,7 +20,9 @@
 - Completed: added analysis inspect/wizard workflows with progress bars and guided hints for IR readiness.
 - Completed: produced end-to-end delivery plan and sprint playbook to steer execution.
 - Completed: elevated `emperator.contract` helpers with cached OpenAPI loader, typed metadata surface, and doc references.
+- Completed: hardened doctor checks (uv detection, remediation error capture) and surfaced analyzer execution plans.
 - Pending: remediate packaging metadata before setuptools deprecates table syntax.
+- Pending: capture analyzer run outputs for historical telemetry and CLI caching.
 
 ## Deliverables
 
@@ -28,6 +32,7 @@
 - ✅ Expanded docs (`docs/cli.md`, `docs/explanation/*`) covering analysis planning wizard and progress feedback.
 - ✅ Repository assets populated with TODO placeholders for policy, conventions, rules, and infra blueprints.
 - ✅ Delivery blueprint (`emperator_specs/Project_Plan.md`) and sprint playbook (`emperator_specs/Sprint_Playbook.md`).
+- ✅ Analyzer execution plans for Semgrep and CodeQL surfaced via CLI (`analysis plan`) with defensive doctor integrations.
 
 ## Quality Gates
 
@@ -36,6 +41,7 @@
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
 - ⚠ Build: `uv run --with build python -m build` (succeeds with setuptools SPDX license deprecation warning).
+- 🔁 Telemetry caching: Pending design for analyzer execution history (target next pass).
 
 ## Links
 
@@ -43,6 +49,7 @@
 - Directory blueprint: `directory_structure.md`.
 - Delivery artefacts: `emperator_specs/Project_Plan.md`, `emperator_specs/Sprint_Playbook.md`.
 - Build warning context: `python -m build` output (SPDX reminder).
+- Analyzer plan usage: `emperator analysis plan` (Semgrep/CodeQL command scaffolding).
 
 ## Risks/Notes
 
@@ -50,4 +57,4 @@
 - CLI commands rely on optional tools (`pnpm`, bash scripts); doctor command surfaces missing dependencies gracefully.
 - Contract metadata helpers cache the OpenAPI document; clear the cache (`load_contract_spec.cache_clear()`) if tests need to observe on-disk edits within a single process.
 - Follow up on packaging metadata warning before setuptools deadline.
-- Monitor future work to hook Semgrep/CodeQL execution into the new analysis pipeline without regressing UX.
+- Monitor future work to hook Semgrep/CodeQL execution into the new analysis pipeline without regressing UX; next sprint will explore telemetry capture and caching.

@@ -14,7 +14,7 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeEl
 from rich.table import Table
 
 from . import __version__
-from .analysis import gather_analysis
+from .analysis import AnalyzerPlan, gather_analysis, plan_tool_invocations
 from .doctor import (
     CheckStatus,
     DoctorCheckResult,
@@ -202,6 +202,28 @@ def _render_analysis_report(console: Console, report) -> None:
         console.print(Panel(Markdown(hints), title='Hints', border_style='cyan'))
 
 
+def _render_analysis_plan(console: Console, plans: Iterable[AnalyzerPlan]) -> None:
+    table = Table(title='Analysis Execution Plan', show_lines=False)
+    table.add_column('Tool', style='cyan')
+    table.add_column('Ready', justify='center')
+    table.add_column('Summary', style='white')
+    for plan in plans:
+        icon = '✅' if plan.ready else '⚠️'
+        style = 'green' if plan.ready else 'yellow'
+        table.add_row(plan.tool, f'[{style}]{icon}[/]', plan.reason)
+    console.print(table)
+
+    for plan in plans:
+        if not plan.steps:
+            continue
+        steps_table = Table(title=f'{plan.tool} Steps', show_lines=False)
+        steps_table.add_column('Description', style='white')
+        steps_table.add_column('Command', style='magenta')
+        for step in plan.steps:
+            steps_table.add_row(step.description, ' '.join(step.command))
+        console.print(steps_table)
+
+
 @doctor_app.command('env')
 def doctor_env(
     ctx: typer.Context,
@@ -294,6 +316,21 @@ def analysis_wizard(ctx: typer.Context) -> None:
     if report.hints:
         hints = '\n'.join(f'- **{hint.topic}:** {hint.guidance}' for hint in report.hints)
         state.console.print(Markdown(hints))
+
+
+@analysis_app.command('plan')
+def analysis_plan(ctx: typer.Context) -> None:
+    """Surface recommended execution steps for analyzers."""
+
+    state = _get_state(ctx)
+    report = gather_analysis(state.project_root)
+    plans = plan_tool_invocations(report)
+    if not plans:
+        state.console.print(
+            '[yellow]No analyzer plans available yet. Add supported tooling to the contract.[/]'
+        )
+        return
+    _render_analysis_plan(state.console, plans)
 
 
 @fix_app.command('plan')

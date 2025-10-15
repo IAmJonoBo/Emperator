@@ -10,13 +10,23 @@ from typer.testing import CliRunner
 
 try:
     from emperator import cli as cli_module
-    from emperator.analysis import AnalysisHint, AnalysisReport
+    from emperator.analysis import (
+        AnalysisHint,
+        AnalysisReport,
+        AnalyzerCommand,
+        AnalyzerPlan,
+    )
     from emperator.cli import app
     from emperator.doctor import RemediationAction
 except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
     sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
     from emperator import cli as cli_module
-    from emperator.analysis import AnalysisHint, AnalysisReport
+    from emperator.analysis import (
+        AnalysisHint,
+        AnalysisReport,
+        AnalyzerCommand,
+        AnalyzerPlan,
+    )
     from emperator.cli import app
     from emperator.doctor import RemediationAction
 
@@ -328,6 +338,85 @@ def test_cli_analysis_wizard_reports_languages(monkeypatch, tmp_path: Path) -> N
     assert result.exit_code == 0, result.stdout
     assert 'Review detected languages' in result.stdout
     assert 'Python' in result.stdout
+
+
+def test_cli_analysis_plan_renders_steps(monkeypatch, tmp_path: Path) -> None:
+    """Analysis plan should display execution steps for analyzers."""
+
+    report = AnalysisReport(
+        languages=(),
+        tool_statuses=(),
+        hints=(),
+        project_root=tmp_path,
+    )
+    plans = (
+        AnalyzerPlan(
+            tool='Semgrep',
+            ready=True,
+            reason='Semgrep ready',
+            steps=(
+                AnalyzerCommand(
+                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
+                    description='Run Semgrep with the auto configuration.',
+                ),
+            ),
+        ),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'plan'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'Analysis Execution Plan' in result.stdout
+    assert 'Semgrep' in result.stdout
+    assert 'semgrep scan --config=auto --metrics=off' in result.stdout
+
+
+def test_cli_analysis_plan_handles_empty_steps(monkeypatch, tmp_path: Path) -> None:
+    """Plan rendering should handle analyzers without explicit steps."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+    plans = (
+        AnalyzerPlan(
+            tool='CodeQL',
+            ready=False,
+            reason='No CodeQL-supported languages detected.',
+            steps=(),
+        ),
+    )
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'plan'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'No CodeQL-supported languages' in result.stdout
+
+
+def test_cli_analysis_plan_handles_no_plans(monkeypatch, tmp_path: Path) -> None:
+    """Plan command should explain when no analyzers are configured."""
+
+    report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
+
+    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: ())
+
+    result = runner.invoke(
+        app,
+        ['--root', str(tmp_path), 'analysis', 'plan'],
+        env={'NO_COLOR': '1'},
+    )
+    assert result.exit_code == 0, result.stdout
+    assert 'No analyzer plans available yet' in result.stdout
 
 
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:

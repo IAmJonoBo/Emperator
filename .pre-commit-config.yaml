@@ -47,18 +47,6 @@ repos:
           - "-no-color"
   - repo: local
     hooks:
-      - id: cleanup-apple-cruft
-        name: cleanup apple cruft
-        entry: scripts/cleanup-macos-cruft.sh
-        language: system
-        args:
-          - "--include-git"
-        pass_filenames: false
-      - id: ban-apple-cruft
-        name: ban apple cruft
-        entry: scripts/ban-apple-cruft.sh
-        language: system
-        pass_filenames: false
       - id: biome
         name: biome check (JS/TS)
         entry: pnpm biome check --write

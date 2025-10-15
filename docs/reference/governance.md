@@ -15,11 +15,11 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 - Feed generated SBOMs into vulnerability management platforms (Dependency-Track, Azure Defender, etc.) for continuous monitoring.
 - Configure contract policies to block disallowed licenses or aged dependencies by querying SBOM metadata in OPA.
 
-| Artefact | Format | Purpose |
-| --- | --- | --- |
-| Application SBOM | CycloneDX JSON | Documents runtime dependencies for audit trails and CVE scans. |
-| Contract SBOM | SPDX | Captures tools, codemod recipes, and templates used in enforcement. |
-| Combined SBOM | CycloneDX BOM-Link | Links application and infrastructure SBOMs for end-to-end provenance. |
+| Artefact         | Format             | Purpose                                                               |
+| ---------------- | ------------------ | --------------------------------------------------------------------- |
+| Application SBOM | CycloneDX JSON     | Documents runtime dependencies for audit trails and CVE scans.        |
+| Contract SBOM    | SPDX               | Captures tools, codemod recipes, and templates used in enforcement.   |
+| Combined SBOM    | CycloneDX BOM-Link | Links application and infrastructure SBOMs for end-to-end provenance. |
 
 ## Provenance and attestations
 
@@ -65,10 +65,10 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 ## Compliance checklist
 
 1. Contract change log updated with rationale and reviewer approvals.
-2. Latest SBOMs generated, signed, and archived per release.
-3. Attestations attached to build artefacts with verifiable signatures.
-4. Exemptions reviewed within SLA and annotated with next steps.
-5. SARIF/SAST reports stored for the required compliance retention window.
-6. Evidence pack (contract, prompts, test results) bundled for external audits.
+1. Latest SBOMs generated, signed, and archived per release.
+1. Attestations attached to build artefacts with verifiable signatures.
+1. Exemptions reviewed within SLA and annotated with next steps.
+1. SARIF/SAST reports stored for the required compliance retention window.
+1. Evidence pack (contract, prompts, test results) bundled for external audits.
 
 Following these practices ensures Emperator’s automation not only keeps codebases healthy but also provides the documentation and traceability auditors expect.

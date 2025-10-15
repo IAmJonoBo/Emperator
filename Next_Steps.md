@@ -2,8 +2,16 @@
 
 ## Tasks
 
+- [x] Adopt Ruff `ALL` baseline, staged linting, and SARIF workflows per IMPLEMENT_THEN_DELETE.md (Owner: AI, Due: Current pass)
+- [x] Integrate Markdown formatting and cache environment exports across tooling scripts (Owner: AI, Due: Current pass)
+- [x] Repair contract and formatter tests after formatter/lint migration (Owner: AI, Due: Current pass)
+- [ ] Backfill coverage for formatting/tooling helpers (mdformat wrapper, SARIF bundler, cache prune) (Owner: Maintainers, Due: Next pass)
+- [ ] Document mdformat edge cases and Ruff auto-fix behaviour in troubleshooting guides (Owner: Maintainers, Due: Next pass)
 - [x] Add contract validation CLI command with structural checks and strict mode (Owner: AI, Due: Current pass)
 - [x] Update CLI documentation to cover contract validation workflows (Owner: AI, Due: Current pass)
+- [x] Refactor Typer option definitions to satisfy Ruff boolean argument rules while retaining CLI flags (Owner: AI, Due: Current pass)
+- [x] Re-run full lint/test/type/build pipeline after Ruff refactor (Owner: AI, Due: Current pass)
+- [ ] Investigate pytest-cov gaps for formatting/tooling fixtures highlighted during current pass (Owner: Maintainers, Due: Next pass)
 - [ ] Groom Sprint 4 backlog for IR & analysis integration per `emperator_specs/Sprint_Playbook.md` (Owner: AI, Due: Next pass)
 - [ ] Outline Sprint 5 safety envelope milestones and dependencies from `emperator_specs/Project_Plan.md` (Owner: Maintainers, Due: Next pass)
 - [ ] Establish contract validation as a pre-merge quality gate (Owner: Maintainers, Due: Next pass)
@@ -37,6 +45,7 @@
 
 - Upcoming: align Sprint 4 backlog for IR/analyzer integration using `emperator_specs/Sprint_Playbook.md` as guidance and capture dependencies in backlog tooling.
 - Upcoming: draft Sprint 5 safety envelope milestones from `emperator_specs/Project_Plan.md` and identify telemetry/prerequisite workstreams.
+- Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.
 - Completed: established contract validation CLI with strict-mode escalation and tabled warnings in output.
 - Completed: refactored analysis run summary helpers for deterministic severity rendering and mypy compliance.
 - Completed: strengthened CLI severity flows with metadata capture and invalid-option coverage.
@@ -59,10 +68,12 @@
 - Completed: enforced analyzer command severity metadata, CLI validation errors, and telemetry capture for severity filters.
 - Completed: hardened JSONL telemetry store to skip malformed entries and rewrite atomically.
 - Completed: improved analyzer execution resilience by capturing missing binary errors in telemetry output.
+- Completed: refactored Typer option helpers to appease Ruff `FBT003` while keeping `--apply`/`--dry-run` ergonomics intact and reran validation suite.
 
 ## Deliverables
 
 - ✅ Contract validation CLI command with structural validation helpers and strict-mode coverage.
+- ✅ Tooling migration artifacts: Ruff `ALL` config, mdformat integration, staged lint + SARIF scripts, cache prune helper, and CI pre-commit job with artifacts.
 - ✅ Additional CLI regression tests covering severity aggregation, metadata persistence, and invalid filter handling.
 - ✅ Developer CLI (`src/emperator/cli.py`) with scaffold/doctor/fix workflows and 100% coverage.
 - ✅ Scaffolding + doctor utility modules with TODO-stub generation and remediation metadata.
@@ -84,11 +95,13 @@
 
 ## Quality Gates
 
-- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=emperator --cov-report=term-missing` (82 passed, 100% coverage).
+- ✅ Tests: `uv run --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing` (106 passed, 99% coverage; formatting/tooling helper coverage follow-up remains).
+- ✅ Format: `pnpm fmt` and `pnpm fmt -- --check`.
 - ✅ Lint: `pnpm lint`.
+- ✅ Lint (SARIF generation): `pnpm lint:sarif`.
 - ✅ Types: `uv run mypy src`.
 - ✅ Security: `uv run --with bandit bandit -r src` (no issues).
-- ⚠️ Security: `uv tool run pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
+- ⚠️ Security: `uv run --with pip-audit pip-audit` (fails due to container SSL trust store; requires upstream certificate fix).
 - ✅ Build: `uv run --with build python -m build` (warning resolved after SPDX remediation).
 - ✅ Contract: `emperator contract validate --strict` to gate OpenAPI changes.
 - ✅ Telemetry caching: Fingerprint helper landed with unit coverage; JSONL persistence prototype implemented with CLI integration.
@@ -103,6 +116,7 @@
 - Analyzer run usage: `emperator analysis run` (telemetry-backed analyzer execution).
 - Analyzer plan usage: `emperator analysis plan` (Semgrep/CodeQL command scaffolding).
 - Telemetry design: `docs/adr/0003-analyzer-telemetry-architecture.md`, `src/emperator/analysis.py` telemetry helpers.
+- Linting & formatting workflow reference: `docs/reference/linting-formatting.md`.
 
 ## Risks/Notes
 
@@ -118,3 +132,6 @@
 - Severity gating currently skips only tagged steps; evaluate richer filtering and summarisation pipelines before enabling hard failures.
 - Telemetry store now drops malformed JSONL entries silently; consider emitting warnings or metrics in future hardening passes.
 - Contract validation currently enforces structural checks; integrate full OpenAPI schema validation tooling in future sprints if dependency policy allows.
+- Coverage for select formatting/tooling fixture branches remains at 99%; schedule targeted tests or adjust expectations before raising quality gate thresholds.
+- Ruff auto-fix mode is enabled; `pnpm lint` will rewrite Python sources/tests when issues are detected—communicate before running in shared branches.
+- mdformat rewrites Markdown structure (lists/tables); audit semantic diffs during follow-up documentation edits.

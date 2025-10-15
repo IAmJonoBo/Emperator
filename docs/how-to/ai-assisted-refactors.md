@@ -8,7 +8,7 @@ Emperator’s deterministic codemods cover common rules, but some refactors bene
 - Configure Emperator’s AI bridge via `emperator ai init --model path/to/model.gguf --max-tokens 1024`. This stores model metadata in `.emperator/config.yaml`.
 - Set `EMPERATOR_AI_ENABLED=1` in your environment to opt in.
 
-```yaml title=".emperator/config.yaml"
+````yaml title=".emperator/config.yaml"
 ai:
   provider: local
   model_path: /models/code-llama-13b.gguf
@@ -17,7 +17,7 @@ ai:
   stop_sequences:
     - "```"
     - "# end"
-```
+````
 
 ## 2. Follow the propose → rank → validate loop
 
@@ -35,8 +35,8 @@ flowchart LR
 The loop guarantees that AI assistance never bypasses Emperator’s core validation:
 
 1. **Propose:** Emperator crafts a prompt with the rule description, relevant code slice, and contract snippets. It requests multiple candidates to improve diversity.
-2. **Rank:** Candidates are evaluated using contract-aware heuristics (diff size, naming compliance) and quick static checks. Lower-ranked suggestions are discarded early.
-3. **Validate:** The remaining candidate is applied in a scratch workspace, then Emperator re-runs static analysis and optional property-based tests. Only if everything passes does the change graduate to a formal suggestion.
+1. **Rank:** Candidates are evaluated using contract-aware heuristics (diff size, naming compliance) and quick static checks. Lower-ranked suggestions are discarded early.
+1. **Validate:** The remaining candidate is applied in a scratch workspace, then Emperator re-runs static analysis and optional property-based tests. Only if everything passes does the change graduate to a formal suggestion.
 
 ## 3. Craft effective prompts
 

@@ -8,16 +8,17 @@ settings.
 
 ## Quick matrix
 
-| Domain | Primary tool | Configuration | What it guarantees |
-| --- | --- | --- | --- |
-| JavaScript / TypeScript / JSON / CSS / HTML | [Biome 2.2.6](https://biomejs.dev/) | `biome.json` | Fast formatter + linter with strict defaults, consistent JSON/CSS/HTML wrapping, ignores generated assets |
-| JavaScript / TypeScript (semantic) | [ESLint 9](https://eslint.org/) + `eslint-plugin-import` | `eslint.config.js` | Module graph hygiene, import sorting, complements Biome with type-aware rules |
-| Python | [Ruff](https://docs.astral.sh/ruff/) | `pyproject.toml` (`[tool.ruff]`) | PEP8-aligned formatting, lint bundles (`E`, `F`, `I`, `W`, `UP`, `B`, `C90`), fixes applied by default |
-| YAML | [yamllint](https://yamllint.readthedocs.io/) + `scripts/format-yaml.mjs` | `.yamllint` + `pnpm fmt` | Enforces 2-space indentation, sequence alignment, YAML formatter mirrors Biome defaults |
-| GitHub Actions | [actionlint](https://github.com/rhysd/actionlint) | pre-commit hook | Validates workflow syntax, catches unused inputs, ensures indentation |
-| Shell | [shfmt](https://github.com/mvdan/sh) | Pre-commit args `-w -i 2 -bn -ci` | Enforces POSIX shell formatting with 2-space indents |
-| Universal hygiene | pre-commit hooks | `.pre-commit-config.yaml` | Trailing whitespace, missing EOF newlines, prevents macOS metadata from entering Git |
-| Commits | [commitlint](https://commitlint.js.org/) | `package.json` `commitlint` block | Conventional commits for changelog + automation |
+| Domain                                      | Primary tool                                                             | Configuration                     | What it guarantees                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| JavaScript / TypeScript / JSON / CSS / HTML | [Biome 2.2.6](https://biomejs.dev/)                                      | `biome.json`                      | Fast formatter + linter with strict defaults, consistent JSON/CSS/HTML wrapping, ignores generated assets |
+| JavaScript / TypeScript (semantic)          | [ESLint 9](https://eslint.org/) + `eslint-plugin-import`                 | `eslint.config.js`                | Module graph hygiene, import sorting, complements Biome with type-aware rules                             |
+| Python                                      | [Ruff](https://docs.astral.sh/ruff/)                                     | `pyproject.toml` (`[tool.ruff]`)  | PEP8-aligned formatting, full `ALL` rule preset with curated ignores, fixes applied by default            |
+| Markdown                                    | [mdformat](https://mdformat.readthedocs.io/) + `mdformat-gfm`            | `pnpm fmt` orchestrator           | Normalises Markdown prose (tables, lists, fenced blocks) alongside YAML and Ruff                          |
+| YAML                                        | [yamllint](https://yamllint.readthedocs.io/) + `scripts/format-yaml.mjs` | `.yamllint` + `pnpm fmt`          | Enforces 2-space indentation, sequence alignment, YAML formatter mirrors Biome defaults                   |
+| GitHub Actions                              | [actionlint](https://github.com/rhysd/actionlint)                        | pre-commit hook                   | Validates workflow syntax, catches unused inputs, ensures indentation                                     |
+| Shell                                       | [shfmt](https://github.com/mvdan/sh)                                     | Pre-commit args `-w -i 2 -bn -ci` | Enforces POSIX shell formatting with 2-space indents                                                      |
+| Universal hygiene                           | pre-commit hooks                                                         | `.pre-commit-config.yaml`         | Trailing whitespace, missing EOF newlines, prevents macOS metadata from entering Git                      |
+| Commits                                     | [commitlint](https://commitlint.js.org/)                                 | `package.json` `commitlint` block | Conventional commits for changelog + automation                                                           |
 
 The `scripts/setup-tooling.sh` entry point wires everything together for both local developers and
 CI. Running `bash scripts/setup-tooling.sh` installs Python + Node dependencies, installs
@@ -30,36 +31,40 @@ Biome acts as the first line of defence for every web asset. The configuration i
 mirrors the installed version (2.2.6) to avoid schema drift and enables Biome's recommended linting
 profile. Key decisions:
 
-- **Formatting rules** &mdash; JS/TS use double quotes, trailing commas follow the `es5` style, HTML/CSS
+- **Formatting rules** — JS/TS use double quotes, trailing commas follow the `es5` style, HTML/CSS
   respect a 100 character line width. These defaults align with our documentation theme and keep
   diffs tight across auto-generated snippets.
-- **Ignored paths** &mdash; We explicitly drop MkDocs output (`site/`), pnpm cache,
+- **Ignored paths** — We explicitly drop MkDocs output (`site/`), pnpm cache,
   Python virtualenvs, minified bundles, and macOS `._*` resource forks. Biome previously surfaced IO
   errors on Apple metadata files; excluding them keeps the pipeline green on macOS.
-- **Global formatter defaults** &mdash; The `formatter` block sets the global indentation and line width
+- **Global formatter defaults** — The `formatter` block sets the global indentation and line width
   (two-space indent, 100 character width) so any future Biome-supported language inherits the same
   layout without additional overrides.
-- **Maximum file size** &mdash; Large bundles (>1 MiB) are skipped to ensure deterministic performance in CI.
+- **Maximum file size** — Large bundles (>1 MiB) are skipped to ensure deterministic performance in CI.
 
 Biome runs via two scripts:
 
-- `pnpm fmt` delegates to `scripts/run-format.mjs`, which formats YAML (`scripts/format-yaml.mjs`),
-  runs `biome format --write .`, then executes `uv run ruff format .` followed by
-  `uv run ruff check . --select I --fix` to keep Python sources aligned and imports sorted. Append
-  `--all` to include a full `uv run ruff check . --fix` sweep after the import-only pass, or
-  `--check` to execute the same pipeline without writing to disk (`biome format --write=false`,
-  `ruff format --check`, and YAML diff detection). Install `uv` (or run `scripts/setup-tooling.sh`)
-  before invoking the formatter so the Ruff commands are available.
+- `pnpm fmt` delegates to `scripts/run-format.mjs`, which now runs three discrete stages: the YAML
+  normaliser (`scripts/format-yaml.mjs`), Markdown formatting via `mdformat -x gfm`, and Biome's
+  formatter before finishing with Ruff format/import sorting. Append `--all` to include a full
+  `uv run ruff check . --fix` sweep after the import-only pass, or `--check` to execute the same
+  pipeline without writing to disk. Install `uv` (or run `scripts/setup-tooling.sh`) before invoking
+  the formatter so the Ruff and mdformat commands are available.
 - `pnpm check` executes `biome check .` without writes and is the first half of `pnpm lint`.
+- `pnpm lint:staged` trims the feedback loop by running Ruff, Biome, and ESLint against only the
+  files staged for commit. Use it before `git commit` when you want to avoid a full-repo pass.
+- `pnpm lint:sarif` bundles Ruff/Biome/ESLint diagnostics into `.sarif/` for upload to GitHub's
+  Security tab or local SARIF viewers. The command preserves exit codes from each tool so CI still
+  fails on lint breaches.
 
 ESLint supplements Biome with rules that require type/module awareness. `eslint.config.js` imports
 ESLint's flat config plus the TypeScript preset from `typescript-eslint` and the [`eslint-plugin-import`](https://github.com/import-js/eslint-plugin-import) package. Rationale:
 
-- **Module hygiene** &mdash; We enforce alphabetical import ordering and a newline after import groups to
+- **Module hygiene** — We enforce alphabetical import ordering and a newline after import groups to
   keep service modules readable.
-- **Environment globals** &mdash; `globals.browser` and `globals.node` mirror the hybrid runtime our
+- **Environment globals** — `globals.browser` and `globals.node` mirror the hybrid runtime our
   scripts target (CLIs plus front-end docs tooling).
-- **Ignored paths** &mdash; Matches Biome's exclusions and adds `.venv/`, `.pnpm-store/`, and coverage
+- **Ignored paths** — Matches Biome's exclusions and adds `.venv/`, `.pnpm-store/`, and coverage
   reports so ESLint never inspects generated output.
 
 Run ESLint with `pnpm lint:eslint`. The combined `pnpm lint` script now runs `pnpm lint:ruff`,
@@ -89,9 +94,9 @@ into additional automation.
 
 1. **Extend Biome rules** by editing `biome.json`. The schema link at the top keeps IDE validation in
    sync; use Biome's `migrate` subcommand after upgrades.
-2. **Add ESLint plugins** by updating `devDependencies` and the `plugins` block inside
+1. **Add ESLint plugins** by updating `devDependencies` and the `plugins` block inside
    `eslint.config.js`. Remember to document new rules in this reference.
-3. **Generated assets** should be ignored in both tools to avoid slow linting and CI noise.
+1. **Generated assets** should be ignored in both tools to avoid slow linting and CI noise.
 
 ## Python: Ruff-first workflow
 
@@ -99,8 +104,8 @@ Python style enforcement lives in `pyproject.toml`:
 
 - **Targets Python 3.11** to match our runtime requirement.
 - **Line length 100** aligns with the JS/CSS width, so prose and code patches remain consistent.
-- **Lint bundles** cover the most common error classes (`E`, `F`, `I`, `W`) plus modernization (`UP`),
-  bugbear (`B`), and complex comprehension checks (`C90`).
+- **Rule preset** uses Ruff's `ALL` bundle with ignores tailored to our CLI/test ergonomics. This
+  surfaces security, performance, and modernization regressions without drowning tests in noise.
 - **Formatter integration** (`ruff format`) honours single quotes to match our FastAPI templates.
 - **Exclusions** mirror the non-source directories Biome ignores, keeping the mental model aligned.
 
@@ -150,6 +155,21 @@ Python portion of the stack.
 Install the hooks automatically with `scripts/setup-tooling.sh` (development mode) or manually via
 `pre-commit install --install-hooks`.
 
+## Cache management and troubleshooting
+
+- `scripts/setup-tooling.sh` and `scripts/setup-linting.sh` export `PRE_COMMIT_HOME` and
+  `UV_CACHE_DIR` into the repository's `.cache/` directory. This keeps hook environments and uv
+  wheels fast to reuse and easy to prune.
+- Run `pnpm cache:prune` (wrapper around `scripts/cache-prune.sh`) to reclaim disk space. The helper
+  prunes the pnpm store, `uv cache`, and any pre-commit environments in one pass.
+- `pnpm lint:staged` is the quickest way to validate edits before committing. Use it whenever `pnpm lint` feels heavy.
+- When Ruff surfaces a new rule after the `ALL` migration, prefer fixing the code. If a rule produces
+  a false positive, add the targeted ignore to `pyproject.toml` alongside a doc update explaining the
+  trade-off.
+- Biome's JSON reporter prints a stability warning before the JSON payload. Our SARIF bundler strips
+  that line automatically, but if you hit `Biome JSON reporter did not produce parseable output`,
+  upgrade Biome with `pnpm upgrade @biomejs/biome` and re-run `pnpm lint:sarif`.
+
 ## Commit hygiene: Commitlint
 
 Commit messages must follow the Conventional Commits schema. `pnpm commitlint --edit` is wired as a
@@ -160,13 +180,13 @@ with the scripts documented earlier in this guide.
 
 ## Extending or diverging from the defaults
 
-- **Change detection** &mdash; Update this document whenever you modify linting or formatting behaviour.
-- **Project variants** &mdash; If a downstream consumer needs different rules, duplicate the relevant
+- **Change detection** — Update this document whenever you modify linting or formatting behaviour.
+- **Project variants** — If a downstream consumer needs different rules, duplicate the relevant
   config file and adjust pre-commit to run an alternative command set.
-- **Upgrades** &mdash; For Biome or ESLint, upgrade the dependency in `package.json`, run the respective
+- **Upgrades** — For Biome or ESLint, upgrade the dependency in `package.json`, run the respective
   migration commands (`pnpm biome migrate`, `npx eslint --print-config` diffing), and validate with
   `scripts/setup-tooling.sh --ci` before merging.
-- **CI integration** &mdash; Any pipeline should call `bash scripts/setup-tooling.sh --ci` to reproduce the
+- **CI integration** — Any pipeline should call `bash scripts/setup-tooling.sh --ci` to reproduce the
   exact checks documented here.
 
 Keeping this reference current ensures every contributor understands both the _what_ and the _why_

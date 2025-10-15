@@ -58,7 +58,7 @@ This structure maps cleanly to a C4 view: the CLI/LSP service acts as the primar
 
 - **Plugin interfaces:** New languages integrate by implementing parser adapters, analyzer hooks, and codemod providers. Policy plug-ins can introduce specialized analyzers (e.g., MISRA checkers) without altering the core orchestrator.
 - **Performance budgets:** Emperator differentiates between fast interactive checks and exhaustive CI runs. Users can opt into deeper analyses (full CodeQL packs, fuzz tests) in pipelines while keeping pre-commit execution under a few seconds.
-<a id="offline-operation"></a>
+  <a id="offline-operation"></a>
 - **Offline operation:** All components run locally, ensuring suitability for air-gapped environments. Optional AI assistance uses on-prem models only (see the AI-assisted how-to guide for details).
 
 With this architecture, Emperator ensures contracts remain executable, analyses stay coherent across languages, and automated changes land safely under rigorous validation.

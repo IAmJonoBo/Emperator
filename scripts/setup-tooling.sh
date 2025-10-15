@@ -142,6 +142,14 @@ if [[ ! -f "pyproject.toml" ]]; then
   exit 1
 fi
 
+CACHE_ROOT="${ROOT_DIR}/.cache"
+export PRE_COMMIT_HOME="${PRE_COMMIT_HOME:-${CACHE_ROOT}/pre-commit}"
+export UV_CACHE_DIR="${UV_CACHE_DIR:-${CACHE_ROOT}/uv}"
+export RUFF_CACHE_DIR="${RUFF_CACHE_DIR:-${CACHE_ROOT}/ruff}"
+export PIP_CACHE_DIR="${PIP_CACHE_DIR:-${CACHE_ROOT}/pip}"
+
+mkdir -p "${PRE_COMMIT_HOME}" "${UV_CACHE_DIR}" "${RUFF_CACHE_DIR}" "${PIP_CACHE_DIR}"
+
 detect_uv() {
   if [[ -n ${UV_BIN-} && -x ${UV_BIN} ]]; then
     echo "${UV_BIN}"

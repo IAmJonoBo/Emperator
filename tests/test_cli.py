@@ -26,7 +26,7 @@ try:
     from emperator.contract import ContractValidationResult
     from emperator.doctor import RemediationAction
 except ModuleNotFoundError:  # pragma: no cover - allow running tests without install
-    sys.path.append(str(Path(__file__).resolve().parent.parent / 'src'))
+    sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
     from emperator import cli as cli_module
     from emperator.analysis import (
         AnalysisHint,
@@ -49,62 +49,61 @@ def test_cli_scaffold_ensure_creates_structure(tmp_path: Path) -> None:
     """Scaffold ensure should create the expected policy file."""
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'scaffold', 'ensure'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "scaffold", "ensure"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    policy_path = tmp_path / 'contract' / 'policy' / 'policy.rego'
+    policy_path = tmp_path / "contract" / "policy" / "policy.rego"
     assert policy_path.exists()
-    assert 'TODO' in policy_path.read_text(encoding='utf-8')
+    assert "TODO" in policy_path.read_text(encoding="utf-8")
 
 
 def test_cli_scaffold_audit_reports_missing(tmp_path: Path) -> None:
     """Scaffold audit should report missing assets."""
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'scaffold', 'audit'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "scaffold", "audit"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'policy.rego' in result.stdout
+    assert "policy.rego" in result.stdout
 
 
 def test_cli_scaffold_ensure_dry_run(tmp_path: Path) -> None:
     """Dry-run ensure should not write to disk."""
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'scaffold', 'ensure', '--dry-run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "scaffold", "ensure", "--dry-run"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Dry run complete' in result.stdout
-    assert not (tmp_path / 'contract').exists()
+    assert "Dry run complete" in result.stdout
+    assert not (tmp_path / "contract").exists()
 
 
 def test_cli_doctor_env_reports_status(tmp_path: Path) -> None:
     """Doctor env should report bootstrap status."""
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'doctor', 'env'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "doctor", "env"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Environment Checks' in result.stdout
-    assert 'Tooling bootstrap' in result.stdout
+    assert "Environment Checks" in result.stdout
+    assert "Tooling bootstrap" in result.stdout
 
 
 def test_cli_contract_validate_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """Contract validate should report success and surface warnings."""
-
     monkeypatch.setattr(
         cli_module,
-        'validate_contract_spec',
-        lambda strict=False: ContractValidationResult(errors=(), warnings=('Missing server',)),
+        "validate_contract_spec",
+        lambda strict=False: ContractValidationResult(errors=(), warnings=("Missing server",)),
     )
-    result = runner.invoke(app, ['contract', 'validate'], env={'NO_COLOR': '1'})
+    result = runner.invoke(app, ["contract", "validate"], env={"NO_COLOR": "1"})
     assert result.exit_code == 0, result.stdout
-    assert 'Contract validation passed' in result.stdout
-    assert 'Missing server' in result.stdout
+    assert "Contract validation passed" in result.stdout
+    assert "Missing server" in result.stdout
 
 
 def test_cli_contract_validate_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -112,56 +111,55 @@ def test_cli_contract_validate_failure(monkeypatch: pytest.MonkeyPatch) -> None:
 
     def fake(strict: bool = False) -> ContractValidationResult:
         del strict
-        return ContractValidationResult(errors=('Missing openapi',), warnings=('Missing server',))
+        return ContractValidationResult(errors=("Missing openapi",), warnings=("Missing server",))
 
-    monkeypatch.setattr(cli_module, 'validate_contract_spec', fake)
-    result = runner.invoke(app, ['contract', 'validate'], env={'NO_COLOR': '1'})
+    monkeypatch.setattr(cli_module, "validate_contract_spec", fake)
+    result = runner.invoke(app, ["contract", "validate"], env={"NO_COLOR": "1"})
     assert result.exit_code == 1
-    assert 'Missing openapi' in result.stdout
-    assert 'Missing server' in result.stdout
+    assert "Missing openapi" in result.stdout
+    assert "Missing server" in result.stdout
 
 
 def test_cli_contract_validate_strict(monkeypatch: pytest.MonkeyPatch) -> None:
     """Strict mode should forward the flag and hide warnings."""
-
     calls: list[bool] = []
 
     def fake(strict: bool = False) -> ContractValidationResult:
         calls.append(strict)
-        return ContractValidationResult(errors=('Strict failure',), warnings=())
+        return ContractValidationResult(errors=("Strict failure",), warnings=())
 
-    monkeypatch.setattr(cli_module, 'validate_contract_spec', fake)
-    result = runner.invoke(app, ['contract', 'validate', '--strict'], env={'NO_COLOR': '1'})
+    monkeypatch.setattr(cli_module, "validate_contract_spec", fake)
+    result = runner.invoke(app, ["contract", "validate", "--strict"], env={"NO_COLOR": "1"})
     assert result.exit_code == 1
     assert calls == [True]
-    assert 'Strict failure' in result.stdout
-    assert 'Missing server' not in result.stdout
+    assert "Strict failure" in result.stdout
+    assert "Missing server" not in result.stdout
 
 
 def test_cli_fix_plan_lists_actions() -> None:
     """Fix plan should list available remediation actions."""
-    result = runner.invoke(app, ['fix', 'plan'], env={'NO_COLOR': '1'})
+    result = runner.invoke(app, ["fix", "plan"], env={"NO_COLOR": "1"})
     assert result.exit_code == 0, result.stdout
-    assert 'Auto-remediation Plan' in result.stdout
-    assert 'Sync Python tooling' in result.stdout
+    assert "Auto-remediation Plan" in result.stdout
+    assert "Sync Python tooling" in result.stdout
 
 
 def test_cli_doctor_env_apply_runs_remediations(monkeypatch, tmp_path: Path) -> None:
     """Doctor env apply should execute remediation actions."""
-    actions = (RemediationAction('Sample', ('echo', 'sample'), 'desc'),)
+    actions = (RemediationAction("Sample", ("echo", "sample"), "desc"),)
     executed: list[tuple[RemediationAction, bool, Path | None]] = []
 
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: actions)
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: actions)
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
         executed.append((action, dry_run, cwd))
-        return SimpleNamespace(returncode=0, stderr='')
+        return SimpleNamespace(returncode=0, stderr="")
 
-    monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
+    monkeypatch.setattr(cli_module, "run_remediation", fake_run)
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'doctor', 'env', '--apply'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "doctor", "env", "--apply"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
     assert executed and executed[0][1] is False
@@ -169,237 +167,232 @@ def test_cli_doctor_env_apply_runs_remediations(monkeypatch, tmp_path: Path) -> 
 
 def test_cli_doctor_env_apply_handles_failure(monkeypatch, tmp_path: Path) -> None:
     """Doctor env apply should surface remediation failures."""
-    action = RemediationAction('Fail', ('echo', 'fail'), 'desc')
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
+    action = RemediationAction("Fail", ("echo", "fail"), "desc")
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
         del action, dry_run, cwd
-        return SimpleNamespace(returncode=1, stderr='boom')
+        return SimpleNamespace(returncode=1, stderr="boom")
 
-    monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
+    monkeypatch.setattr(cli_module, "run_remediation", fake_run)
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'doctor', 'env', '--apply'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "doctor", "env", "--apply"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'exited with code 1' in result.stdout
-    assert 'boom' in result.stdout
+    assert "exited with code 1" in result.stdout
+    assert "boom" in result.stdout
 
 
 def test_cli_fix_run_handles_filters(monkeypatch, tmp_path: Path) -> None:
     """Fix run should respect the --only filter when applying."""
     actions = (
-        RemediationAction('A', ('echo', 'a'), 'desc'),
-        RemediationAction('B', ('echo', 'b'), 'desc'),
+        RemediationAction("A", ("echo", "a"), "desc"),
+        RemediationAction("B", ("echo", "b"), "desc"),
     )
     outputs: list[str] = []
 
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: actions)
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: actions)
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
         del dry_run, cwd
         outputs.append(action.name)
-        return SimpleNamespace(returncode=0, stderr='')
+        return SimpleNamespace(returncode=0, stderr="")
 
-    monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
+    monkeypatch.setattr(cli_module, "run_remediation", fake_run)
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'fix', 'run', '--only', 'B', '--apply'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "fix", "run", "--only", "B", "--apply"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert outputs == ['B']
+    assert outputs == ["B"]
 
 
 def test_cli_fix_run_reports_no_match(monkeypatch, tmp_path: Path) -> None:
     """Fix run should report when no actions match filters."""
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: ())
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: ())
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'fix', 'run', '--only', 'missing'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "fix", "run", "--only", "missing"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'No remediation actions matched' in result.stdout
+    assert "No remediation actions matched" in result.stdout
 
 
 def test_cli_fix_run_handles_failure(monkeypatch, tmp_path: Path) -> None:
     """Fix run should report remediation command failures."""
-    action = RemediationAction('Broken', ('echo', 'broken'), 'desc')
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
+    action = RemediationAction("Broken", ("echo", "broken"), "desc")
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
         del action, dry_run, cwd
-        return SimpleNamespace(returncode=2, stderr='fail whale')
+        return SimpleNamespace(returncode=2, stderr="fail whale")
 
-    monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
+    monkeypatch.setattr(cli_module, "run_remediation", fake_run)
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'fix', 'run', '--apply'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "fix", "run", "--apply"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'exited with 2' in result.stdout
-    assert 'fail whale' in result.stdout
+    assert "exited with 2" in result.stdout
+    assert "fail whale" in result.stdout
 
 
 def test_cli_fix_run_dry_run_message(monkeypatch, tmp_path: Path) -> None:
     """Fix run dry-run should explain no commands were executed."""
-    action = RemediationAction('Dry', ('echo', 'dry'), 'desc')
-    monkeypatch.setattr(cli_module, 'iter_actions', lambda: (action,))
+    action = RemediationAction("Dry", ("echo", "dry"), "desc")
+    monkeypatch.setattr(cli_module, "iter_actions", lambda: (action,))
 
     def fake_run(action: RemediationAction, dry_run: bool = True, cwd: Path | None = None):
         del action, dry_run, cwd
-        return SimpleNamespace(returncode=0, stderr='')
+        return SimpleNamespace(returncode=0, stderr="")
 
-    monkeypatch.setattr(cli_module, 'run_remediation', fake_run)
+    monkeypatch.setattr(cli_module, "run_remediation", fake_run)
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'fix', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "fix", "run"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Dry run complete' in result.stdout
+    assert "Dry run complete" in result.stdout
 
 
 def test_cli_analysis_inspect_renders_report(monkeypatch, tmp_path: Path) -> None:
     """Analysis inspect should render language and tooling information."""
-
     from emperator.analysis import LanguageSummary, ToolStatus
 
     report = AnalysisReport(
-        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
+        languages=(LanguageSummary(language="Python", file_count=2, sample_files=("src/app.py",)),),
         tool_statuses=(
             ToolStatus(
-                name='CodeQL',
+                name="CodeQL",
                 available=False,
                 location=None,
-                hint='Install CodeQL CLI',
+                hint="Install CodeQL CLI",
             ),
         ),
         hints=(
             AnalysisHint(
-                topic='CodeQL',
-                guidance='Install CodeQL CLI to enable semantic checks.',
+                topic="CodeQL",
+                guidance="Install CodeQL CLI to enable semantic checks.",
             ),
         ),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'inspect'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "inspect"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Analysis Overview' in result.stdout
-    assert 'Python' in result.stdout
-    assert 'CodeQL' in result.stdout
-    assert 'Install CodeQL CLI' in result.stdout
+    assert "Analysis Overview" in result.stdout
+    assert "Python" in result.stdout
+    assert "CodeQL" in result.stdout
+    assert "Install CodeQL CLI" in result.stdout
 
 
 def test_cli_analysis_inspect_handles_empty_languages(monkeypatch, tmp_path: Path) -> None:
     """Analysis inspect should fall back gracefully when nothing is detected."""
-
     from emperator.analysis import ToolStatus
 
     report = AnalysisReport(
         languages=(),
         tool_statuses=(
-            ToolStatus(name='Semgrep', available=False, location=None, hint='Install Semgrep'),
+            ToolStatus(name="Semgrep", available=False, location=None, hint="Install Semgrep"),
         ),
-        hints=(AnalysisHint(topic='Sources', guidance='Add code.'),),
+        hints=(AnalysisHint(topic="Sources", guidance="Add code."),),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'inspect'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "inspect"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'No supported languages detected' in result.stdout
-    assert 'Hints' in result.stdout
+    assert "No supported languages detected" in result.stdout
+    assert "Hints" in result.stdout
 
 
 def test_cli_analysis_wizard_surfaces_hints(monkeypatch, tmp_path: Path) -> None:
     """Analysis wizard should surface actionable hints for missing tooling."""
-
     from emperator.analysis import ToolStatus
 
     report = AnalysisReport(
         languages=(),
         tool_statuses=(
             ToolStatus(
-                name='Semgrep',
+                name="Semgrep",
                 available=False,
                 location=None,
-                hint='Install Semgrep',
+                hint="Install Semgrep",
             ),
             ToolStatus(
-                name='CodeQL',
+                name="CodeQL",
                 available=True,
-                location='/opt/codeql',
-                hint='Available at /opt/codeql',
+                location="/opt/codeql",
+                hint="Available at /opt/codeql",
             ),
         ),
         hints=(
             AnalysisHint(
-                topic='Semgrep',
-                guidance='Install Semgrep for contract-driven scans.',
+                topic="Semgrep",
+                guidance="Install Semgrep for contract-driven scans.",
             ),
         ),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'wizard'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "wizard"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Interactive Analysis Wizard' in result.stdout
-    assert 'Semgrep' in result.stdout
-    assert 'Install Semgrep' in result.stdout
+    assert "Interactive Analysis Wizard" in result.stdout
+    assert "Semgrep" in result.stdout
+    assert "Install Semgrep" in result.stdout
 
 
 def test_cli_analysis_wizard_reports_languages(monkeypatch, tmp_path: Path) -> None:
     """Analysis wizard should celebrate detected languages."""
-
     from emperator.analysis import LanguageSummary, ToolStatus
 
     report = AnalysisReport(
-        languages=(LanguageSummary(language='Python', file_count=2, sample_files=('src/app.py',)),),
+        languages=(LanguageSummary(language="Python", file_count=2, sample_files=("src/app.py",)),),
         tool_statuses=(
             ToolStatus(
-                name='Tree-sitter CLI',
+                name="Tree-sitter CLI",
                 available=True,
-                location='/usr/bin/tree-sitter',
-                hint='Available at /usr/bin/tree-sitter',
+                location="/usr/bin/tree-sitter",
+                hint="Available at /usr/bin/tree-sitter",
             ),
         ),
         hints=(),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'wizard'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "wizard"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Review detected languages' in result.stdout
-    assert 'Python' in result.stdout
+    assert "Review detected languages" in result.stdout
+    assert "Python" in result.stdout
 
 
 def test_cli_analysis_plan_renders_steps(monkeypatch, tmp_path: Path) -> None:
     """Analysis plan should display execution steps for analyzers."""
-
     report = AnalysisReport(
         languages=(),
         tool_statuses=(),
@@ -408,97 +401,94 @@ def test_cli_analysis_plan_renders_steps(monkeypatch, tmp_path: Path) -> None:
     )
     plans = (
         AnalyzerPlan(
-            tool='Semgrep',
+            tool="Semgrep",
             ready=True,
-            reason='Semgrep ready',
+            reason="Semgrep ready",
             steps=(
                 AnalyzerCommand(
-                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
-                    description='Run Semgrep with the auto configuration.',
+                    command=("semgrep", "scan", "--config=auto", "--metrics=off", str(tmp_path)),
+                    description="Run Semgrep with the auto configuration.",
                 ),
             ),
         ),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: plans)
     monkeypatch.setattr(
         cli_module,
-        'fingerprint_analysis',
-        lambda report, plans, metadata=None: 'demo-fingerprint',
+        "fingerprint_analysis",
+        lambda report, plans, metadata=None: "demo-fingerprint",
     )
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'plan'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "plan"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Analysis Execution Plan' in result.stdout
-    assert 'Semgrep' in result.stdout
-    assert 'semgrep scan --config=auto --metrics=off' in result.stdout
-    assert 'Telemetry fingerprint' in result.stdout
-    assert 'demo-fingerprint' in result.stdout
-    assert 'No telemetry recorded for this plan yet.' in result.stdout
+    assert "Analysis Execution Plan" in result.stdout
+    assert "Semgrep" in result.stdout
+    assert "semgrep scan --config=auto --metrics=off" in result.stdout
+    assert "Telemetry fingerprint" in result.stdout
+    assert "demo-fingerprint" in result.stdout
+    assert "No telemetry recorded for this plan yet." in result.stdout
 
 
 def test_cli_analysis_plan_handles_empty_steps(monkeypatch, tmp_path: Path) -> None:
     """Plan rendering should handle analyzers without explicit steps."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plans = (
         AnalyzerPlan(
-            tool='CodeQL',
+            tool="CodeQL",
             ready=False,
-            reason='No CodeQL-supported languages detected.',
+            reason="No CodeQL-supported languages detected.",
             steps=(),
         ),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: plans)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'plan'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "plan"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'No CodeQL-supported languages' in result.stdout
+    assert "No CodeQL-supported languages" in result.stdout
 
 
 def test_cli_analysis_plan_handles_no_plans(monkeypatch, tmp_path: Path) -> None:
     """Plan command should explain when no analyzers are configured."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: ())
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: ())
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'plan'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "plan"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'No analyzer plans available yet' in result.stdout
+    assert "No analyzer plans available yet" in result.stdout
 
 
 def test_cli_analysis_plan_reports_cached_telemetry(monkeypatch, tmp_path: Path) -> None:
     """Telemetry banner should surface details about the most recent run."""
-
-    store_path = tmp_path / 'telemetry'
+    store_path = tmp_path / "telemetry"
     store = JSONLTelemetryStore(store_path, max_history=5)
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plans = (
         AnalyzerPlan(
-            tool='Semgrep',
+            tool="Semgrep",
             ready=True,
-            reason='Ready',
+            reason="Ready",
             steps=(
                 AnalyzerCommand(
-                    command=('semgrep', 'scan', '--config=auto', '--metrics=off', str(tmp_path)),
-                    description='Run Semgrep with auto config.',
+                    command=("semgrep", "scan", "--config=auto", "--metrics=off", str(tmp_path)),
+                    description="Run Semgrep with auto config.",
                 ),
             ),
         ),
@@ -506,12 +496,12 @@ def test_cli_analysis_plan_reports_cached_telemetry(monkeypatch, tmp_path: Path)
     fingerprint = fingerprint_analysis(report, plans)
     start = datetime.now(UTC)
     event = TelemetryEvent(
-        tool='Semgrep',
+        tool="Semgrep",
         command=plans[0].steps[0].command,
         exit_code=0,
         duration_seconds=3.2,
         timestamp=start,
-        metadata={'config': 'auto'},
+        metadata={"config": "auto"},
     )
     run = TelemetryRun(
         fingerprint=fingerprint,
@@ -519,180 +509,177 @@ def test_cli_analysis_plan_reports_cached_telemetry(monkeypatch, tmp_path: Path)
         started_at=start,
         completed_at=start + timedelta(seconds=3),
         events=(event,),
-        notes=('cached',),
+        notes=("cached",),
     )
     store.persist(run)
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: plans)
     monkeypatch.setattr(
         cli_module,
-        'fingerprint_analysis',
+        "fingerprint_analysis",
         lambda report, plans, metadata=None: fingerprint,
     )
 
     result = runner.invoke(
         app,
         [
-            '--root',
+            "--root",
             str(tmp_path),
-            '--telemetry-store',
-            'jsonl',
-            '--telemetry-path',
+            "--telemetry-store",
+            "jsonl",
+            "--telemetry-path",
             str(store_path),
-            'analysis',
-            'plan',
+            "analysis",
+            "plan",
         ],
-        env={'NO_COLOR': '1'},
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Telemetry fingerprint' in result.stdout
+    assert "Telemetry fingerprint" in result.stdout
     assert str(run.completed_at.isoformat()) in result.stdout
-    assert 'success' in result.stdout.lower()
+    assert "success" in result.stdout.lower()
 
 
 def test_cli_analysis_plan_disables_telemetry(monkeypatch, tmp_path: Path) -> None:
     """CLI should respect the --telemetry-store off flag."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plans = (
         AnalyzerPlan(
-            tool='Semgrep',
+            tool="Semgrep",
             ready=True,
-            reason='Ready',
+            reason="Ready",
             steps=(),
         ),
     )
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: plans)
     monkeypatch.setattr(
         cli_module,
-        'fingerprint_analysis',
-        lambda report, plans, metadata=None: 'disabled-fingerprint',
+        "fingerprint_analysis",
+        lambda report, plans, metadata=None: "disabled-fingerprint",
     )
 
     result = runner.invoke(
         app,
         [
-            '--root',
+            "--root",
             str(tmp_path),
-            '--telemetry-store',
-            'off',
-            'analysis',
-            'plan',
+            "--telemetry-store",
+            "off",
+            "analysis",
+            "plan",
         ],
-        env={'NO_COLOR': '1'},
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code == 0, result.stdout
-    assert 'Telemetry disabled for this session.' in result.stdout
+    assert "Telemetry disabled for this session." in result.stdout
 
 
 def test_cli_analysis_run_executes_plans(monkeypatch, tmp_path: Path) -> None:
     """Analysis run should execute filtered plans and display a summary."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=True,
-        reason='Ready to scan',
+        reason="Ready to scan",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path)),
-                description='Run Semgrep with auto configuration.',
+                command=("semgrep", "--config=auto", str(tmp_path)),
+                description="Run Semgrep with auto configuration.",
             ),
         ),
     )
     start = datetime.now(UTC)
     run = TelemetryRun(
-        fingerprint='run-fingerprint',
+        fingerprint="run-fingerprint",
         project_root=tmp_path,
         started_at=start,
         completed_at=start,
         events=(
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=0,
                 duration_seconds=2.5,
                 timestamp=start,
-                metadata={'description': plan.steps[0].description},
+                metadata={"description": plan.steps[0].description},
             ),
         ),
         notes=(),
     )
     captured: dict[str, object] = {}
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
 
     def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
-        captured['report'] = report_arg
-        captured['plans'] = tuple(plans_arg)
-        captured['kwargs'] = kwargs
-        if kwargs.get('on_step_start') is not None:
-            kwargs['on_step_start'](plans_arg[0], plans_arg[0].steps[0])
-        if kwargs.get('on_step_complete') is not None:
-            kwargs['on_step_complete'](plans_arg[0], plans_arg[0].steps[0], 0, 2.5)
+        captured["report"] = report_arg
+        captured["plans"] = tuple(plans_arg)
+        captured["kwargs"] = kwargs
+        if kwargs.get("on_step_start") is not None:
+            kwargs["on_step_start"](plans_arg[0], plans_arg[0].steps[0])
+        if kwargs.get("on_step_complete") is not None:
+            kwargs["on_step_complete"](plans_arg[0], plans_arg[0].steps[0], 0, 2.5)
         return run
 
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fake_execute)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'Analysis Run Summary' in result.stdout
-    assert 'run-fingerprint' in result.stdout
-    assert 'Semgrep' in result.stdout and 'Success' in result.stdout
-    assert captured['plans'] == (plan,)
-    kwargs = captured['kwargs']
-    assert kwargs['include_unready'] is False
-    assert kwargs['metadata']['command'] == 'analysis-run'
+    assert "Analysis Run Summary" in result.stdout
+    assert "run-fingerprint" in result.stdout
+    assert "Semgrep" in result.stdout and "Success" in result.stdout
+    assert captured["plans"] == (plan,)
+    kwargs = captured["kwargs"]
+    assert kwargs["include_unready"] is False
+    assert kwargs["metadata"]["command"] == "analysis-run"
 
 
 def test_cli_analysis_run_renders_unique_severities(monkeypatch, tmp_path: Path) -> None:
     """The analysis run summary should render unique severities and notes."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=True,
-        reason='Ready to scan',
+        reason="Ready to scan",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path / 'src')),
-                description='Run Semgrep with auto configuration.',
+                command=("semgrep", "--config=auto", str(tmp_path / "src")),
+                description="Run Semgrep with auto configuration.",
             ),
         ),
     )
     start = datetime.now(UTC)
     run = TelemetryRun(
-        fingerprint='severity-run',
+        fingerprint="severity-run",
         project_root=tmp_path,
         started_at=start,
         completed_at=start,
         events=(
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=0,
                 duration_seconds=1.0,
                 timestamp=start,
-                metadata={'severity': 'critical'},
+                metadata={"severity": "critical"},
             ),
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=0,
                 duration_seconds=1.0,
                 timestamp=start,
-                metadata={'severity': 'high'},
+                metadata={"severity": "high"},
             ),
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=0,
                 duration_seconds=1.0,
@@ -700,147 +687,144 @@ def test_cli_analysis_run_renders_unique_severities(monkeypatch, tmp_path: Path)
                 metadata=None,
             ),
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=0,
                 duration_seconds=1.0,
                 timestamp=start,
-                metadata={'description': 'No severity recorded'},
+                metadata={"description": "No severity recorded"},
             ),
         ),
         notes=(
-            'General guidance for the execution summary',
-            'Semgrep: review findings for high severity',
+            "General guidance for the execution summary",
+            "Semgrep: review findings for high severity",
         ),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", lambda *args, **kwargs: run)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'critical, high' in result.stdout
-    assert 'General guidance for the execution summary' in result.stdout
-    assert 'Semgrep: review findings for high severity' in result.stdout
+    assert "critical, high" in result.stdout
+    assert "General guidance for the execution summary" in result.stdout
+    assert "Semgrep: review findings for high severity" in result.stdout
 
 
 def test_cli_analysis_run_rejects_invalid_severity(monkeypatch, tmp_path: Path) -> None:
     """Invalid severity selections should raise a helpful validation error."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=True,
-        reason='Ready to scan',
+        reason="Ready to scan",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path / 'src')),
-                description='Run Semgrep with auto configuration.',
+                command=("semgrep", "--config=auto", str(tmp_path / "src")),
+                description="Run Semgrep with auto configuration.",
             ),
         ),
     )
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
 
     executed = False
 
     def fail_if_executed(*args, **kwargs) -> TelemetryRun:
         nonlocal executed
         executed = True
-        raise AssertionError('execute_analysis_plan should not be invoked for invalid severities')
+        raise AssertionError("execute_analysis_plan should not be invoked for invalid severities")
 
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fail_if_executed)
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fail_if_executed)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run', '--severity', 'unknown'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run", "--severity", "unknown"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code != 0
-    assert 'Unsupported severity level(s): unknown' in result.stderr
+    assert "Unsupported severity level(s): unknown" in result.stderr
     assert executed is False
 
 
 def test_cli_analysis_run_filters_tools(monkeypatch, tmp_path: Path) -> None:
     """Tool filters should restrict which plans are executed."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plans = (
         AnalyzerPlan(
-            tool='Semgrep',
+            tool="Semgrep",
             ready=True,
-            reason='Ready',
+            reason="Ready",
             steps=(),
         ),
         AnalyzerPlan(
-            tool='CodeQL',
+            tool="CodeQL",
             ready=True,
-            reason='Ready',
+            reason="Ready",
             steps=(),
         ),
     )
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: plans)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: plans)
 
     called: dict[str, object] = {}
 
     def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
-        called['plans'] = tuple(plans_arg)
+        called["plans"] = tuple(plans_arg)
         return TelemetryRun(
-            fingerprint='filtered',
+            fingerprint="filtered",
             project_root=tmp_path,
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
             events=(),
-            notes=('Filtered execution',),
+            notes=("Filtered execution",),
         )
 
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fake_execute)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run', '--tool', 'CodeQL'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run", "--tool", "CodeQL"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert called['plans'] == (plans[1],)
-    assert 'CodeQL' in result.stdout
-    assert 'Semgrep' not in result.stdout
+    assert called["plans"] == (plans[1],)
+    assert "CodeQL" in result.stdout
+    assert "Semgrep" not in result.stdout
 
 
 def test_cli_analysis_run_records_severity_metadata(monkeypatch, tmp_path: Path) -> None:
     """Severity filters should be captured in the telemetry metadata."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=True,
-        reason='Ready to scan',
+        reason="Ready to scan",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path)),
-                description='Run Semgrep with auto configuration.',
-                severity='high',
+                command=("semgrep", "--config=auto", str(tmp_path)),
+                description="Run Semgrep with auto configuration.",
+                severity="high",
             ),
         ),
     )
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
 
     captured: dict[str, object] = {}
 
     def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
-        captured['metadata'] = kwargs.get('metadata')
+        captured["metadata"] = kwargs.get("metadata")
         return TelemetryRun(
-            fingerprint='severity-filter',
+            fingerprint="severity-filter",
             project_root=tmp_path,
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
@@ -848,265 +832,257 @@ def test_cli_analysis_run_records_severity_metadata(monkeypatch, tmp_path: Path)
             notes=(),
         )
 
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fake_execute)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run', '--severity', 'high'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run", "--severity", "high"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    metadata = captured['metadata']
+    metadata = captured["metadata"]
     assert metadata is not None
-    assert metadata['severity_filter'] == ['high']
+    assert metadata["severity_filter"] == ["high"]
 
 
 def test_cli_analysis_run_handles_no_plans(monkeypatch, tmp_path: Path) -> None:
     """Run command should explain when no analyzers are configured."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: ())
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: ())
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'No analyzer plans available yet' in result.stdout
+    assert "No analyzer plans available yet" in result.stdout
 
 
 def test_cli_analysis_run_reports_failures(monkeypatch, tmp_path: Path) -> None:
     """Failures should be highlighted in the run summary."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=True,
-        reason='Ready',
+        reason="Ready",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path)),
-                description='Run Semgrep with auto config.',
+                command=("semgrep", "--config=auto", str(tmp_path)),
+                description="Run Semgrep with auto config.",
             ),
         ),
     )
     timestamp = datetime.now(UTC)
     run = TelemetryRun(
-        fingerprint='failure-fingerprint',
+        fingerprint="failure-fingerprint",
         project_root=tmp_path,
         started_at=timestamp,
         completed_at=timestamp,
         events=(
             TelemetryEvent(
-                tool='Semgrep',
+                tool="Semgrep",
                 command=plan.steps[0].command,
                 exit_code=3,
                 duration_seconds=1.0,
                 timestamp=timestamp,
-                metadata={'description': plan.steps[0].description},
+                metadata={"description": plan.steps[0].description},
             ),
         ),
-        notes=('Semgrep exited with code 3',),
+        notes=("Semgrep exited with code 3",),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", lambda *args, **kwargs: run)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'FAILED' in result.stdout or 'failed' in result.stdout.lower()
-    assert 'code 3' in result.stdout
+    assert "FAILED" in result.stdout or "failed" in result.stdout.lower()
+    assert "code 3" in result.stdout
 
 
 def test_cli_analysis_run_includes_unready(monkeypatch, tmp_path: Path) -> None:
     """The --include-unready flag should forward to the executor."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
-    plan = AnalyzerPlan(tool='Semgrep', ready=False, reason='Missing deps', steps=())
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    plan = AnalyzerPlan(tool="Semgrep", ready=False, reason="Missing deps", steps=())
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
 
     forwarded: dict[str, object] = {}
 
     def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
-        forwarded['include_unready'] = kwargs['include_unready']
+        forwarded["include_unready"] = kwargs["include_unready"]
         return TelemetryRun(
-            fingerprint='forced',
+            fingerprint="forced",
             project_root=tmp_path,
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
             events=(),
-            notes=('Forced execution',),
+            notes=("Forced execution",),
         )
 
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fake_execute)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run', '--include-unready'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run", "--include-unready"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert forwarded['include_unready'] is True
+    assert forwarded["include_unready"] is True
 
 
 def test_cli_analysis_run_disables_telemetry(monkeypatch, tmp_path: Path) -> None:
     """Telemetry disabled via CLI flag should be reported in the output."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
-    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    plan = AnalyzerPlan(tool="Semgrep", ready=True, reason="Ready", steps=())
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
     monkeypatch.setattr(
         cli_module,
-        'execute_analysis_plan',
+        "execute_analysis_plan",
         lambda *args, **kwargs: TelemetryRun(
-            fingerprint='disabled',
+            fingerprint="disabled",
             project_root=tmp_path,
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
             events=(),
-            notes=('No steps defined for Semgrep.',),
+            notes=("No steps defined for Semgrep.",),
         ),
     )
 
     result = runner.invoke(
         app,
         [
-            '--root',
+            "--root",
             str(tmp_path),
-            '--telemetry-store',
-            'off',
-            'analysis',
-            'run',
+            "--telemetry-store",
+            "off",
+            "analysis",
+            "run",
         ],
-        env={'NO_COLOR': '1'},
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'Telemetry disabled for this session.' in result.stdout
+    assert "Telemetry disabled for this session." in result.stdout
 
 
 def test_cli_analysis_run_reports_directory(monkeypatch, tmp_path: Path) -> None:
     """Telemetry directory should be surfaced when using the JSONL backend."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
-    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
-    store_path = tmp_path / 'telemetry'
+    plan = AnalyzerPlan(tool="Semgrep", ready=True, reason="Ready", steps=())
+    store_path = tmp_path / "telemetry"
 
     def fake_execute(report_arg, plans_arg, **kwargs) -> TelemetryRun:
         return TelemetryRun(
-            fingerprint='jsonl',
+            fingerprint="jsonl",
             project_root=tmp_path,
             started_at=datetime.now(UTC),
             completed_at=datetime.now(UTC),
             events=(),
-            notes=('No steps defined for Semgrep.',),
+            notes=("No steps defined for Semgrep.",),
         )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', fake_execute)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", fake_execute)
 
     result = runner.invoke(
         app,
         [
-            '--root',
+            "--root",
             str(tmp_path),
-            '--telemetry-store',
-            'jsonl',
-            '--telemetry-path',
+            "--telemetry-store",
+            "jsonl",
+            "--telemetry-path",
             str(store_path),
-            'analysis',
-            'run',
+            "analysis",
+            "run",
         ],
-        env={'NO_COLOR': '1'},
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
     assert str(store_path) in result.stdout
-    assert 'Telemetry directory' in result.stdout
+    assert "Telemetry directory" in result.stdout
 
 
 def test_cli_analysis_run_reports_filter_miss(monkeypatch, tmp_path: Path) -> None:
     """Missing tool filters should surface a helpful warning."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
-    plan = AnalyzerPlan(tool='Semgrep', ready=True, reason='Ready', steps=())
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
+    plan = AnalyzerPlan(tool="Semgrep", ready=True, reason="Ready", steps=())
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run', '--tool', 'CodeQL'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run", "--tool", "CodeQL"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'No analyzer plans matched the provided filters' in result.stdout
+    assert "No analyzer plans matched the provided filters" in result.stdout
 
 
 def test_cli_analysis_run_reports_skipped_tool(monkeypatch, tmp_path: Path) -> None:
     """Skipped analyzers should be reflected in the run summary."""
-
     report = AnalysisReport(languages=(), tool_statuses=(), hints=(), project_root=tmp_path)
     plan = AnalyzerPlan(
-        tool='Semgrep',
+        tool="Semgrep",
         ready=False,
-        reason='Missing Semgrep CLI',
+        reason="Missing Semgrep CLI",
         steps=(
             AnalyzerCommand(
-                command=('semgrep', '--config=auto', str(tmp_path)),
-                description='Run Semgrep.',
+                command=("semgrep", "--config=auto", str(tmp_path)),
+                description="Run Semgrep.",
             ),
         ),
     )
 
     run = TelemetryRun(
-        fingerprint='skipped',
+        fingerprint="skipped",
         project_root=tmp_path,
         started_at=datetime.now(UTC),
         completed_at=datetime.now(UTC),
         events=(),
-        notes=('Skipped Semgrep: Missing Semgrep CLI',),
+        notes=("Skipped Semgrep: Missing Semgrep CLI",),
     )
 
-    monkeypatch.setattr(cli_module, 'gather_analysis', lambda root: report)
-    monkeypatch.setattr(cli_module, 'plan_tool_invocations', lambda report: (plan,))
-    monkeypatch.setattr(cli_module, 'execute_analysis_plan', lambda *args, **kwargs: run)
+    monkeypatch.setattr(cli_module, "gather_analysis", lambda root: report)
+    monkeypatch.setattr(cli_module, "plan_tool_invocations", lambda report: (plan,))
+    monkeypatch.setattr(cli_module, "execute_analysis_plan", lambda *args, **kwargs: run)
 
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), 'analysis', 'run'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "analysis", "run"],
+        env={"NO_COLOR": "1"},
     )
 
     assert result.exit_code == 0, result.stdout
-    assert 'Skipped Semgrep' in result.stdout
-    assert 'Missing Semgrep CLI' in result.stdout
+    assert "Skipped Semgrep" in result.stdout
+    assert "Missing Semgrep CLI" in result.stdout
 
 
 def test_cli_rejects_unknown_telemetry_backend(tmp_path: Path) -> None:
     """Main callback should surface a helpful error for unknown telemetry stores."""
-
     result = runner.invoke(
         app,
-        ['--root', str(tmp_path), '--telemetry-store', 'invalid', 'analysis', 'plan'],
-        env={'NO_COLOR': '1'},
+        ["--root", str(tmp_path), "--telemetry-store", "invalid", "analysis", "plan"],
+        env={"NO_COLOR": "1"},
     )
     assert result.exit_code != 0
-    assert 'Unsupported telemetry store' in result.stderr
+    assert "Unsupported telemetry store" in result.stderr
 
 
 def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:
@@ -1114,8 +1090,8 @@ def test_cli_run_entry_point_invokes_app(monkeypatch) -> None:
     called: dict[str, bool] = {}
 
     def fake_app() -> None:
-        called['invoked'] = True
+        called["invoked"] = True
 
-    monkeypatch.setattr(cli_module, 'app', fake_app)
+    monkeypatch.setattr(cli_module, "app", fake_app)
     cli_module.run()
-    assert called.get('invoked') is True
+    assert called.get("invoked") is True

@@ -5,10 +5,10 @@ This repository contains the specification assets under `emperator_specs/` and t
 ## Getting Started
 
 1. Run `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) to create the `.venv/` virtual environment, install Python dev extras, fetch Node tooling, and ensure the shared `pre-commit`/`commit-msg` hooks are installed. Pass `--ci` when running in automation so the script skips hook installation and avoids workspace writes.
-2. Activate the virtual environment: `source .venv/bin/activate`.
-3. Run the test suite: `pytest tests`.
-4. Start the local API: `uvicorn emperator.api:app --reload`.
-5. Populate the contract, source, and infrastructure directories with real assets as development progresses.
+1. Activate the virtual environment: `source .venv/bin/activate`.
+1. Run the test suite: `pytest tests`.
+1. Start the local API: `uvicorn emperator.api:app --reload`.
+1. Populate the contract, source, and infrastructure directories with real assets as development progresses.
 
 When using VS Code, the committed `.vscode/` directory pins Ruff as the Python formatter, Biome as the JSON/JS/TS formatter, recommends the Ruff, Error Lens, GitLens, and Python extensions, and ships launch configurations for pytest, `emperator scaffold audit`, and the FastAPI dev server. Adjust local overrides via `.vscode/*.local.json` if you need machine-specific tweaks.
 

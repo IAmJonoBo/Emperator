@@ -51,6 +51,8 @@ node_modules/
 
 # Tool caches
 .cache/
+.sarif/
+.eslintcache
 
 # Emperator telemetry & working state
 .emperator/
@@ -64,4 +66,3 @@ site/
 !.vscode/extensions.json
 !.vscode/launch.json
 !.vscode/settings.json
-```

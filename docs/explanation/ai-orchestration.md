@@ -5,8 +5,8 @@ Optional AI assistance augments Emperator’s deterministic pipeline when rule-b
 ## Propose → rank → validate workflow
 
 1. **Propose:** Emperator crafts prompts with rule context, offending code, and acceptance tests to solicit candidate patches from a local LLM.
-2. **Rank:** Contract-aware heuristics (diff size, naming compliance, static lint) filter and order candidates before deeper checks.
-3. **Validate:** The leading candidate is applied in a scratch workspace, rerun through Emperator’s full analysis suite, and optionally tested. Only clean results surface to developers.
+1. **Rank:** Contract-aware heuristics (diff size, naming compliance, static lint) filter and order candidates before deeper checks.
+1. **Validate:** The leading candidate is applied in a scratch workspace, rerun through Emperator’s full analysis suite, and optionally tested. Only clean results surface to developers.
 
 ## Local-first model strategy
 

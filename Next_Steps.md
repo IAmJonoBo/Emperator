@@ -2,6 +2,8 @@
 
 ## Tasks
 
+> **Status snapshot:** The IR builder, analyzer correlation, safety envelope, and prerequisite tooling remain unimplemented. Sprint 4 and Sprint 5 checklists below therefore track planned work only; every IR/analyzer/fix item remains unchecked until the new remediation program (see docs/explanation/implementation-roadmap.md) lands.
+
 ### Sprint 4 – IR & Analysis Integration (per `docs/explanation/sprint-4-ir-analysis.md`)
 
 **Week 1: IR Foundation (T+0 to T+5 days)**
@@ -133,8 +135,8 @@
 
 ## Steps
 
-- Current focus: translating Sprint 4 backlog items into actionable engineering tickets covering IR ingestion, analyzer orchestration, and performance benchmarks (`emperator_specs/Sprint_Playbook.md`).
-- In progress: documenting how Semgrep, CodeQL, and IR caches interact using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` as shared context for contributors.
+- Current focus: executing the remediation program (docs/explanation/implementation-roadmap.md#integrated-remediation-plan) starting with IR builder scaffolding, dependency bootstrapping, and CLI entry points.
+- In progress: documenting how Semgrep, CodeQL, and IR caches must integrate once the generators and correlation engine exist, using `docs/reference/toolchain.md` and `docs/explanation/system-architecture.md` to steer contributions.
 - Planned: codifying Sprint 5 safety envelope requirements (rollback workflow, telemetry, documentation) informed by `emperator_specs/Project_Plan.md` and `docs/explanation/security-safety.md`.
 - Completed: shipped `pnpm lint:changed` for quick Ruff/Biome/ESLint passes on changed files to complement the full lint suite.
 - Completed: migrated lint/format workflow (Ruff `ALL`, mdformat, staged linting, SARIF bundling, cache exports) and resolved resulting contract/formatter regressions.
@@ -229,6 +231,7 @@
 
 ## Risks/Notes
 
+- IR builder, analyzer correlation, and safety envelope are pending; repository currently lacks Tree-sitter bindings, Semgrep rule packs, CodeQL helpers, LibCST/Hypothesis dependencies, or fix modules required by ADR-0004/0005.
 - Formatter stack now enforces Ruff single quotes + mdformat tables; run `pnpm fmt -- --check` before applying fixes to review doc table rewrites and Python quote flips.
 - CLI severity guardrails rely on substring matching to associate notes with tools; monitor for future false positives as telemetry volume grows.
 - Telemetry path overrides now require the JSONL backend; ensure docs and onboarding scripts stay aligned as new stores land.

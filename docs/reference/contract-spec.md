@@ -13,6 +13,8 @@ Use this page to look up the canonical structure, rule metadata fields, severity
 | `contract/exemptions.yaml` | Optional registry of approved waivers with owner, expiry, and mitigation notes.                   |
 | `contract/README.md`       | Human-readable change log, review checklist, and links to external standards.                     |
 
+> **Current status:** Rule generators and contract-aware assets remain planned work. `contract/generators/` and `contract/generated/` presently contain scaffolding only; Semgrep and CodeQL packs described in Sprint 4 have not been produced yet.
+
 ## Protobuf schemas {#protobuf-schemas}
 
 - Store `.proto` files either under `contract/api/` or the service repository’s source tree and reference them from the contract via relative paths.
@@ -52,6 +54,8 @@ Additional fields for rules that leverage the Intermediate Representation:
 | `fix_transformer`   | Transformer class for automated fixes (Sprint 5+).                                | `"RenameTransformer"`                |
 | `fix_risk_tier`     | Risk tier for automated fix: `0` (formatting) to `3` (architectural).             | `1`                                  |
 
+> **Reality check:** ADR-0004 defines the Tree-sitter backed IR builder, but the repository does not yet ship an `ir` package, cache format, or telemetry integration. Populate the metadata below once the IR layer exists.
+
 **Example Contract Rule with IR Metadata:**
 
 ```yaml
@@ -66,7 +70,7 @@ rules:
     tags: [architecture, layering]
     evidence:
       - https://martinfowler.com/bliki/PresentationDomainDataLayering.html
-    
+
     # IR-specific metadata
     ir_analysis_level: semantic
     symbols_required: [function, import]
@@ -74,10 +78,12 @@ rules:
     query_language: codeql
     query_path: rules/codeql/controller-to-db.ql
     performance_tier: medium
-    
-    # Fix metadata (Sprint 5)
-    fix_transformer: LayerViolationFixTransformer
-    fix_risk_tier: 3
+
+  # Fix metadata (Sprint 5)
+  fix_transformer: LayerViolationFixTransformer
+  fix_risk_tier: 3
+
+> **Safety envelope gap:** ADR-0005 outlines LibCST/OpenRewrite transformers and risk tiers, but no fix modules or transformer classes exist yet. Add `fix_transformer` and `fix_risk_tier` only after the safety pipeline lands.
 ```
 
 ## Severity guidance

@@ -23,18 +23,18 @@ style Phase2 fill:#FFE4B5
 
 ## Progress Overview
 
-| Phase                            | Status         | Completion | Key Milestones                                                  |
-| -------------------------------- | -------------- | ---------- | --------------------------------------------------------------- |
-| Phase 1: Python-focused slice    | 🟢 In Progress | 70%        | Contract, CLI, Analysis foundation complete; IR builder planned |
-| Phase 2: Developer feedback loop | 🟡 Planned     | 0%         | Sprint 4-5 detailed plans created                               |
+| Phase                            | Status         | Completion | Key Milestones                                                                 |
+| -------------------------------- | -------------- | ---------- | ------------------------------------------------------------------------------ |
+| Phase 1: Python-focused slice    | � At Risk     | 40%        | Contract/CLI shipped, but IR builder and analyzer integrations still pending    |
+| Phase 2: Developer feedback loop | ⚪ Planned     | 0%         | Sprint 4-5 detailed plans created; execution blocked by Phase 1 deliverables    |
 | Phase 3: Polyglot expansion      | ⚪ Future      | 0%         | Depends on Phase 2 completion                                   |
 | Phase 4: AI augmentation         | ⚪ Future      | 0%         | Safety envelope must be proven first                            |
 | Phase 5: Governance & reporting  | ⚪ Future      | 0%         | Operational readiness focus                                     |
 
 ## Phase 1: Python-focused slice
 
-**Status:** 🟢 70% Complete (In Progress)\
-**Timeline:** Sprint 1-3 (Completed) + Sprint 4 (In Progress)
+**Status:** � 40% Complete (At Risk)\
+**Timeline:** Sprint 1-3 (Completed) + Sprint 4 (In Planning)
 
 **Completed (Sprint 1-3):**
 
@@ -51,8 +51,8 @@ style Phase2 fill:#FFE4B5
 - Scaffold commands (`scaffold audit`, `scaffold ensure`)
 - Doctor diagnostics (`doctor env`)
 - Analysis planning (`analysis plan`, `analysis inspect`)
-- Analysis execution (`analysis run`)
-- Rich progress reporting and telemetry
+- Analysis execution (`analysis run`) with static command scaffolding
+- Rich progress reporting and telemetry primitives
 
 ✅ **Telemetry Infrastructure:**
 
@@ -69,23 +69,19 @@ style Phase2 fill:#FFE4B5
 - Pre-commit hooks and CI integration
 - SARIF output for security findings
 
-**In Progress (Sprint 4 – IR & Analysis Integration):**
+**Reality Check (Sprint 4 – IR & Analysis Integration):**
 
-🟡 **IR Construction (Planned):**
+� **IR Construction (Unstarted):**
 
-- Tree-sitter based parser for Python
-- Incremental parsing with filesystem cache
-- Symbol extraction (functions, classes, imports)
-- Cache management (`emperator ir cache prune`)
-- Performance: ≤5s per 1000 files (target)
+- Tree-sitter parser, incremental cache, symbol extraction, and pruning commands remain unimplemented despite ADR-0004.
+- No `src/emperator/ir/` package or serialization layer exists; telemetry currently lacks IR metrics.
+- Packaging omits Tree-sitter grammars, MessagePack/zstd, and build hooks, so prerequisites are missing.
 
-🟡 **Analysis Integration (Planned):**
+� **Analysis Integration (Unstarted):**
 
-- Semgrep rule generation from contract conventions
-- CodeQL database pipeline with queries
-- Findings-to-contract correlation engine
-- Remediation guidance extraction
-- Performance benchmarking framework
+- `plan_tool_invocations` still emits static Semgrep/CodeQL commands with no contract-aware rule generation.
+- Sprint 4 tasks for Semgrep rule packs, CodeQL lifecycle, findings correlation, and remediation guidance remain unchecked.
+- Telemetry captures raw executions but lacks rule pack provenance or correlation outputs.
 
 **References:**
 
@@ -95,38 +91,24 @@ style Phase2 fill:#FFE4B5
 
 ## Phase 2: Developer feedback loop
 
-**Status:** 🟡 Planned\
+**Status:** ⚪ Planned (Blocked by Phase 1 gaps)\
 **Timeline:** Sprint 5 (Planned) + Sprint 6 (Future)
 
-**Sprint 5 – Automated Fix & Safety Envelope (Planned):**
+**Sprint 5 – Automated Fix & Safety Envelope (Planned, Blocked):**
 
-🟡 **Fix Engine Foundation:**
+� **Fix Engine Foundation:**
 
-- LibCST integration for Python AST transformations
-- Four-tier risk classification (0-3: Formatting → Architectural)
-- Transformer catalog (Rename, DeprecatedAPI, TypeAnnotation, etc.)
-- OpenRewrite integration for Java/Kotlin (future)
+- LibCST/OpenRewrite transformers, risk classifier, and fix registry have not begun; repository currently lacks fix-related modules.
+- ADR-0005’s design remains theoretical until IR + analyzer correlation supply inputs for tiering.
 
-🟡 **Safety Validation:**
+� **Safety Validation & Rollback:**
 
-- Multi-layer validation pipeline (pre/post checks)
-- Static analysis integration (Ruff, Mypy)
-- Test execution with tier-based selection
-- Diff scope verification
+- Validation orchestrator, test selection, rollback manager, and approval workflows are absent.
+- CLI `fix` commands only replay environment remediations; no automated fix pipeline exists.
 
-🟡 **Rollback & Approval:**
+� **Property-Based Testing:**
 
-- Rollback manager (snapshot, git stash, commit/revert)
-- Interactive approval workflow for Tier 2+ fixes
-- Batch approval for Tier 0-1 automation
-- Provenance metadata in commit messages
-- Audit trail telemetry
-
-🟡 **Property-Based Testing:**
-
-- Hypothesis integration for transformation verification
-- Idempotence, syntax preservation, test preservation properties
-- Semantic equivalence checks for pure functions
+- Hypothesis-based idempotence suites and telemetry upgrades are pending future work.
 
 **Sprint 6 – Production Hardening (Future):**
 
@@ -143,6 +125,34 @@ style Phase2 fill:#FFE4B5
 - [ADR-0005: Safety Envelope Design](../adr/0005-safety-envelope-design.md)
 - [Sprint 5 Playbook Tasks](../../Next_Steps.md#sprint-5--automated-fix--safety-envelope)
 - [Safety & Security Explanation](security-safety.md)
+
+## Integrated Remediation Plan
+
+To realign the Contract → IR → Execution architecture with reality, the roadmap now tracks the following remediation program:
+
+### 1. Ship the IR builder foundation (Sprint 4 Week 1 focus)
+
+- Introduce Tree-sitter and serialization dependencies (MessagePack/zstd) in `pyproject.toml`, wire grammar build steps, and provision the required tooling in `scripts/setup-tooling.sh`.
+- Scaffold `src/emperator/ir/` with `IRBuilder`, cache manager, and symbol extractor per ADR-0004, emitting telemetry for parse metrics.
+- Expose CLI entry points (`emperator ir parse`, `emperator ir cache prune`) and back them with ≥95% test coverage plus documentation (`docs/reference/ir-format.md`, usage how-to).
+
+### 2. Connect the contract to analyzers and correlation (Sprint 4 Weeks 2-4)
+
+- Build the Semgrep rule generator that translates CUE/Rego metadata into rule packs under `contract/generated/semgrep/` and integrate it into `analysis plan/run`.
+- Implement a CodeQL database manager with lifecycle commands, curated query packs under `rules/codeql/`, and documented workflows.
+- Add a findings correlation engine that maps analyzer output back to contract rules, extracts remediation guidance, and reuses the IR cache for language awareness.
+
+### 3. Harden telemetry, dependencies, and performance baselines
+
+- Extend telemetry stores to capture IR parse metrics, rule-generation provenance, analyzer severity summaries, and benchmark results per ADR-0003.
+- Introduce CI jobs for IR cache validation, Semgrep/CodeQL smoke tests, and performance regression thresholds (≤5s/1000 files initial parse, ≤500ms incremental updates).
+- Update packaging scripts and developer bootstrap paths so analyzer and parser toolchains install consistently across environments.
+
+### 4. Deliver the safety envelope and fix engine (Sprint 5 end-to-end)
+
+- Add LibCST-based transformer infrastructure, risk-tier classifier, validation orchestrator, and rollback strategies matching ADR-0005’s multi-layer model.
+- Integrate OpenRewrite for JVM lanes, property-based tests (Hypothesis) for fix idempotence, and provenance-rich telemetry events.
+- Replace the current `fix` CLI placeholder with the new validation/apply pipeline, ensuring severity gating, approval workflows, and rollback controls.
 
 ## Phase 3: Polyglot expansion
 

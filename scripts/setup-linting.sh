@@ -46,6 +46,21 @@ on_error() {
 
 trap 'on_error $LINENO' ERR
 
+run_pre_commit_suite() {
+  if [[ ${MODE} != "dev" ]]; then
+    log_info "Skipping pre-commit validation run"
+    return
+  fi
+
+  if ! command -v pre-commit >/dev/null 2>&1; then
+    log_warn "pre-commit not found; skipping validation run"
+    return
+  fi
+
+  log_info "Running pre-commit checks across the repository"
+  pre-commit run --all-files --show-diff-on-failure
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --ci)
@@ -113,7 +128,8 @@ resolve_repo_root() {
     fi
   fi
 
-  local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if repo_root="$(find_repo_root "${script_dir}")"; then
     echo "${repo_root}"
     return 0
@@ -170,5 +186,7 @@ else
   log_info "Running CI-safe lint pipeline (no writes)"
   pnpm lint
 fi
+
+run_pre_commit_suite
 
 log_info "Linting + formatting toolchain ready"

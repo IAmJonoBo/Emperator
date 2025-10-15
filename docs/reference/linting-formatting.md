@@ -155,7 +155,9 @@ Install the hooks automatically with `scripts/setup-tooling.sh` (development mod
 
 Commit messages must follow the Conventional Commits schema. `pnpm commitlint --edit` is wired as a
 `commit-msg` hook and reuses the `@commitlint/config-conventional` preset declared in
-`package.json`. This keeps release notes and CI workflows deterministic.
+`package.json`. This keeps release notes and CI workflows deterministic. We extend the type allowlist
+to include `fmt` for formatter-only commits driven by `pnpm fmt`, aligning automation terminology
+with the scripts documented earlier in this guide.
 
 ## Extending or diverging from the defaults
 

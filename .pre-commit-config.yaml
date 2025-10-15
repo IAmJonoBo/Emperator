@@ -28,6 +28,7 @@ repos:
         args:
           - "-c"
           - ".yamllint"
+        files: '\\.(ya?ml)$'
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.10.0-1
     hooks:

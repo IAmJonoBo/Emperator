@@ -47,7 +47,7 @@ The loop guarantees that AI assistance never bypasses Emperator’s core validat
 Example prompt block stored in `docs/includes/copilot-prompts.md`:
 
 ```text
-You are Emperator’s refactoring planner. Transform the provided code so it complies with the contract rule: {{ rule.id }} — {{ rule.description }}.
+You are Emperator’s refactoring planner. Transform the provided code so it complies with the contract rule: {{rule.id}} — {{rule.description}}.
 
 Constraints:
 - Maintain public signatures.

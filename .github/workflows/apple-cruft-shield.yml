@@ -3,7 +3,7 @@ name: Apple Cruft Shield
 on:
   pull_request:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
 
 permissions:
   contents: read
@@ -18,7 +18,8 @@ jobs:
       - name: Fail if cleanup changed tracked files
         run: |
           if [ -n "$(git status --short)" ]; then
-            echo "::error::Apple metadata artifacts were removed. Run scripts/cleanup-macos-cruft.sh locally and commit the results."
+            echo "::error::Apple metadata artifacts were removed."
+            echo "::error::Run scripts/cleanup-macos-cruft.sh locally and commit the results before pushing."
             git status --short
             exit 1
           fi

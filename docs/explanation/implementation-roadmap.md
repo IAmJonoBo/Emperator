@@ -269,7 +269,7 @@ To realign the Contract → IR → Execution architecture with reality, the road
 - [Governance Reference](../reference/governance.md)
 - [DevSecOps Supply Chain](devsecops-supply-chain.md)
 
-______________________________________________________________________
+---
 
 ## Implementation Notes
 

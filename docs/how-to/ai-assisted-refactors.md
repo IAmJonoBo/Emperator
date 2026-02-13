@@ -10,13 +10,13 @@ Emperator’s deterministic codemods cover common rules, but some refactors bene
 
 ````yaml title=".emperator/config.yaml"
 ai:
-  provider: local
-  model_path: /models/code-llama-13b.gguf
-  context_window: 32768
-  temperature: 0.15
-  stop_sequences:
-    - "```"
-    - "# end"
+    provider: local
+    model_path: /models/code-llama-13b.gguf
+    context_window: 32768
+    temperature: 0.15
+    stop_sequences:
+        - "```"
+        - "# end"
 ````
 
 ## 2. Follow the propose → rank → validate loop

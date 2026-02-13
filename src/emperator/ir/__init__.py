@@ -12,11 +12,11 @@ from emperator.ir.parser import IRBuilder, IRSnapshot, ParsedFile
 from emperator.ir.symbols import Symbol, SymbolExtractor, SymbolKind
 
 __all__ = [
-    'IRBuilder',
-    'ParsedFile',
-    'IRSnapshot',
-    'Symbol',
-    'SymbolKind',
-    'SymbolExtractor',
-    'CacheManager',
+    "CacheManager",
+    "IRBuilder",
+    "IRSnapshot",
+    "ParsedFile",
+    "Symbol",
+    "SymbolExtractor",
+    "SymbolKind",
 ]

@@ -238,7 +238,7 @@ def classify_fix(
     context: CodeContext,
 ) -> FixClassification:
     """Determine risk tier for proposed fix."""
-    
+
     # Tier 0: Pure formatting?
     if is_formatting_only(proposed_fix):
         return FixClassification(
@@ -247,13 +247,13 @@ def classify_fix(
             reasoning="Formatting-only change",
             auto_apply_allowed=True,
         )
-    
+
     # Count impact
     lines_changed = count_lines_changed(proposed_fix)
     files_affected = count_files_affected(proposed_fix)
     functions_modified = count_functions_modified(proposed_fix)
     test_coverage = get_test_coverage(context, proposed_fix)
-    
+
     # Tier 1: Small, well-tested change?
     if (
         lines_changed <= 10
@@ -272,7 +272,7 @@ def classify_fix(
                 ValidationCheck.UNIT_TESTS,
             ),
         )
-    
+
     # Tier 2: Moderate complexity?
     if (
         lines_changed <= 50
@@ -290,7 +290,7 @@ def classify_fix(
                 ValidationCheck.FULL_TEST_SUITE,
             ),
         )
-    
+
     # Tier 3: High complexity/risk
     return FixClassification(
         tier=RiskTier.TIER_3,
@@ -339,13 +339,13 @@ def validate_transformation(result: TransformResult) -> bool:
         # Syntax check
         if not is_valid_syntax(file):
             return False
-        
+
         # Diff scope check
         diff = compute_diff(file.original, file.transformed)
         if diff.lines_changed > result.expected_changes:
             log_warning(f"Unexpected changes in {file}")
             return False
-    
+
     return True
 ```
 
@@ -404,9 +404,9 @@ def rollback_via_git_stash() -> None:
     """Use git stash for rollback."""
     # Before fix:
     subprocess.run(["git", "stash", "push", "-m", "emperator-fix-snapshot"])
-    
+
     # Apply fix...
-    
+
     # On failure:
     subprocess.run(["git", "stash", "pop"])
 ```
@@ -422,9 +422,9 @@ def rollback_via_git_commit() -> None:
         "git", "commit", "-m",
         "fix: automated fix (Emperator)\n\nWill revert if validation fails"
     ])
-    
+
     # Run validation...
-    
+
     # On failure:
     subprocess.run(["git", "revert", "HEAD", "--no-edit"])
 ```
@@ -459,22 +459,22 @@ Co-authored-by: Emperator Bot <emperator@example.com>
 
 ```json
 {
-  "event": "fix_applied",
-  "timestamp": "2025-10-22T14:30:00Z",
-  "fix_id": "fix-ban-eval-util-py-42",
-  "rule_id": "security.ban-eval",
-  "risk_tier": 1,
-  "transformer": "DeprecatedAPITransformer",
-  "files_changed": ["src/util.py"],
-  "lines_changed": 1,
-  "validation": {
-    "pre_checks": "passed",
-    "post_checks": "passed",
-    "tests": "passed",
-    "duration_seconds": 12.4
-  },
-  "auto_applied": true,
-  "rollback_occurred": false
+    "event": "fix_applied",
+    "timestamp": "2025-10-22T14:30:00Z",
+    "fix_id": "fix-ban-eval-util-py-42",
+    "rule_id": "security.ban-eval",
+    "risk_tier": 1,
+    "transformer": "DeprecatedAPITransformer",
+    "files_changed": ["src/util.py"],
+    "lines_changed": 1,
+    "validation": {
+        "pre_checks": "passed",
+        "post_checks": "passed",
+        "tests": "passed",
+        "duration_seconds": 12.4
+    },
+    "auto_applied": true,
+    "rollback_occurred": false
 }
 ```
 
@@ -590,7 +590,7 @@ Track in telemetry:
 - [Safety in Automated Refactoring Research](https://dl.acm.org/doi/10.1145/3180155.3180242)
 - Sprint 5 Planning: `docs/explanation/sprint-5-safety-envelope.md`
 
-______________________________________________________________________
+---
 
 **Status Log:**
 

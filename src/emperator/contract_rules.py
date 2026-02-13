@@ -9,10 +9,10 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, cast
 
-yaml = cast(Any, importlib.import_module('yaml'))
+yaml = cast("Any", importlib.import_module("yaml"))
 
-DEFAULT_RULE_CATALOG = Path('contract') / 'rules' / 'catalog.yaml'
-DEFAULT_EXEMPTIONS_PATH = Path('contract') / 'exemptions.yaml'
+DEFAULT_RULE_CATALOG = Path("contract") / "rules" / "catalog.yaml"
+DEFAULT_EXEMPTIONS_PATH = Path("contract") / "exemptions.yaml"
 
 
 def _repository_root() -> Path:
@@ -67,7 +67,7 @@ def _normalize_sequence(raw: object) -> tuple[str, ...]:
 def _load_yaml(path: Path) -> Mapping[str, Any] | None:
     if not path.exists():
         return None
-    with path.open(encoding='utf8') as handle:
+    with path.open(encoding="utf8") as handle:
         data = yaml.safe_load(handle)  # type: ignore[attr-defined]
     if not isinstance(data, Mapping):
         return None
@@ -77,11 +77,11 @@ def _load_yaml(path: Path) -> Mapping[str, Any] | None:
 def _parse_remediation(raw: Mapping[str, Any] | None) -> RemediationGuidance | None:
     if not raw:
         return None
-    summary = str(raw.get('summary') or '').strip()
+    summary = str(raw.get("summary") or "").strip()
     if not summary:
         return None
-    steps = _normalize_sequence(raw.get('steps'))
-    references = _normalize_sequence(raw.get('references'))
+    steps = _normalize_sequence(raw.get("steps"))
+    references = _normalize_sequence(raw.get("references"))
     return RemediationGuidance(summary=summary, steps=steps, references=references)
 
 
@@ -96,25 +96,29 @@ def load_contract_rules(path: Path | None = None) -> tuple[ContractRule, ...]:
 
     """
     catalog_path = path or DEFAULT_RULE_CATALOG
-    resolved = catalog_path if catalog_path.is_absolute() else _repository_root() / catalog_path
+    resolved = (
+        catalog_path
+        if catalog_path.is_absolute()
+        else _repository_root() / catalog_path
+    )
     payload = _load_yaml(resolved)
     if payload is None:
         return ()
 
     rules: list[ContractRule] = []
-    for entry in payload.get('rules', ()):  # type: ignore[arg-type]
+    for entry in payload.get("rules", ()):  # type: ignore[arg-type]
         if not isinstance(entry, Mapping):
             continue
-        rule_id = str(entry.get('id') or '').strip()
-        description = str(entry.get('description') or '').strip()
-        severity = str(entry.get('severity') or '').strip()
-        source = str(entry.get('source') or '').strip()
+        rule_id = str(entry.get("id") or "").strip()
+        description = str(entry.get("description") or "").strip()
+        severity = str(entry.get("severity") or "").strip()
+        source = str(entry.get("source") or "").strip()
         if not (rule_id and description and severity and source):
             continue
-        remediation = _parse_remediation(entry.get('remediation'))  # type: ignore[arg-type]
-        tags = _normalize_sequence(entry.get('tags'))
-        auto_apply = entry.get('auto_apply')
-        safety_tier = entry.get('safety_tier')
+        remediation = _parse_remediation(entry.get("remediation"))  # type: ignore[arg-type]
+        tags = _normalize_sequence(entry.get("tags"))
+        auto_apply = entry.get("auto_apply")
+        safety_tier = entry.get("safety_tier")
         rules.append(
             ContractRule(
                 id=rule_id,
@@ -131,7 +135,7 @@ def load_contract_rules(path: Path | None = None) -> tuple[ContractRule, ...]:
 
 
 def _parse_date(value: object) -> date | None:
-    if value in (None, ''):
+    if value in (None, ""):
         return None
     text = str(value).strip()
     try:
@@ -144,25 +148,27 @@ def load_exemptions(path: Path | None = None) -> tuple[ExemptionRecord, ...]:
     """Load approved contract exemptions from YAML."""
     exemptions_path = path or DEFAULT_EXEMPTIONS_PATH
     resolved = (
-        exemptions_path if exemptions_path.is_absolute() else _repository_root() / exemptions_path
+        exemptions_path
+        if exemptions_path.is_absolute()
+        else _repository_root() / exemptions_path
     )
     payload = _load_yaml(resolved)
     if payload is None:
         return ()
 
     records: list[ExemptionRecord] = []
-    for entry in payload.get('exemptions', ()):  # type: ignore[arg-type]
+    for entry in payload.get("exemptions", ()):  # type: ignore[arg-type]
         if not isinstance(entry, Mapping):
             continue
-        rule_id = str(entry.get('rule') or '').strip()
-        path_text = str(entry.get('path') or '').strip()
+        rule_id = str(entry.get("rule") or "").strip()
+        path_text = str(entry.get("path") or "").strip()
         if not (rule_id and path_text):
             continue
-        line = entry.get('line')
+        line = entry.get("line")
         line_number = int(line) if isinstance(line, int) else None
-        owner = str(entry.get('owner') or '').strip() or None
-        justification = str(entry.get('justification') or '').strip() or None
-        expires = _parse_date(entry.get('expires'))
+        owner = str(entry.get("owner") or "").strip() or None
+        justification = str(entry.get("justification") or "").strip() or None
+        expires = _parse_date(entry.get("expires"))
         records.append(
             ExemptionRecord(
                 rule_id=rule_id,

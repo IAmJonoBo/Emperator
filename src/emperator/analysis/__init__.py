@@ -29,32 +29,32 @@ from .correlation import (
 )
 
 __all__ = [
-    'AnalysisHint',
-    'AnalysisReport',
-    'LanguageSummary',
-    'AnalyzerCommand',
-    'AnalyzerPlan',
-    'ToolStatus',
-    'TelemetryEvent',
-    'TelemetryRun',
-    'TelemetryStore',
-    'InMemoryTelemetryStore',
-    'JSONLTelemetryStore',
-    'execute_analysis_plan',
-    'fingerprint_analysis',
-    'detect_languages',
-    'gather_analysis',
-    'plan_tool_invocations',
-    'CodeQLDatabase',
-    'CodeQLFinding',
-    'CodeQLManager',
-    'CodeQLManagerError',
-    'CodeQLUnavailableError',
-    'AnalysisFinding',
-    'FindingLocation',
-    'CorrelationEngine',
-    'CorrelatedFinding',
-    'ExemptionStatus',
+    "AnalysisFinding",
+    "AnalysisHint",
+    "AnalysisReport",
+    "AnalyzerCommand",
+    "AnalyzerPlan",
+    "CodeQLDatabase",
+    "CodeQLFinding",
+    "CodeQLManager",
+    "CodeQLManagerError",
+    "CodeQLUnavailableError",
+    "CorrelatedFinding",
+    "CorrelationEngine",
+    "ExemptionStatus",
+    "FindingLocation",
+    "InMemoryTelemetryStore",
+    "JSONLTelemetryStore",
+    "LanguageSummary",
+    "TelemetryEvent",
+    "TelemetryRun",
+    "TelemetryStore",
+    "ToolStatus",
+    "detect_languages",
+    "execute_analysis_plan",
+    "fingerprint_analysis",
+    "gather_analysis",
+    "plan_tool_invocations",
 ]
 
 
@@ -128,27 +128,29 @@ class TelemetryEvent:
     def to_payload(self) -> dict[str, Any]:
         """Represent the event as a JSON-serialisable payload."""
         return {
-            'tool': self.tool,
-            'command': list(self.command),
-            'exit_code': self.exit_code,
-            'duration_seconds': self.duration_seconds,
-            'timestamp': self.timestamp.isoformat(),
-            'metadata': dict(self.metadata or {}),
+            "tool": self.tool,
+            "command": list(self.command),
+            "exit_code": self.exit_code,
+            "duration_seconds": self.duration_seconds,
+            "timestamp": self.timestamp.isoformat(),
+            "metadata": dict(self.metadata or {}),
         }
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> TelemetryEvent:
         """Rehydrate telemetry event metadata from a payload."""
-        metadata = payload.get('metadata') or None
+        metadata = payload.get("metadata") or None
         normalized_metadata = None
         if metadata is not None:
-            normalized_metadata = {str(key): str(value) for key, value in dict(metadata).items()}
+            normalized_metadata = {
+                str(key): str(value) for key, value in dict(metadata).items()
+            }
         return cls(
-            tool=str(payload['tool']),
-            command=tuple(str(part) for part in payload.get('command', ())),
-            exit_code=int(payload.get('exit_code', 0)),
-            duration_seconds=float(payload.get('duration_seconds', 0.0)),
-            timestamp=datetime.fromisoformat(str(payload['timestamp'])),
+            tool=str(payload["tool"]),
+            command=tuple(str(part) for part in payload.get("command", ())),
+            exit_code=int(payload.get("exit_code", 0)),
+            duration_seconds=float(payload.get("duration_seconds", 0.0)),
+            timestamp=datetime.fromisoformat(str(payload["timestamp"])),
             metadata=normalized_metadata,
         )
 
@@ -177,27 +179,28 @@ class TelemetryRun:
     def to_payload(self) -> dict[str, Any]:
         """Serialise the telemetry run for persistence."""
         return {
-            'fingerprint': self.fingerprint,
-            'project_root': str(self.project_root),
-            'started_at': self.started_at.isoformat(),
-            'completed_at': self.completed_at.isoformat(),
-            'events': [event.to_payload() for event in self.events],
-            'notes': list(self.notes),
+            "fingerprint": self.fingerprint,
+            "project_root": str(self.project_root),
+            "started_at": self.started_at.isoformat(),
+            "completed_at": self.completed_at.isoformat(),
+            "events": [event.to_payload() for event in self.events],
+            "notes": list(self.notes),
         }
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> TelemetryRun:
         """Reconstruct a telemetry run from a JSON payload."""
         events = tuple(
-            TelemetryEvent.from_payload(raw_event) for raw_event in payload.get('events', ())
+            TelemetryEvent.from_payload(raw_event)
+            for raw_event in payload.get("events", ())
         )
         return cls(
-            fingerprint=str(payload['fingerprint']),
-            project_root=Path(str(payload['project_root'])),
-            started_at=datetime.fromisoformat(str(payload['started_at'])),
-            completed_at=datetime.fromisoformat(str(payload['completed_at'])),
+            fingerprint=str(payload["fingerprint"]),
+            project_root=Path(str(payload["project_root"])),
+            started_at=datetime.fromisoformat(str(payload["started_at"])),
+            completed_at=datetime.fromisoformat(str(payload["completed_at"])),
             events=events,
-            notes=tuple(str(note) for note in payload.get('notes', ())),
+            notes=tuple(str(note) for note in payload.get("notes", ())),
         )
 
 
@@ -237,20 +240,22 @@ class InMemoryTelemetryStore:
 class JSONLTelemetryStore:
     """Persist telemetry runs to JSON Lines files on disk."""
 
-    def __init__(self, directory: Path | str, *, max_history: int | None = None) -> None:
+    def __init__(
+        self, directory: Path | str, *, max_history: int | None = None
+    ) -> None:
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self._max_history = max_history
 
     def _path_for(self, fingerprint: str) -> Path:
-        return self.directory / f'{fingerprint}.jsonl'
+        return self.directory / f"{fingerprint}.jsonl"
 
     def _read_runs(self, fingerprint: str) -> list[TelemetryRun]:
         path = self._path_for(fingerprint)
         if not path.exists():
             return []
         runs: list[TelemetryRun] = []
-        with path.open('r', encoding='utf-8') as handle:
+        with path.open("r", encoding="utf-8") as handle:
             for raw_line in handle:
                 line = raw_line.strip()
                 if not line:
@@ -267,11 +272,11 @@ class JSONLTelemetryStore:
 
     def _write_runs(self, fingerprint: str, runs: Iterable[TelemetryRun]) -> None:
         path = self._path_for(fingerprint)
-        temp_path = path.with_suffix(path.suffix + '.tmp')
-        with temp_path.open('w', encoding='utf-8') as handle:
+        temp_path = path.with_suffix(path.suffix + ".tmp")
+        with temp_path.open("w", encoding="utf-8") as handle:
             for run in runs:
                 json.dump(run.to_payload(), handle, sort_keys=True)
-                handle.write('\n')
+                handle.write("\n")
         temp_path.replace(path)
 
     def persist(self, run: TelemetryRun) -> None:
@@ -292,63 +297,65 @@ class JSONLTelemetryStore:
 
 
 _LANGUAGE_MAP: dict[str, str] = {
-    '.py': 'Python',
-    '.pyi': 'Python',
-    '.md': 'Markdown',
-    '.markdown': 'Markdown',
-    '.yaml': 'YAML',
-    '.yml': 'YAML',
-    '.json': 'JSON',
-    '.js': 'JavaScript',
-    '.cjs': 'JavaScript',
-    '.mjs': 'JavaScript',
-    '.jsx': 'JavaScript',
-    '.ts': 'TypeScript',
-    '.tsx': 'TypeScript',
-    '.go': 'Go',
-    '.rs': 'Rust',
-    '.java': 'Java',
-    '.c': 'C',
-    '.h': 'C',
-    '.cpp': 'C++',
-    '.cc': 'C++',
-    '.cxx': 'C++',
-    '.hpp': 'C++',
-    '.hxx': 'C++',
-    '.cs': 'C#',
-    '.rb': 'Ruby',
-    '.php': 'PHP',
-    '.swift': 'Swift',
-    '.kt': 'Kotlin',
-    '.kts': 'Kotlin',
-    '.sh': 'Shell',
-    '.bash': 'Shell',
-    '.zsh': 'Shell',
+    ".py": "Python",
+    ".pyi": "Python",
+    ".md": "Markdown",
+    ".markdown": "Markdown",
+    ".yaml": "YAML",
+    ".yml": "YAML",
+    ".json": "JSON",
+    ".js": "JavaScript",
+    ".cjs": "JavaScript",
+    ".mjs": "JavaScript",
+    ".jsx": "JavaScript",
+    ".ts": "TypeScript",
+    ".tsx": "TypeScript",
+    ".go": "Go",
+    ".rs": "Rust",
+    ".java": "Java",
+    ".c": "C",
+    ".h": "C",
+    ".cpp": "C++",
+    ".cc": "C++",
+    ".cxx": "C++",
+    ".hpp": "C++",
+    ".hxx": "C++",
+    ".cs": "C#",
+    ".rb": "Ruby",
+    ".php": "PHP",
+    ".swift": "Swift",
+    ".kt": "Kotlin",
+    ".kts": "Kotlin",
+    ".sh": "Shell",
+    ".bash": "Shell",
+    ".zsh": "Shell",
 }
 
 _SKIP_DIRS: frozenset[str] = frozenset(
     {
-        '.git',
-        '.mypy_cache',
-        '.ruff_cache',
-        '.pytest_cache',
-        '.venv',
-        'node_modules',
-        'dist',
-        'build',
-        '__pycache__',
-        '.tox',
-        'site',
-        '.cache',
-        '.sarif',
-        '.emperator',
-        '.pnpm-store',
-        'htmlcov',
-        '.hypothesis',
+        ".git",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+        ".venv",
+        "node_modules",
+        "dist",
+        "build",
+        "__pycache__",
+        ".tox",
+        "site",
+        ".cache",
+        ".sarif",
+        ".emperator",
+        ".pnpm-store",
+        "htmlcov",
+        ".hypothesis",
     }
 )
 
-RUNNER_EXIT_CODE_ERROR = 'Runner result must expose an exit code via returncode or exit_code.'
+RUNNER_EXIT_CODE_ERROR = (
+    "Runner result must expose an exit code via returncode or exit_code."
+)
 
 
 def fingerprint_analysis(
@@ -362,30 +369,30 @@ def fingerprint_analysis(
     root = (report.project_root or Path()).resolve()
     languages = [
         {
-            'language': summary.language,
-            'file_count': summary.file_count,
-            'sample_files': list(summary.sample_files),
+            "language": summary.language,
+            "file_count": summary.file_count,
+            "sample_files": list(summary.sample_files),
         }
         for summary in sorted(report.languages, key=lambda summary: summary.language)
     ]
     tool_statuses = [
         {
-            'name': status.name,
-            'available': status.available,
-            'location': status.location,
+            "name": status.name,
+            "available": status.available,
+            "location": status.location,
         }
         for status in sorted(report.tool_statuses, key=lambda status: status.name)
     ]
     serialized_plans = [
         {
-            'tool': plan.tool,
-            'ready': plan.ready,
-            'reason': plan.reason,
-            'steps': [
+            "tool": plan.tool,
+            "ready": plan.ready,
+            "reason": plan.reason,
+            "steps": [
                 {
-                    'command': list(step.command),
-                    'description': step.description,
-                    'severity': step.severity,
+                    "command": list(step.command),
+                    "description": step.description,
+                    "severity": step.severity,
                 }
                 for step in plan.steps
             ],
@@ -393,13 +400,13 @@ def fingerprint_analysis(
         for plan in sorted(plans, key=lambda plan: plan.tool)
     ]
     payload = {
-        'project_root': str(root),
-        'languages': languages,
-        'tool_statuses': tool_statuses,
-        'plans': serialized_plans,
-        'metadata': dict(metadata),
+        "project_root": str(root),
+        "languages": languages,
+        "tool_statuses": tool_statuses,
+        "plans": serialized_plans,
+        "metadata": dict(metadata),
     }
-    data = json.dumps(payload, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    data = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(data).hexdigest()
 
 
@@ -435,9 +442,9 @@ def _extract_exit_code(result: object) -> int:
     """Normalise exit codes from subprocess results or custom runners."""
     if isinstance(result, int):
         return int(result)
-    if hasattr(result, 'returncode'):
+    if hasattr(result, "returncode"):
         return int(result.returncode)
-    if hasattr(result, 'exit_code'):
+    if hasattr(result, "exit_code"):
         return int(result.exit_code)
     raise TypeError(RUNNER_EXIT_CODE_ERROR)
 
@@ -456,7 +463,7 @@ def _invoke_runner(
         result = subprocess.CompletedProcess(
             command,
             returncode=127,
-            stdout='',
+            stdout="",
             stderr=message,
         )
         return result, message
@@ -470,7 +477,9 @@ def _run_plan_step(  # noqa: PLR0913
     root: Path,
     time_fn: Callable[[], datetime],
     on_step_start: Callable[[AnalyzerPlan, AnalyzerCommand], None] | None,
-    on_step_complete: Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None,
+    on_step_complete: (
+        Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None
+    ),
 ) -> tuple[TelemetryEvent, tuple[str, ...]]:
     """Execute a single analyzer step and return telemetry with notes."""
     if on_step_start is not None:
@@ -480,11 +489,11 @@ def _run_plan_step(  # noqa: PLR0913
     completed_at = time_fn()
     duration = max((completed_at - started_at).total_seconds(), 0.0)
     exit_code = _extract_exit_code(result)
-    event_metadata: dict[str, str] = {'description': step.description}
+    event_metadata: dict[str, str] = {"description": step.description}
     if step.severity is not None:
-        event_metadata['severity'] = step.severity
+        event_metadata["severity"] = step.severity
     if error_message is not None:
-        event_metadata['error'] = error_message
+        event_metadata["error"] = error_message
     event = TelemetryEvent(
         tool=plan.tool,
         command=step.command,
@@ -496,11 +505,15 @@ def _run_plan_step(  # noqa: PLR0913
     if on_step_complete is not None:
         on_step_complete(plan, step, exit_code, duration)
     notes: list[str] = []
-    command_text = ' '.join(step.command)
+    command_text = " ".join(step.command)
     if error_message is not None:
-        notes.append(f"Failed to launch {plan.tool} command '{command_text}': {error_message}.")
+        notes.append(
+            f"Failed to launch {plan.tool} command '{command_text}': {error_message}."
+        )
     if exit_code != 0:
-        notes.append(f"{plan.tool} command '{command_text}' encountered exit code {exit_code}.")
+        notes.append(
+            f"{plan.tool} command '{command_text}' encountered exit code {exit_code}."
+        )
     return event, tuple(notes)
 
 
@@ -514,7 +527,10 @@ def _severity_execution_decision(
         return False, None
     severity = step.severity
     if severity is None:
-        return False, f"{tool} step '{step.description}' lacks severity metadata; executed."
+        return (
+            False,
+            f"{tool} step '{step.description}' lacks severity metadata; executed.",
+        )
     if severity.lower() not in severity_filter:
         return True, f"Skipped {tool} step '{step.description}' due to severity filter."
     return False, None
@@ -530,17 +546,19 @@ def _prepare_plan_steps(
     notes: list[str] = []
     if not plan.ready:
         if include_unready:
-            notes.append(f'Forced execution for {plan.tool}: {plan.reason}')
+            notes.append(f"Forced execution for {plan.tool}: {plan.reason}")
         else:
-            notes.append(f'Skipped {plan.tool}: {plan.reason}')
+            notes.append(f"Skipped {plan.tool}: {plan.reason}")
             return (), tuple(notes)
     if not plan.steps:
-        notes.append(f'No steps defined for {plan.tool}.')
+        notes.append(f"No steps defined for {plan.tool}.")
         return (), tuple(notes)
 
     executable: list[AnalyzerCommand] = []
     for step in plan.steps:
-        skip_step, severity_note = _severity_execution_decision(step, severity_filter, plan.tool)
+        skip_step, severity_note = _severity_execution_decision(
+            step, severity_filter, plan.tool
+        )
         if severity_note is not None:
             notes.append(severity_note)
         if skip_step:
@@ -548,7 +566,7 @@ def _prepare_plan_steps(
         executable.append(step)
 
     if not executable:
-        notes.append(f'All steps skipped for {plan.tool} after applying filters.')
+        notes.append(f"All steps skipped for {plan.tool} after applying filters.")
     return tuple(executable), tuple(notes)
 
 
@@ -563,7 +581,9 @@ def execute_analysis_plan(  # noqa: PLR0913
     runner: AnalyzerRunner | None = None,
     time_source: Callable[[], datetime] | None = None,
     on_step_start: Callable[[AnalyzerPlan, AnalyzerCommand], None] | None = None,
-    on_step_complete: Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None = None,
+    on_step_complete: (
+        Callable[[AnalyzerPlan, AnalyzerCommand, int, float], None] | None
+    ) = None,
 ) -> TelemetryRun:
     """Execute analyzer plans, capture telemetry, and persist run metadata."""
     materialised = tuple(plans)
@@ -576,7 +596,9 @@ def execute_analysis_plan(  # noqa: PLR0913
     started_at = time_fn()
 
     normalised_filter = (
-        tuple(level.lower() for level in severity_filter) if severity_filter is not None else None
+        tuple(level.lower() for level in severity_filter)
+        if severity_filter is not None
+        else None
     )
 
     for plan in materialised:
@@ -626,40 +648,40 @@ class _ToolRequirement:
 
 _TOOL_REQUIREMENTS: tuple[_ToolRequirement, ...] = (
     _ToolRequirement(
-        name='Semgrep',
-        binaries=('semgrep',),
-        guidance='Install Semgrep to run contract-driven pattern scans (pipx install semgrep).',
+        name="Semgrep",
+        binaries=("semgrep",),
+        guidance="Install Semgrep to run contract-driven pattern scans (pipx install semgrep).",
     ),
     _ToolRequirement(
-        name='CodeQL',
-        binaries=('codeql',),
-        guidance='Install the CodeQL CLI to enable semantic security analysis.',
+        name="CodeQL",
+        binaries=("codeql",),
+        guidance="Install the CodeQL CLI to enable semantic security analysis.",
     ),
     _ToolRequirement(
-        name='Tree-sitter CLI',
-        binaries=('tree-sitter',),
-        guidance='Install the Tree-sitter CLI to compile grammars for incremental parsing.',
+        name="Tree-sitter CLI",
+        binaries=("tree-sitter",),
+        guidance="Install the Tree-sitter CLI to compile grammars for incremental parsing.",
     ),
 )
 
 _CODEQL_LANGUAGE_SLUGS: dict[str, str] = {
-    'Python': 'python',
-    'JavaScript': 'javascript',
-    'TypeScript': 'javascript',
-    'Java': 'java',
-    'C': 'cpp',
-    'C++': 'cpp',
-    'C#': 'csharp',
-    'Go': 'go',
-    'Ruby': 'ruby',
-    'Swift': 'swift',
-    'Kotlin': 'java',
+    "Python": "python",
+    "JavaScript": "javascript",
+    "TypeScript": "javascript",
+    "Java": "java",
+    "C": "cpp",
+    "C++": "cpp",
+    "C#": "csharp",
+    "Go": "go",
+    "Ruby": "ruby",
+    "Swift": "swift",
+    "Kotlin": "java",
 }
 
 
 def _iter_files(project_root: Path) -> Iterable[Path]:
     """Yield project files that should participate in language detection."""
-    for path in project_root.rglob('*'):
+    for path in project_root.rglob("*"):
         if not path.is_file():
             continue
         if any(part in _SKIP_DIRS for part in path.parts):
@@ -698,7 +720,7 @@ def _tool_status(requirement: _ToolRequirement) -> ToolStatus:
         if location:
             break
     available = location is not None
-    hint = requirement.guidance if not available else f'Available at {location}'
+    hint = requirement.guidance if not available else f"Available at {location}"
     return ToolStatus(
         name=requirement.name,
         available=available,
@@ -710,24 +732,26 @@ def _tool_status(requirement: _ToolRequirement) -> ToolStatus:
 def gather_analysis(project_root: Path) -> AnalysisReport:
     """Build a high-level analysis plan for the repository."""
     languages = detect_languages(project_root)
-    tool_statuses = tuple(_tool_status(requirement) for requirement in _TOOL_REQUIREMENTS)
+    tool_statuses = tuple(
+        _tool_status(requirement) for requirement in _TOOL_REQUIREMENTS
+    )
 
     hints: list[AnalysisHint] = []
     if not languages:
         hints.append(
             AnalysisHint(
-                topic='Sources',
+                topic="Sources",
                 guidance=(
-                    'No supported source files detected. Add code or update language mappings.'
+                    "No supported source files detected. Add code or update language mappings."
                 ),
             )
         )
     else:
-        detected = ', '.join(summary.language for summary in languages)
+        detected = ", ".join(summary.language for summary in languages)
         hints.append(
             AnalysisHint(
-                topic='IR readiness',
-                guidance=f'Languages detected: {detected}',
+                topic="IR readiness",
+                guidance=f"Languages detected: {detected}",
             )
         )
 
@@ -755,44 +779,46 @@ def _get_tool_status(report: AnalysisReport, tool_name: str) -> ToolStatus | Non
 def plan_tool_invocations(
     report: AnalysisReport,
     *,
-    semgrep_config: str = 'auto',
-    codeql_database: Path | str = Path('artifacts') / 'codeql-db',
-    codeql_output_dir: Path | str = Path('artifacts'),
+    semgrep_config: str = "auto",
+    codeql_database: Path | str = Path("artifacts") / "codeql-db",
+    codeql_output_dir: Path | str = Path("artifacts"),
 ) -> tuple[AnalyzerPlan, ...]:
     """Construct a recommended execution plan for supported analyzers."""
     plans: list[AnalyzerPlan] = []
     root = (report.project_root or Path()).resolve()
 
-    semgrep_status = _get_tool_status(report, 'Semgrep')
+    semgrep_status = _get_tool_status(report, "Semgrep")
     if semgrep_status is not None:
-        location = semgrep_status.location or 'system PATH'
+        location = semgrep_status.location or "system PATH"
         reason = (
-            semgrep_status.hint if not semgrep_status.available else f'Semgrep ready at {location}.'
+            semgrep_status.hint
+            if not semgrep_status.available
+            else f"Semgrep ready at {location}."
         )
         semgrep_command = (
-            'semgrep',
-            'scan',
-            f'--config={semgrep_config}',
-            '--metrics=off',
+            "semgrep",
+            "scan",
+            f"--config={semgrep_config}",
+            "--metrics=off",
             str(root),
         )
         plans.append(
             AnalyzerPlan(
-                tool='Semgrep',
+                tool="Semgrep",
                 ready=semgrep_status.available,
                 reason=reason,
                 steps=(
                     AnalyzerCommand(
                         command=semgrep_command,
                         description=(
-                            'Run Semgrep with the selected configuration over the repository.'
+                            "Run Semgrep with the selected configuration over the repository."
                         ),
                     ),
                 ),
             )
         )
 
-    codeql_status = _get_tool_status(report, 'CodeQL')
+    codeql_status = _get_tool_status(report, "CodeQL")
     if codeql_status is not None:
         languages = sorted(
             {
@@ -806,38 +832,38 @@ def plan_tool_invocations(
         steps: list[AnalyzerCommand] = []
         if languages:
             create_command: list[str] = [
-                'codeql',
-                'database',
-                'create',
+                "codeql",
+                "database",
+                "create",
                 str(db_path),
-                '--source-root',
+                "--source-root",
                 str(root),
             ]
-            create_command.extend(f'--language={language}' for language in languages)
+            create_command.extend(f"--language={language}" for language in languages)
             steps.append(
                 AnalyzerCommand(
                     command=tuple(create_command),
-                    description='Create or update the CodeQL database for the detected languages.',
+                    description="Create or update the CodeQL database for the detected languages.",
                 )
             )
             for language in languages:
-                query_pack = f'codeql/{language}-queries'
-                output_path = output_dir / f'codeql-{language}.sarif'
+                query_pack = f"codeql/{language}-queries"
+                output_path = output_dir / f"codeql-{language}.sarif"
                 steps.append(
                     AnalyzerCommand(
                         command=(
-                            'codeql',
-                            'database',
-                            'analyze',
+                            "codeql",
+                            "database",
+                            "analyze",
                             str(db_path),
                             query_pack,
-                            '--format=sarifv2.1.0',
-                            '--output',
+                            "--format=sarifv2.1.0",
+                            "--output",
                             str(output_path),
                         ),
                         description=(
-                            'Analyze the CodeQL database with the '
-                            f'{language} query pack and emit a SARIF report.'
+                            "Analyze the CodeQL database with the "
+                            f"{language} query pack and emit a SARIF report."
                         ),
                     )
                 )
@@ -845,13 +871,15 @@ def plan_tool_invocations(
         if not codeql_status.available:
             reason = codeql_status.hint
         elif not languages:
-            reason = 'No CodeQL-supported languages detected. Add code or adjust mappings.'
+            reason = (
+                "No CodeQL-supported languages detected. Add code or adjust mappings."
+            )
         else:
-            location = codeql_status.location or 'system PATH'
-            reason = f'CodeQL ready at {location}.'
+            location = codeql_status.location or "system PATH"
+            reason = f"CodeQL ready at {location}."
         plans.append(
             AnalyzerPlan(
-                tool='CodeQL',
+                tool="CodeQL",
                 ready=ready,
                 reason=reason,
                 steps=tuple(steps),

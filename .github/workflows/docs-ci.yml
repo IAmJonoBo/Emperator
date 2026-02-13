@@ -3,13 +3,13 @@ name: Docs CI
 on:
   push:
     paths:
-      - 'mkdocs.yml'
-      - 'docs/**'
-      - '.github/workflows/docs-ci.yml'
+      - "mkdocs.yml"
+      - "docs/**"
+      - ".github/workflows/docs-ci.yml"
   pull_request:
     paths:
-      - 'mkdocs.yml'
-      - 'docs/**'
+      - "mkdocs.yml"
+      - "docs/**"
 
 concurrency:
   group: docs-ci-${{ github.ref }}
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: "3.14"
 
       - name: Install MkDocs toolchain
         run: |

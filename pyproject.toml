@@ -8,9 +8,7 @@ version = "0.1.0"
 description = "Canonical implementation scaffold for the Emperator platform."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [
-  { name = "Emperator Contributors" }
-]
+authors = [{ name = "Emperator Contributors" }]
 license = { text = "Apache-2.0" }
 dependencies = [
   "fastapi ~= 0.119",
@@ -66,7 +64,7 @@ ignore = [
   "ANN101",  # self annotations unnecessary for Typer callbacks
   "ANN102",  # cls annotations unnecessary for Typer callbacks
   "COM812",  # avoid conflicts with formatter managed commas
-  "D100",  # module docstrings redundant in tests
+  "D100",    # module docstrings redundant in tests
   "D101",
   "D102",
   "D103",
@@ -77,13 +75,13 @@ ignore = [
   "D203",
   "D213",
   "ISC001",  # prefer formatting plugin to manage implicit string concatenation
-  "N818",  # pytest fixtures use mixed casing
-  "PLR2004",  # allow magic values in tests
-  "S101",  # allow assert in tests
+  "N818",    # pytest fixtures use mixed casing
+  "PLR2004", # allow magic values in tests
+  "S101",    # allow assert in tests
   "TCH001",  # allow direct typing imports for clarity
   "TCH002",
   "TCH003",
-  "Q000",  # Ruff formatter enforces single quotes, disable conflicting lint
+  "Q000",    # Ruff formatter enforces single quotes, disable conflicting lint
   "Q003",
 ]
 

@@ -169,14 +169,14 @@ Implement a **Tree-sitter-based IR builder** with **filesystem caching** and **c
 
 ```json
 {
-  "version": "0.1.0",
-  "schema_version": 1,
-  "created_at": "2025-10-15T10:00:00Z",
-  "last_updated": "2025-10-15T14:30:00Z",
-  "file_count": 1234,
-  "total_size_bytes": 45678900,
-  "cache_hits": 1100,
-  "cache_misses": 134
+    "version": "0.1.0",
+    "schema_version": 1,
+    "created_at": "2025-10-15T10:00:00Z",
+    "last_updated": "2025-10-15T14:30:00Z",
+    "file_count": 1234,
+    "total_size_bytes": 45678900,
+    "cache_hits": 1100,
+    "cache_misses": 134
 }
 ```
 
@@ -196,10 +196,10 @@ def should_invalidate(file: Path, cached: CachedParse) -> bool:
     current_hash = compute_hash(file.read_text())
     if current_hash != cached.content_hash:
         return True
-    
+
     if cached.schema_version != CURRENT_SCHEMA_VERSION:
         return True
-    
+
     return False
 ```
 
@@ -376,7 +376,7 @@ Track in telemetry:
 - [LSP Specification](https://microsoft.github.io/language-server-protocol/)
 - Sprint 4 Planning: `docs/explanation/sprint-4-ir-analysis.md`
 
-______________________________________________________________________
+---
 
 **Status Log:**
 

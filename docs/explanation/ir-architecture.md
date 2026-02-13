@@ -32,14 +32,14 @@ graph TB
     C -->|Extract| D[Symbols]
     D -->|Serialize| E[Cache Manager]
     E -->|MessagePack| F[Disk Cache]
-    
+
     G[Changed Files] -->|Invalidate| E
     E -->|Load| B
-    
+
     D -->|Feed| H[Semgrep]
     D -->|Feed| I[CodeQL]
     D -->|Feed| J[Custom Analyzers]
-    
+
     style B fill:#e1f5ff
     style E fill:#fff4e1
 ```
@@ -53,7 +53,7 @@ The `IRBuilder` class orchestrates parsing and caching:
 ```python
 class IRBuilder:
     """Manages polyglot IR construction and caching."""
-    
+
     def __init__(self, cache_dir: Path | None = None):
         self._parsers: dict[str, Parser] = {}
         self._languages: dict[str, Language] = {}
@@ -75,7 +75,7 @@ The `SymbolExtractor` extracts language-agnostic symbols:
 ```python
 class SymbolExtractor:
     """Extract symbols from Tree-sitter CSTs."""
-    
+
     def extract_symbols(self, tree: Tree, language: str) -> tuple[Symbol, ...]
 ```
 
@@ -96,7 +96,7 @@ The `CacheManager` handles persistence:
 ```python
 class CacheManager:
     """Manages IR cache persistence and invalidation."""
-    
+
     def save_snapshot(self, snapshot: IRSnapshot) -> None
     def load_file(self, path: Path, content_hash: str) -> ParsedFile | None
     def prune(self, older_than_days: int = 30) -> int
@@ -196,12 +196,12 @@ def incremental_update(
     previous_snapshot: IRSnapshot,
 ) -> IRSnapshot:
     # 1. Keep unchanged files from previous snapshot
-    unchanged = [f for f in previous_snapshot.files 
+    unchanged = [f for f in previous_snapshot.files
                  if f.path not in changed_files]
-    
+
     # 2. Re-parse changed files
     changed = [self.parse_file(path) for path in changed_files]
-    
+
     # 3. Merge results
     return IRSnapshot(files=unchanged + changed)
 ```

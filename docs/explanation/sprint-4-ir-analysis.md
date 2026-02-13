@@ -222,21 +222,18 @@ class SemgrepRuleGenerator:
 **Rule Categories:**
 
 1. **Naming Conventions:** Extract from `contract/conventions.cue`
-
-   - `snake_case` for Python functions
-   - `PascalCase` for classes
-   - Module path structure
+    - `snake_case` for Python functions
+    - `PascalCase` for classes
+    - Module path structure
 
 1. **Security Patterns:** From `contract/policy/*.rego`
-
-   - Banned function calls (e.g., `eval`, `exec`)
-   - SQL injection patterns
-   - Hardcoded secrets
+    - Banned function calls (e.g., `eval`, `exec`)
+    - SQL injection patterns
+    - Hardcoded secrets
 
 1. **Architectural Rules:** Layering violations
-
-   - Controller → Service → Repository
-   - Import restrictions by module
+    - Controller → Service → Repository
+    - Import restrictions by module
 
 **Storage:** `contract/generated/semgrep/`
 
@@ -258,21 +255,22 @@ naming: {
         message: "Function names must use snake_case"
     }
 }
+```
 ````
 
 Emperator automatically generates a Semgrep rule:
 
 ```yaml
 rules:
-  - id: naming-function-snake-case
-    pattern: |
-      def $FUNC(...):
-          ...
-    languages: [python]
-    message: Function names must use snake_case
-    severity: WARNING
-    metadata:
-      source: contract/conventions.cue#naming.functions
+    - id: naming-function-snake-case
+      pattern: |
+          def $FUNC(...):
+              ...
+      languages: [python]
+      message: Function names must use snake_case
+      severity: WARNING
+      metadata:
+          source: contract/conventions.cue#naming.functions
 ```
 
 Regenerate rules with: `emperator contract compile --rules`
@@ -342,20 +340,17 @@ emperator analysis codeql list
 **Query Categories:**
 
 1. **Security:** `security-queries.ql`
-
-   - SQL injection detection
-   - Path traversal
-   - Command injection
+    - SQL injection detection
+    - Path traversal
+    - Command injection
 
 1. **Dataflow:** `dataflow-queries.ql`
-
-   - Untrusted data flow to sinks
-   - Sensitive data exposure
+    - Untrusted data flow to sinks
+    - Sensitive data exposure
 
 1. **Architecture:** `architecture-queries.ql`
-
-   - Layer boundary violations
-   - Circular dependencies
+    - Layer boundary violations
+    - Circular dependencies
 
 **Query Development Workflow:**
 
@@ -433,19 +428,19 @@ class CorrelationEngine:
 
 ```json
 {
-  "finding": {
-    "id": "security.ban-eval",
-    "location": "src/util.py:42",
-    "message": "Use of eval() is forbidden"
-  },
-  "contract_rule": {
-    "id": "security.banned-functions.eval",
-    "source": "contract/policy/security.rego:15",
-    "severity": "high",
-    "remediation": "Replace eval() with ast.literal_eval() or json.loads()"
-  },
-  "confidence": 1.0,
-  "exemption": null
+    "finding": {
+        "id": "security.ban-eval",
+        "location": "src/util.py:42",
+        "message": "Use of eval() is forbidden"
+    },
+    "contract_rule": {
+        "id": "security.banned-functions.eval",
+        "source": "contract/policy/security.rego:15",
+        "severity": "high",
+        "remediation": "Replace eval() with ast.literal_eval() or json.loads()"
+    },
+    "confidence": 1.0,
+    "exemption": null
 }
 ```
 
@@ -666,19 +661,16 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 **Scenarios:**
 
 1. **End-to-End Analysis:**
-
-   - Parse → Generate Rules → Execute → Correlate
-   - Verify SARIF output matches expectations
+    - Parse → Generate Rules → Execute → Correlate
+    - Verify SARIF output matches expectations
 
 1. **Cache Invalidation:**
-
-   - Modify file → Parse → Verify cache miss
-   - Revert file → Parse → Verify cache hit
+    - Modify file → Parse → Verify cache miss
+    - Revert file → Parse → Verify cache hit
 
 1. **Multi-Language:**
-
-   - Mixed Python/JavaScript repo
-   - Verify language-specific rules apply correctly
+    - Mixed Python/JavaScript repo
+    - Verify language-specific rules apply correctly
 
 ### Performance Tests
 
@@ -693,56 +685,48 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 ### New Documents
 
 1. **`docs/explanation/ir-architecture.md`**
-
-   - IR design philosophy
-   - Parser service internals
-   - Cache strategy rationale
+    - IR design philosophy
+    - Parser service internals
+    - Cache strategy rationale
 
 1. **`docs/how-to/use-ir-cache.md`**
-
-   - Cache management commands
-   - Troubleshooting cache issues
-   - Performance tuning
+    - Cache management commands
+    - Troubleshooting cache issues
+    - Performance tuning
 
 1. **`docs/reference/ir-format.md`**
-
-   - Cache schema specification
-   - Versioning strategy
-   - Migration guide
+    - Cache schema specification
+    - Versioning strategy
+    - Migration guide
 
 1. **`docs/how-to/develop-codeql-queries.md`**
-
-   - Query development workflow
-   - Testing queries
-   - Integration with contract
+    - Query development workflow
+    - Testing queries
+    - Integration with contract
 
 ### Updated Documents
 
 1. **`docs/reference/toolchain.md`**
-
-   - Add Tree-sitter, CodeQL requirements
-   - Update version matrix
+    - Add Tree-sitter, CodeQL requirements
+    - Update version matrix
 
 1. **`docs/how-to/ci-integration.md`**
-
-   - IR caching in CI
-   - Benchmark execution
+    - IR caching in CI
+    - Benchmark execution
 
 1. **`docs/cli.md`**
-
-   - New `ir` and `codeql` subcommands
-   - Updated `analysis run` behavior
+    - New `ir` and `codeql` subcommands
+    - Updated `analysis run` behavior
 
 1. **`docs/explanation/system-architecture.md`**
-
-   - IR layer details
-   - Analysis pipeline flow
+    - IR layer details
+    - Analysis pipeline flow
 
 ## Risk Register
 
 ### Technical Risks
 
-#### Risk 1: Tree-sitter Performance on Large Files**
+#### Risk 1: Tree-sitter Performance on Large Files\*\*
 
 - **Severity:** Medium
 - **Mitigation:** Implement file size threshold, chunk large files
@@ -754,7 +738,7 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 - **Mitigation:** Document OSS vs Enterprise requirements clearly
 - **Contingency:** Make CodeQL optional, use Semgrep only
 
-#### Risk 3: Cache Bloat**
+#### Risk 3: Cache Bloat\*\*
 
 - **Severity:** Low
 - **Mitigation:** Implement automatic pruning, size limits
@@ -762,13 +746,13 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 
 ### Schedule Risks
 
-#### Risk 4: CodeQL Integration Complexity**
+#### Risk 4: CodeQL Integration Complexity\*\*
 
 - **Severity:** Medium
 - **Mitigation:** Start integration early, allocate buffer time
 - **Contingency:** Defer complex queries to Phase 3
 
-#### Risk 5: Cross-Language Symbol Extraction**
+#### Risk 5: Cross-Language Symbol Extraction\*\*
 
 - **Severity:** Medium
 - **Mitigation:** Focus on Python first, defer others
@@ -801,34 +785,29 @@ def test_semgrep_execution_contract_rules(benchmark, medium_repo):
 **Agenda:**
 
 1. **IR Builder Demo (10 min)**
-
-   - Parse sample repo, show progress
-   - Demonstrate cache hit on re-run
-   - Display symbol extraction output
+    - Parse sample repo, show progress
+    - Demonstrate cache hit on re-run
+    - Display symbol extraction output
 
 1. **Rule Generation Demo (5 min)**
-
-   - Show contract convention
-   - Generate Semgrep rules
-   - Execute rules and show findings
+    - Show contract convention
+    - Generate Semgrep rules
+    - Execute rules and show findings
 
 1. **CodeQL Integration Demo (5 min)**
-
-   - Create database
-   - Run security queries
-   - Show SARIF output
+    - Create database
+    - Run security queries
+    - Show SARIF output
 
 1. **Correlation Demo (5 min)**
-
-   - Display correlated findings
-   - Show remediation guidance
-   - Demo exemption flow
+    - Display correlated findings
+    - Show remediation guidance
+    - Demo exemption flow
 
 1. **Performance Benchmarks (5 min)**
-
-   - Present baseline metrics
-   - Compare against targets
-   - Discuss optimization opportunities
+    - Present baseline metrics
+    - Compare against targets
+    - Discuss optimization opportunities
 
 **Artifacts:**
 

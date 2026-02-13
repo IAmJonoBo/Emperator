@@ -11,13 +11,13 @@ from tree_sitter import Node, Tree
 class SymbolKind(Enum):
     """Types of symbols that can be extracted."""
 
-    FUNCTION = 'function'
-    CLASS = 'class'
-    VARIABLE = 'variable'
-    IMPORT = 'import'
-    METHOD = 'method'
-    PARAMETER = 'parameter'
-    ATTRIBUTE = 'attribute'
+    FUNCTION = "function"
+    CLASS = "class"
+    VARIABLE = "variable"
+    IMPORT = "import"
+    METHOD = "method"
+    PARAMETER = "parameter"
+    ATTRIBUTE = "attribute"
 
 
 @dataclass
@@ -30,7 +30,7 @@ class Location:
     end_column: int
 
     @classmethod
-    def from_node(cls, node: Node) -> 'Location':
+    def from_node(cls, node: Node) -> "Location":
         """Create location from Tree-sitter node.
 
         Args:
@@ -55,7 +55,7 @@ class Symbol:
     name: str
     kind: SymbolKind
     location: Location
-    scope: str = ''
+    scope: str = ""
     references: tuple[Location, ...] = ()
     metadata: dict[str, Any] | None = None
 
@@ -79,7 +79,7 @@ class SymbolExtractor:
             Tuple of extracted symbols
 
         """
-        if language == 'python':
+        if language == "python":
             return self._extract_python_symbols(tree)
         return ()
 
@@ -95,7 +95,7 @@ class SymbolExtractor:
         """
         symbols: list[Symbol] = []
 
-        def visit_node(node: Node, scope: str = '') -> None:
+        def visit_node(node: Node, scope: str = "") -> None:
             if self._handle_function(node, scope, symbols, visit_node):
                 return
             if self._handle_class(node, scope, symbols, visit_node):
@@ -114,15 +114,15 @@ class SymbolExtractor:
         symbols: list[Symbol],
         visit: Callable[[Node, str], None],
     ) -> bool:
-        if node.type != 'function_definition':
+        if node.type != "function_definition":
             return False
-        name_node = node.child_by_field_name('name')
+        name_node = node.child_by_field_name("name")
         if name_node is None:
             return False
         name_bytes = name_node.text
         if name_bytes is None:
             return False
-        name = name_bytes.decode('utf-8')
+        name = name_bytes.decode("utf-8")
         symbols.append(
             Symbol(
                 name=name,
@@ -131,7 +131,7 @@ class SymbolExtractor:
                 scope=scope,
             )
         )
-        new_scope = f'{scope}.{name}' if scope else name
+        new_scope = f"{scope}.{name}" if scope else name
         for child in node.children:
             visit(child, new_scope)
         return True
@@ -143,15 +143,15 @@ class SymbolExtractor:
         symbols: list[Symbol],
         visit: Callable[[Node, str], None],
     ) -> bool:
-        if node.type != 'class_definition':
+        if node.type != "class_definition":
             return False
-        name_node = node.child_by_field_name('name')
+        name_node = node.child_by_field_name("name")
         if name_node is None:
             return False
         name_bytes = name_node.text
         if name_bytes is None:
             return False
-        name = name_bytes.decode('utf-8')
+        name = name_bytes.decode("utf-8")
         symbols.append(
             Symbol(
                 name=name,
@@ -160,20 +160,20 @@ class SymbolExtractor:
                 scope=scope,
             )
         )
-        new_scope = f'{scope}.{name}' if scope else name
+        new_scope = f"{scope}.{name}" if scope else name
         for child in node.children:
             visit(child, new_scope)
         return True
 
     def _handle_import(self, node: Node, scope: str, symbols: list[Symbol]) -> None:
-        if node.type not in {'import_statement', 'import_from_statement'}:
+        if node.type not in {"import_statement", "import_from_statement"}:
             return
         for child in node.children:
-            if child.type == 'dotted_name':
+            if child.type == "dotted_name":
                 name_bytes = child.text
                 if name_bytes is None:
                     continue
-                name = name_bytes.decode('utf-8')
+                name = name_bytes.decode("utf-8")
                 symbols.append(
                     Symbol(
                         name=name,
@@ -182,13 +182,13 @@ class SymbolExtractor:
                         scope=scope,
                     )
                 )
-            if child.type == 'aliased_import':
-                name_node = child.child_by_field_name('name')
+            if child.type == "aliased_import":
+                name_node = child.child_by_field_name("name")
                 if name_node:
                     name_bytes = name_node.text
                     if name_bytes is None:
                         continue
-                    name = name_bytes.decode('utf-8')
+                    name = name_bytes.decode("utf-8")
                     symbols.append(
                         Symbol(
                             name=name,

@@ -79,8 +79,8 @@ Emperator builds an Intermediate Representation (IR) that abstracts the codebase
 
 - **Pattern Rules with Semgrep:**
   Emperator integrates Semgrep to leverage its extensive rulesets and multi-language pattern matching. Semgrep is a fast, open-source static analysis tool that finds code snippets matching abstract patterns (with a syntax resembling the source code). It covers 30+ languages and can run in milliseconds on code diffs or files. Emperator uses Semgrep in two ways:
-  1. To enforce coding conventions and simple safety rules as defined in the Contract (e.g. naming conventions, banned APIs) by compiling contract guidelines into Semgrep rules.
-  2. To run vetted security rules (like those from OWASP checks or the Semgrep community rule library) as part of its check phase.
+    1. To enforce coding conventions and simple safety rules as defined in the Contract (e.g. naming conventions, banned APIs) by compiling contract guidelines into Semgrep rules.
+    2. To run vetted security rules (like those from OWASP checks or the Semgrep community rule library) as part of its check phase.
 
 Because Semgrep patterns "look like code" and don’t require writing complex AST queries, it’s easy to extend Emperator with new checks—even developers can add custom rules in the contract. For instance, if the contract says "no direct SQL strings, must use parameterized queries," Emperator can include a Semgrep rule searching for `execute("SELECT ...")` patterns. Semgrep’s appeal is speed and simplicity (no heavy parse or compile needed), making it ideal for pre-commit and CI quick scans.
 
@@ -97,23 +97,22 @@ With the IR available, Emperator “compiles” the Project Contract into action
 
 - **Fix (Auto-Remediation):**
   For fixable violations, Emperator applies codemods using language-specific transformation engines:
+    - _Python:_ Uses LibCST to parse and transform code while preserving formatting and comments. For example, it can replace `%`-style string formatting with f-strings, ensuring minimal diffs.
+    - _JVM/Java:_ Integrates OpenRewrite, which provides pre-built recipes for common refactors (e.g., migrating deprecated APIs). OpenRewrite supports Java, YAML, XML, Kotlin, and more, enabling mass refactoring with reproducibility.
+    - _Other Languages:_ For JavaScript/TypeScript, Emperator may use OpenRewrite’s JS module or specialized AST/refactor libraries. For C/C++, tools like Clang Tidy can be integrated. Emperator’s plugin API allows swapping in appropriate codemod engines per language.
 
-  - _Python:_ Uses LibCST to parse and transform code while preserving formatting and comments. For example, it can replace `%`-style string formatting with f-strings, ensuring minimal diffs.
-  - _JVM/Java:_ Integrates OpenRewrite, which provides pre-built recipes for common refactors (e.g., migrating deprecated APIs). OpenRewrite supports Java, YAML, XML, Kotlin, and more, enabling mass refactoring with reproducibility.
-  - _Other Languages:_ For JavaScript/TypeScript, Emperator may use OpenRewrite’s JS module or specialized AST/refactor libraries. For C/C++, tools like Clang Tidy can be integrated. Emperator’s plugin API allows swapping in appropriate codemod engines per language.
-
-  After fixes, Emperator re-checks the code against the contract to ensure no new issues were introduced. If a fix causes a new violation, it is rolled back and flagged for manual review, following a “first, do no harm” principle.
+    After fixes, Emperator re-checks the code against the contract to ensure no new issues were introduced. If a fix causes a new violation, it is rolled back and flagged for manual review, following a “first, do no harm” principle.
 
 - **Scaffold & Generate:**
   Emperator can generate boilerplate or migration scaffolding based on the contract. For example, if a new API endpoint is added to the OpenAPI spec, Emperator can scaffold a handler function, data model, or test skeleton using templates from `contract/generators/`. Generation actions are controlled—they do not overwrite existing code without permission and all created files are logged for review.
 
 - **Format:**
   After fixes or generation, Emperator runs language-native formatters for consistency:
-  - _Python:_ Ruff (fast linter/formatter), Black for additional formatting.
-  - _JavaScript:_ Prettier or ESLint.
-  - _Go:_ gofmt.
-  - _C/C++:_ clang-format.
-    Formatting ensures code style remains clean and standardized, leveraging trusted community tools.
+    - _Python:_ Ruff (fast linter/formatter), Black for additional formatting.
+    - _JavaScript:_ Prettier or ESLint.
+    - _Go:_ gofmt.
+    - _C/C++:_ clang-format.
+      Formatting ensures code style remains clean and standardized, leveraging trusted community tools.
 
 #### Plugin & Module Boundaries
 
@@ -164,8 +163,8 @@ The CST nodes are annotated with findings from CodeQL and Semgrep. For example, 
 Emperator adopts an evidence-gated protocol by triangulating analyses for key rules:
 
 - **Example**: For a security rule like "No direct SQL string concatenation":
-  - Semgrep pattern detects direct concatenation.
-  - CodeQL query confirms with data flow analysis.
+    - Semgrep pattern detects direct concatenation.
+    - CodeQL query confirms with data flow analysis.
 - **Action**: Auto-fix or fail CI only if analyses agree; disagreements are marked for human review. Findings are graded by confidence (e.g., `[High] Potential SQL injection in foo.py:12`), providing transparency for developers.
 
 ### Advanced Analysis: AST, CFG, SSA
@@ -202,11 +201,11 @@ This detects forbidden calls.
 
 - **Check:** Emperator could implement this via a CodeQL query to find any function in the controller package calling a function in the db package not via an intermediate. The query runs and returns a set of violating call pairs.
 - **Remediation:** Suppose it finds 3 violations. For each:
-  - Full automation may not be possible (moving code affects architecture).
-  - Emperator can assist by generating an intermediate function in the service layer or flagging the issue.
-  - For risky changes, Emperator presents a scaffold suggestion: create a new function in Service that wraps the DB call, and update the Controller to call that. This can be partially automated if types are clear.
-  - Alternatively, Emperator can gate this: fail CI until the developer moves the call, but provide a guided fix (e.g., interactive mode: “I see controller X calling db Y. Do you want me to create a service method for it? (y/n)”).
-  - Emperator escalates from fully automatic (trivial fixes) to interactive suggestion for bigger changes.
+    - Full automation may not be possible (moving code affects architecture).
+    - Emperator can assist by generating an intermediate function in the service layer or flagging the issue.
+    - For risky changes, Emperator presents a scaffold suggestion: create a new function in Service that wraps the DB call, and update the Controller to call that. This can be partially automated if types are clear.
+    - Alternatively, Emperator can gate this: fail CI until the developer moves the call, but provide a guided fix (e.g., interactive mode: “I see controller X calling db Y. Do you want me to create a service method for it? (y/n)”).
+    - Emperator escalates from fully automatic (trivial fixes) to interactive suggestion for bigger changes.
 
 ### Pattern Matching vs AST Rewriting
 
@@ -243,7 +242,7 @@ From the static analysis engineer’s perspective, Emperator combines multiple a
 **[Suggest] 1 issue requires manual review:**
 
 - ❗ **LayeringPolicy:** `orders.py:45` — Direct DB call in controller.
-  - **Suggestion:** Create service layer function for DB access (see diff below).
+    - **Suggestion:** Create service layer function for DB access (see diff below).
 
 ---
 
@@ -286,13 +285,13 @@ Add Emperator to `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: local
-    hooks:
-      - id: emperator
-        name: Emperator Standards Check
-        entry: emperator apply --diff --color
-        language: system
-        pass_filenames: false
+    - repo: local
+      hooks:
+          - id: emperator
+            name: Emperator Standards Check
+            entry: emperator apply --diff --color
+            language: system
+            pass_filenames: false
 ```
 
 Emperator runs before each commit, showing diffs and blocking commits if contract violations remain.
@@ -337,11 +336,11 @@ GitHub Actions snippet:
 ```yaml
 - name: Run Emperator (Standards Enforcement)
   run: |
-    emperator apply --format=sarif --out=emperator.sarif || true
+      emperator apply --format=sarif --out=emperator.sarif || true
 - name: Upload Emperator Results
   uses: github/codeql-action/upload-sarif@v2
   with:
-    sarif_file: emperator.sarif
+      sarif_file: emperator.sarif
 ```
 
 Alternatively, strict enforcement:
@@ -357,10 +356,10 @@ Alternatively, strict enforcement:
 - Emperator enforces security best practices (OWASP Top 10, CWE) via CodeQL and Semgrep.
 - Detects vulnerabilities, hardcoded secrets, deprecated functions, and unsafe patterns.
 - Categorizes fixes by risk tier:
-  - **Tier 0:** Pure formatting/style (auto-apply)
-  - **Tier 1:** Localized refactors (auto-apply, test-verified)
-  - **Tier 2:** Complex refactors (suggestion only)
-  - **Tier 3:** Large changes (manual review)
+    - **Tier 0:** Pure formatting/style (auto-apply)
+    - **Tier 1:** Localized refactors (auto-apply, test-verified)
+    - **Tier 2:** Complex refactors (suggestion only)
+    - **Tier 3:** Large changes (manual review)
 - All changes are traceable and reversible (supports `emperator undo`).
 
 ---

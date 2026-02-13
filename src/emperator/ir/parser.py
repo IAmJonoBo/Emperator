@@ -13,11 +13,11 @@ from emperator.ir.symbols import Symbol, SymbolExtractor
 
 # Language mapping from file extensions
 _LANGUAGE_MAP = {
-    '.py': 'python',
-    '.js': 'javascript',
-    '.ts': 'typescript',
-    '.jsx': 'javascript',
-    '.tsx': 'typescript',
+    ".py": "python",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".jsx": "javascript",
+    ".tsx": "typescript",
 }
 
 
@@ -31,7 +31,7 @@ class ParsedFile:
     syntax_errors: tuple[dict[str, Any], ...] = field(default_factory=tuple)
     symbols: tuple[Symbol, ...] = field(default_factory=tuple)
     last_modified: float = 0.0
-    content_hash: str = ''
+    content_hash: str = ""
 
     def has_errors(self) -> bool:
         """Check if the file has syntax errors."""
@@ -84,9 +84,9 @@ class IRBuilder:
     def _initialize_languages(self) -> None:
         """Initialize Tree-sitter languages."""
         # Initialize Python
-        self._languages['python'] = Language(tspython.language())
-        parser = Parser(self._languages['python'])
-        self._parsers['python'] = parser
+        self._languages["python"] = Language(tspython.language())
+        parser = Parser(self._languages["python"])
+        self._parsers["python"] = parser
 
     def _get_content_hash(self, content: bytes) -> str:
         """Generate deterministic hash for cache lookup.
@@ -126,13 +126,13 @@ class IRBuilder:
 
         def visit_node(node: Node) -> None:
             """Visit tree nodes recursively."""
-            if node.type == 'ERROR' or node.is_missing:
+            if node.type == "ERROR" or node.is_missing:
                 errors.append(
                     {
-                        'type': node.type,
-                        'start': node.start_point,
-                        'end': node.end_point,
-                        'text': node.text.decode('utf-8') if node.text else '',
+                        "type": node.type,
+                        "start": node.start_point,
+                        "end": node.end_point,
+                        "text": node.text.decode("utf-8") if node.text else "",
                     }
                 )
             for child in node.children:
@@ -156,18 +156,18 @@ class IRBuilder:
         """
         language = self._detect_language(path)
         if language is None:
-            msg = f'Unsupported file extension: {path.suffix}'
+            msg = f"Unsupported file extension: {path.suffix}"
             raise ValueError(msg)
 
         if language not in self._parsers:
-            msg = f'Parser not available for language: {language}'
+            msg = f"Parser not available for language: {language}"
             raise ValueError(msg)
 
         # Read file content
         try:
             content = path.read_bytes()
         except OSError as e:
-            msg = f'Failed to read file {path}: {e}'
+            msg = f"Failed to read file {path}: {e}"
             raise ValueError(msg) from e
 
         # Parse with Tree-sitter
@@ -214,14 +214,16 @@ class IRBuilder:
 
         # Determine which extensions to include
         if languages:
-            extensions = [ext for ext, lang in _LANGUAGE_MAP.items() if lang in languages]
+            extensions = [
+                ext for ext, lang in _LANGUAGE_MAP.items() if lang in languages
+            ]
         else:
             extensions = list(_LANGUAGE_MAP.keys())
 
         # Find all matching files
         all_files: list[Path] = []
         for ext in extensions:
-            all_files.extend(root.rglob(f'*{ext}'))
+            all_files.extend(root.rglob(f"*{ext}"))
 
         # Parse each file
         for file_path in all_files:

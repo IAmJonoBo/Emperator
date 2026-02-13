@@ -79,9 +79,9 @@ Cache IR across CI runs for speed:
 - name: Restore IR cache
   uses: actions/cache@v3
   with:
-    path: .emperator/ir-cache
-    key: ir-${{ hashFiles('**/*.py') }}
-    restore-keys: ir-
+      path: .emperator/ir-cache
+      key: ir-${{ hashFiles('**/*.py') }}
+      restore-keys: ir-
 
 - name: Parse codebase
   run: emperator ir parse --language python

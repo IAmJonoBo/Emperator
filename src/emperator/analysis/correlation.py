@@ -67,7 +67,9 @@ class CorrelationEngine:
         grouped: dict[str, list[ExemptionRecord]] = {}
         for record in self._exemptions:
             grouped.setdefault(record.rule_id, []).append(record)
-        self._exemptions_by_rule = {rule_id: tuple(records) for rule_id, records in grouped.items()}
+        self._exemptions_by_rule = {
+            rule_id: tuple(records) for rule_id, records in grouped.items()
+        }
 
     def correlate(
         self,
@@ -97,19 +99,21 @@ class CorrelationEngine:
         guidance = finding.remediation_guidance
         if guidance is None:
             return (
-                f'Follow contract rule {finding.contract_rule.id}: '
-                f'{finding.contract_rule.description}.'
+                f"Follow contract rule {finding.contract_rule.id}: "
+                f"{finding.contract_rule.description}."
             )
         lines: list[str] = [guidance.summary]
         if guidance.steps:
-            lines.append('Recommended steps:')
-            lines.extend(f'- {step}' for step in guidance.steps)
+            lines.append("Recommended steps:")
+            lines.extend(f"- {step}" for step in guidance.steps)
         if guidance.references:
-            lines.append('References:')
-            lines.extend(f'- {reference}' for reference in guidance.references)
-        return '\n'.join(lines)
+            lines.append("References:")
+            lines.extend(f"- {reference}" for reference in guidance.references)
+        return "\n".join(lines)
 
-    def _match_rule(self, finding: AnalysisFinding) -> tuple[ContractRule | None, float]:
+    def _match_rule(
+        self, finding: AnalysisFinding
+    ) -> tuple[ContractRule | None, float]:
         if finding.rule_id:
             direct = self._rules_by_id.get(finding.rule_id)
             if direct is not None:
@@ -157,20 +161,24 @@ class CorrelationEngine:
                 continue
             active = self._is_active(record.expires)
             if active:
-                reason = record.justification or 'Active exemption recorded in contract.'
+                reason = (
+                    record.justification or "Active exemption recorded in contract."
+                )
             else:
-                expiry_text = record.expires.isoformat() if record.expires else 'unknown date'
-                reason = f'Exemption expired on {expiry_text}'
+                expiry_text = (
+                    record.expires.isoformat() if record.expires else "unknown date"
+                )
+                reason = f"Exemption expired on {expiry_text}"
             return ExemptionStatus(active=active, reason=reason, record=record)
         return None
 
     @staticmethod
     def _paths_match(candidate: Path, expected: Path) -> bool:
-        candidate_normalized = Path(str(candidate)).as_posix().lstrip('./')
-        expected_normalized = Path(str(expected)).as_posix().lstrip('./')
+        candidate_normalized = Path(str(candidate)).as_posix().lstrip("./")
+        expected_normalized = Path(str(expected)).as_posix().lstrip("./")
         if candidate_normalized == expected_normalized:
             return True
-        return candidate_normalized.endswith(f'/{expected_normalized}')
+        return candidate_normalized.endswith(f"/{expected_normalized}")
 
     @staticmethod
     def _is_active(expiry: date | None) -> bool:

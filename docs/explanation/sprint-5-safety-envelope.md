@@ -49,60 +49,60 @@ flowchart TB
         Findings[Correlated Findings<br/>with Remediation]
         Contract[Fix Rules<br/>from Contract]
     end
-    
+
     subgraph SafetyGate["Safety Gate Pipeline"]
         Tier{Risk Tier<br/>Assessment}
         PreCheck[Pre-Fix Validation<br/>Tests + Lint]
     end
-    
+
     subgraph FixEngine["Fix Execution Layer"]
         LibCST[LibCST Engine<br/>Python AST Transform]
         OpenRewrite[OpenRewrite Engine<br/>JVM Refactoring]
         Formatter[Code Formatters<br/>Ruff, Black, etc.]
     end
-    
+
     subgraph Validation["Post-Fix Validation"]
         PostCheck[Re-run Checks<br/>Static Analysis]
         TestRun[Execute Tests<br/>Unit + Integration]
         Diff[Diff Analysis<br/>Scope Verification]
     end
-    
+
     subgraph Decision["Approval Decision"]
         Auto{Auto-Apply<br/>Allowed?}
         Manual[Manual Review<br/>Diff + Approval]
     end
-    
+
     subgraph Output["Output & Rollback"]
         Commit[Atomic Commit<br/>with Provenance]
         Rollback[Rollback<br/>on Failure]
         Telemetry[Telemetry Event<br/>Fix Outcome]
     end
-    
+
     Findings --> Tier
     Contract --> Tier
     Tier -->|Tier 0-1| PreCheck
     Tier -->|Tier 2-3| Manual
-    
+
     PreCheck -->|Pass| LibCST
     PreCheck -->|Pass| OpenRewrite
     LibCST --> Formatter
     OpenRewrite --> Formatter
-    
+
     Formatter --> PostCheck
     PostCheck --> TestRun
     TestRun --> Diff
-    
+
     Diff --> Auto
     Auto -->|Yes| Commit
     Auto -->|No| Manual
-    
+
     Commit --> Telemetry
     Manual --> Commit
-    
+
     TestRun -->|Fail| Rollback
     PostCheck -->|New Issues| Rollback
     Rollback --> Telemetry
-    
+
     style SafetyGate fill:#ffe1e1
     style FixEngine fill:#e1f5ff
     style Validation fill:#fff4e1
@@ -159,7 +159,7 @@ class FixClassification:
 
 class RiskClassifier:
     """Classify fixes by risk tier."""
-    
+
     def classify_fix(
         self,
         finding: CorrelatedFinding,
@@ -167,10 +167,10 @@ class RiskClassifier:
         context: CodeContext,
     ) -> FixClassification:
         """Determine risk tier based on fix scope and impact."""
-        
+
     def assess_impact(self, fix: ProposedFix) -> ImpactAnalysis:
         """Analyze affected files, functions, tests."""
-        
+
     def recommend_validation(self, classification: FixClassification) -> ValidationPlan:
         """Generate validation checklist for tier."""
 ```
@@ -192,30 +192,30 @@ class RiskClassifier:
 ```python
 class EperatorTransformer(cst.CSTTransformer):
     """Base class for Emperator transformations."""
-    
+
     def __init__(self, context: TransformContext):
         super().__init__()
         self.context = context
         self.changes: list[Change] = []
-        
+
     def record_change(self, node: cst.CSTNode, description: str) -> None:
         """Log transformation for audit trail."""
 
 class RenameTransformer(EperatorTransformer):
     """Rename identifiers following contract naming rules."""
-    
+
     def leave_Name(self, original_node: cst.Name, updated_node: cst.Name) -> cst.Name:
         """Apply rename if identifier violates convention."""
 
 class DeprecatedAPITransformer(EperatorTransformer):
     """Replace deprecated function calls."""
-    
+
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
         """Substitute deprecated API with modern equivalent."""
 
 class TypeAnnotationTransformer(EperatorTransformer):
     """Add missing type annotations."""
-    
+
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.FunctionDef:
@@ -245,7 +245,7 @@ class TransformResult:
 
 class LibCSTEngine:
     """Orchestrate LibCST transformations."""
-    
+
     def apply_fix(
         self,
         file: Path,
@@ -253,7 +253,7 @@ class LibCSTEngine:
         dry_run: bool = False,
     ) -> TransformResult:
         """Apply single transformer to file."""
-        
+
     def batch_transform(
         self,
         files: tuple[Path, ...],
@@ -261,7 +261,7 @@ class LibCSTEngine:
         max_workers: int = 4,
     ) -> TransformResult:
         """Parallel transformation with progress reporting."""
-        
+
     def verify_syntax(self, file: Path) -> bool:
         """Ensure transformed code is syntactically valid."""
 ```
@@ -330,10 +330,10 @@ class OpenRewriteRecipe:
 
 class RecipeManager:
     """Manage OpenRewrite recipes."""
-    
+
     def load_recipes_from_contract(self, contract: Contract) -> tuple[OpenRewriteRecipe, ...]:
         """Generate recipes from contract rules."""
-        
+
     def write_recipe_yaml(self, recipe: OpenRewriteRecipe, output: Path) -> None:
         """Serialize recipe to OpenRewrite YAML format."""
 ```
@@ -348,12 +348,12 @@ name: com.example.ReplaceDeprecatedAPI
 displayName: Replace deprecated API calls
 description: Migrate from old_api() to new_api()
 recipeList:
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.example.old_api(..)
-      newMethodName: new_api
-  - org.openrewrite.java.ChangeMethodTargetToStatic:
-      methodPattern: com.example.new_api(..)
-      fullyQualifiedTargetTypeName: com.example.NewAPI
+    - org.openrewrite.java.ChangeMethodName:
+          methodPattern: com.example.old_api(..)
+          newMethodName: new_api
+    - org.openrewrite.java.ChangeMethodTargetToStatic:
+          methodPattern: com.example.new_api(..)
+          fullyQualifiedTargetTypeName: com.example.NewAPI
 ```
 
 #### 3.2 Execution Engine (`src/emperator/fix/jvm/engine.py`)
@@ -361,7 +361,7 @@ recipeList:
 ```python
 class OpenRewriteEngine:
     """Orchestrate OpenRewrite recipe execution."""
-    
+
     async def run_recipe(
         self,
         recipe: OpenRewriteRecipe,
@@ -369,7 +369,7 @@ class OpenRewriteEngine:
         dry_run: bool = False,
     ) -> RecipeResult:
         """Execute recipe via CLI invocation."""
-        
+
     def parse_diff(self, output: str) -> tuple[FileDiff, ...]:
         """Extract changes from OpenRewrite output."""
 ```
@@ -407,17 +407,17 @@ class ValidationResult:
 
 class ValidationOrchestrator:
     """Coordinate pre/post-fix validation."""
-    
+
     async def run_pre_checks(self, context: FixContext) -> ValidationResult:
         """Execute checks before applying fix."""
-        
+
     async def run_post_checks(
         self,
         context: FixContext,
         applied_changes: TransformResult,
     ) -> ValidationResult:
         """Validate fix outcome."""
-        
+
     def should_rollback(self, post_result: ValidationResult) -> bool:
         """Determine if rollback is required."""
 ```
@@ -425,27 +425,23 @@ class ValidationOrchestrator:
 **Validation Checks:**
 
 1. **Static Analysis:**
-
-   - Ruff/Mypy for Python
-   - ESLint for JavaScript
-   - Biome for JSON/YAML
+    - Ruff/Mypy for Python
+    - ESLint for JavaScript
+    - Biome for JSON/YAML
 
 1. **Test Execution:**
-
-   - Unit tests (fast)
-   - Integration tests (for Tier 2+)
-   - Contract validation tests
+    - Unit tests (fast)
+    - Integration tests (for Tier 2+)
+    - Contract validation tests
 
 1. **Diff Scope Verification:**
-
-   - Changed lines within expected range
-   - No unintended file modifications
-   - Formatting consistent
+    - Changed lines within expected range
+    - No unintended file modifications
+    - Formatting consistent
 
 1. **Performance Checks:**
-
-   - No significant perf regression
-   - Memory usage within limits
+    - No significant perf regression
+    - Memory usage within limits
 
 #### 4.2 Test Execution Strategy
 
@@ -472,7 +468,7 @@ def select_tests_for_fix(fix: AppliedFix) -> tuple[str, ...]:
     """Determine which tests to run based on modified files."""
     affected_modules = get_affected_modules(fix.files)
     test_files = find_tests_for_modules(affected_modules)
-    
+
     if fix.classification.tier == RiskTier.TIER_1:
         # Run only direct unit tests
         return select_unit_tests(test_files)
@@ -498,13 +494,13 @@ class RollbackPoint:
 
 class RollbackManager:
     """Manage fix rollback and recovery."""
-    
+
     def create_snapshot(self, files: tuple[Path, ...]) -> RollbackPoint:
         """Capture state before applying fix."""
-        
+
     def rollback(self, point: RollbackPoint) -> None:
         """Restore files to previous state."""
-        
+
     def commit_changes(
         self,
         changes: TransformResult,
@@ -516,22 +512,19 @@ class RollbackManager:
 **Rollback Strategies:**
 
 1. **In-Memory Snapshot:**
-
-   - Store original file content in memory
-   - Fast rollback for single-file fixes
-   - Limited to fixes \<100MB
+    - Store original file content in memory
+    - Fast rollback for single-file fixes
+    - Limited to fixes \<100MB
 
 1. **Git Stash:**
-
-   - Use `git stash` before applying fix
-   - Atomic rollback via `git stash pop`
-   - Works for large changesets
+    - Use `git stash` before applying fix
+    - Atomic rollback via `git stash pop`
+    - Works for large changesets
 
 1. **Git Commit + Revert:**
-
-   - Create commit, then revert on failure
-   - Full audit trail preserved
-   - Best for CI environments
+    - Create commit, then revert on failure
+    - Full audit trail preserved
+    - Best for CI environments
 
 **Configuration:**
 
@@ -569,17 +562,17 @@ Provenance:
 
 ```json
 {
-  "event": "fix_applied",
-  "timestamp": "2025-10-22T14:30:00Z",
-  "fix_id": "fix-ban-eval-util-py-42",
-  "rule_id": "security.ban-eval",
-  "risk_tier": 1,
-  "transformer": "DeprecatedAPITransformer",
-  "files_changed": ["src/util.py"],
-  "lines_changed": 1,
-  "validation_passed": true,
-  "test_duration_seconds": 12.4,
-  "auto_applied": true
+    "event": "fix_applied",
+    "timestamp": "2025-10-22T14:30:00Z",
+    "fix_id": "fix-ban-eval-util-py-42",
+    "rule_id": "security.ban-eval",
+    "risk_tier": 1,
+    "transformer": "DeprecatedAPITransformer",
+    "files_changed": ["src/util.py"],
+    "lines_changed": 1,
+    "validation_passed": true,
+    "test_duration_seconds": 12.4,
+    "auto_applied": true
 }
 ```
 
@@ -601,13 +594,13 @@ class ApprovalRequest:
 
 class ApprovalWorkflow:
     """Manage manual review and approval."""
-    
+
     def request_approval(self, fix: AppliedFix) -> ApprovalRequest:
         """Present fix for review."""
-        
+
     def interactive_review(self, request: ApprovalRequest) -> ApprovalDecision:
         """CLI interactive review with diff display."""
-        
+
     def batch_approval(
         self,
         requests: tuple[ApprovalRequest, ...],
@@ -655,54 +648,54 @@ emperator fix apply --tier 1 --auto-approve
 name: Emperator Auto-Fix
 
 on:
-  pull_request:
-    types: [opened, synchronize]
+    pull_request:
+        types: [opened, synchronize]
 
 jobs:
-  autofix:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Emperator
-        run: ./scripts/setup-tooling.sh --ci
-      
-      - name: Apply Tier 0-1 Fixes
-        run: |
-          emperator fix apply --tier 0 --tier 1 --auto-approve
-        
-      - name: Run Tests
-        run: pytest
-        
-      - name: Commit Fixes
-        if: success()
-        run: |
-          git config user.name "Emperator Bot"
-          git config user.email "emperator@example.com"
-          git add -A
-          git commit -m "fix: auto-applied Tier 0-1 fixes" || true
-          git push
-          
-      - name: Comment PR
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const report = require('./.emperator/fix-report.json');
-            const body = `## Emperator Auto-Fix Report
-            
-            - ✅ Applied: ${report.applied_count} fixes
-            - ⏭️ Skipped: ${report.skipped_count} fixes (Tier 2+)
-            - ❌ Failed: ${report.failed_count} fixes
-            
-            [View detailed report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
-            
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body
-            });
+    autofix:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Emperator
+              run: ./scripts/setup-tooling.sh --ci
+
+            - name: Apply Tier 0-1 Fixes
+              run: |
+                  emperator fix apply --tier 0 --tier 1 --auto-approve
+
+            - name: Run Tests
+              run: pytest
+
+            - name: Commit Fixes
+              if: success()
+              run: |
+                  git config user.name "Emperator Bot"
+                  git config user.email "emperator@example.com"
+                  git add -A
+                  git commit -m "fix: auto-applied Tier 0-1 fixes" || true
+                  git push
+
+            - name: Comment PR
+              if: always()
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const report = require('./.emperator/fix-report.json');
+                      const body = `## Emperator Auto-Fix Report
+
+                      - ✅ Applied: ${report.applied_count} fixes
+                      - ⏭️ Skipped: ${report.skipped_count} fixes (Tier 2+)
+                      - ❌ Failed: ${report.failed_count} fixes
+
+                      [View detailed report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+
+                      github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        body
+                      });
 ```
 
 ### 7. Property-Based Testing
@@ -769,21 +762,25 @@ Emperator's fix engine can automatically remediate contract violations while ens
 ## Risk Tiers
 
 ### Tier 0: Formatting
+
 - Auto-applied without review
 - No semantic changes
 - Examples: Whitespace, import sorting
 
 ### Tier 1: Localized Refactors
+
 - Auto-applied with test verification
 - Single-function scope
 - Examples: Rename, replace API
 
 ### Tier 2: Complex Refactors
+
 - Manual review required
 - Module-level impact
 - Examples: Extract method, restructure
 
 ### Tier 3: Architectural Changes
+
 - Design review required
 - Multi-module impact
 - Examples: Split service, change API
@@ -798,6 +795,7 @@ emperator fix apply --dry-run
 
 # Apply with rollback on test failure
 emperator fix apply --verify-tests --rollback-on-fail
+```
 ````
 
 ### Interactive Review (Tier 2+)
@@ -1001,11 +999,11 @@ Catalog of available transformers:
 1. **End-to-End Fix Application:**
    - Classify → Transform → Validate → Commit
    - Verify audit trail
-   
+
 2. **Rollback on Failure:**
    - Apply fix → Tests fail → Rollback
    - Verify state restored
-   
+
 3. **Interactive Approval:**
    - Present fixes → User approves/rejects → Apply approved
 
@@ -1107,22 +1105,22 @@ Catalog of available transformers:
 1. **Risk Tier Classification Demo (5 min)**
    - Show sample fixes classified by tier
    - Explain validation requirements
-   
+
 2. **Automated Fix Application Demo (10 min)**
    - Apply Tier 0-1 fixes automatically
    - Show validation pipeline execution
    - Display before/after diffs
-   
+
 3. **Rollback Demo (5 min)**
    - Introduce intentional test failure
    - Demonstrate automatic rollback
    - Show audit trail
-   
+
 4. **Interactive Approval Demo (5 min)**
    - Review Tier 2 fix interactively
    - Show approval workflow
    - Apply approved fix
-   
+
 5. **Property-Based Testing Demo (5 min)**
    - Run property tests
    - Show idempotence verification

@@ -37,47 +37,45 @@ Extras --> VSCode[VS Code extensions]
 
 1. **Declare “latest compatible” correctly** — use `~=` in `pyproject.toml`:
 
-   ```toml
-   [project]
-   name = "emperator"
-   requires-python = ">=3.11"
-   dependencies = [
-    "fastapi ~= 0.119",
-    "pydantic ~= 2.12",
-    "ruff ~= 0.14",
-   ]
-   ```
+    ```toml
+    [project]
+    name = "emperator"
+    requires-python = ">=3.11"
+    dependencies = [
+     "fastapi ~= 0.119",
+     "pydantic ~= 2.12",
+     "ruff ~= 0.14",
+    ]
+    ```
 
-   The compatible release operator expresses the intent (“give me the newest patch/minor in this line”) while preserving forwards compatibility guarantees.
+    The compatible release operator expresses the intent (“give me the newest patch/minor in this line”) while preserving forwards compatibility guarantees.
 
 1. **Lock and sync the virtual environment with uv**:
 
-   ```bash
-   uv lock            # resolves to uv.lock with the latest releases inside the compatible ranges
-   uv sync --frozen   # ensures .venv matches the lock exactly
-   ```
+    ```bash
+    uv lock            # resolves to uv.lock with the latest releases inside the compatible ranges
+    uv sync --frozen   # ensures .venv matches the lock exactly
+    ```
 
-   `uv` manages `.venv/`, keeps the lock and environment in sync, and ships with offline-friendly, Rust-fast resolution.
+    `uv` manages `.venv/`, keeps the lock and environment in sync, and ships with offline-friendly, Rust-fast resolution.
 
 1. **CI flow (newest compatible, reproducible)**:
-
-   - Nightly or PR automation: `uv lock --upgrade` (or adjust constraints) to refresh `uv.lock` and commit the result once CI passes.
-   - Build/test: skip resolution and run `uv sync --frozen` so ephemeral runners reproduce exactly what the lock declares.
+    - Nightly or PR automation: `uv lock --upgrade` (or adjust constraints) to refresh `uv.lock` and commit the result once CI passes.
+    - Build/test: skip resolution and run `uv sync --frozen` so ephemeral runners reproduce exactly what the lock declares.
 
 1. **Ephemeral runners and offline/air-gapped installs**:
+    - **Cache the store** — use GitHub Actions cache keyed by `uv.lock` to persist `~/.cache/uv` and `.venv/` across runs.
 
-   - **Cache the store** — use GitHub Actions cache keyed by `uv.lock` to persist `~/.cache/uv` and `.venv/` across runs.
+    - **Ship a wheelhouse** for true offline operation:
 
-   - **Ship a wheelhouse** for true offline operation:
+        ```bash
+        # Build wheelhouse (Linux runner)
+        pip wheel --requirement <(uv export --format requirements.txt) -w wheelhouse
+        # Later / offline install
+        pip install --no-index --find-links=wheelhouse -r <(uv export --format requirements.txt)
+        ```
 
-     ```bash
-     # Build wheelhouse (Linux runner)
-     pip wheel --requirement <(uv export --format requirements.txt) -w wheelhouse
-     # Later / offline install
-     pip install --no-index --find-links=wheelhouse -r <(uv export --format requirements.txt)
-     ```
-
-     Repair native wheels with `auditwheel` so the artefacts remain portable. For private mirrors, publish a PEP 503 simple index via devpi, Nexus, or Artifactory.
+        Repair native wheels with `auditwheel` so the artefacts remain portable. For private mirrors, publish a PEP 503 simple index via devpi, Nexus, or Artifactory.
 
 1. **Keep ranges fresh safely** — enable Dependabot/Renovate or schedule a `uv lock --upgrade` workflow to capture new releases inside the compatible range, gate them with CI, and merge once green.
 
@@ -89,22 +87,22 @@ Extras --> VSCode[VS Code extensions]
 
 - In CI run:
 
-  ```bash
-  pnpm fetch                 # pre-populate the store from the lockfile
-  pnpm install --frozen-lockfile
-  ```
+    ```bash
+    pnpm fetch                 # pre-populate the store from the lockfile
+    pnpm install --frozen-lockfile
+    ```
 
-  `pnpm fetch` primes Docker layers and GitHub caches so installs become almost instant.
+    `pnpm fetch` primes Docker layers and GitHub caches so installs become almost instant.
 
 - Cache the store keyed by the lockfile:
 
-  ```yaml
-  - run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-  - uses: actions/cache@v4
-    with:
-      path: ${{env.STORE_PATH}}
-      key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
-  ```
+    ```yaml
+    - run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+    - uses: actions/cache@v4
+      with:
+          path: ${{env.STORE_PATH}}
+          key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
+    ```
 
 ### Other ecosystems (parity)
 
@@ -120,30 +118,30 @@ Extras --> VSCode[VS Code extensions]
 name: ci-python
 on: [push, pull_request]
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Cache uv (by lockfile)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/uv
-            .venv
-          key: uv-${{runner.os}}-${{hashFiles('uv.lock')}}
-      - name: Sync venv (reproducible)
-        run: ~/.cargo/bin/uv sync --frozen
-      - name: Run tests
-        run: ~/.cargo/bin/uv run -m pytest -q
-      - name: Build wheelhouse
-        run: |
-          pip wheel -r <(~/.cargo/bin/uv export --format requirements.txt) -w wheelhouse
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheelhouse
-          path: wheelhouse/
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Cache uv (by lockfile)
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/uv
+                      .venv
+                  key: uv-${{runner.os}}-${{hashFiles('uv.lock')}}
+            - name: Sync venv (reproducible)
+              run: ~/.cargo/bin/uv sync --frozen
+            - name: Run tests
+              run: ~/.cargo/bin/uv run -m pytest -q
+            - name: Build wheelhouse
+              run: |
+                  pip wheel -r <(~/.cargo/bin/uv export --format requirements.txt) -w wheelhouse
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: wheelhouse
+                  path: wheelhouse/
 ```
 
 **Node (pnpm)**:
@@ -152,35 +150,35 @@ jobs:
 name: ci-node
 on: [push, pull_request]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-      - name: Get pnpm store path
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ${{env.STORE_PATH}}
-          key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
-      - run: pnpm fetch
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+                  run_install: false
+            - name: Get pnpm store path
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+            - name: Cache pnpm store
+              uses: actions/cache@v4
+              with:
+                  path: ${{env.STORE_PATH}}
+                  key: pnpm-${{runner.os}}-${{hashFiles('**/pnpm-lock.yaml')}}
+            - run: pnpm fetch
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm test
 ```
 
 ### Private mirrors and provenance
 
 - Front PyPI through a devpi/Nexus/Artifactory mirror to stabilise supply, optionally paired with the wheelhouse artefact for full offline coverage.
 - Document why this approach is trustworthy:
-  - **Data** — uv project/lock/sync documentation, the PEP 440 specifier table, and GitHub Actions cache guidance.
-  - **Methods** — compatible release ranges → lockfile → frozen sync in CI; cache the store; fall back to wheelhouse/mirror for cold or offline starts.
-  - **Key result** — newest compatible versions on every update without breaking reproducibility; instant installs on ephemeral runners; offline-capable workflows.
-  - **Uncertainty** — building universal wheels for native packages may require CI images with the right system libraries (use `auditwheel` to repair them).
-  - **Safer alternative** — start with caching only; add wheelhouse or mirror once the critical native dependencies are identified and tested.
+    - **Data** — uv project/lock/sync documentation, the PEP 440 specifier table, and GitHub Actions cache guidance.
+    - **Methods** — compatible release ranges → lockfile → frozen sync in CI; cache the store; fall back to wheelhouse/mirror for cold or offline starts.
+    - **Key result** — newest compatible versions on every update without breaking reproducibility; instant installs on ephemeral runners; offline-capable workflows.
+    - **Uncertainty** — building universal wheels for native packages may require CI images with the right system libraries (use `auditwheel` to repair them).
+    - **Safer alternative** — start with caching only; add wheelhouse or mirror once the critical native dependencies are identified and tested.
 
 ### Quick bootstrap (all tooling) {#quick-bootstrap}
 

@@ -32,9 +32,9 @@ Emperator reinforces software governance by generating auditable artefacts, enfo
 
 - Maintain a dedicated policy package (e.g., `contract/policy/compliance.rego`) that evaluates Emperator findings and SBOM data for compliance thresholds.
 - Example rules:
-  - Fail builds when critical security findings remain unresolved.
-  - Require justification tags for auto-fixes applied to `high` or `critical` rules.
-  - Deny merges when contract exemptions exceed a predefined count or expiry window.
+    - Fail builds when critical security findings remain unresolved.
+    - Require justification tags for auto-fixes applied to `high` or `critical` rules.
+    - Deny merges when contract exemptions exceed a predefined count or expiry window.
 - Evaluate policies both locally (`opa eval`) and in CI to ensure consistent decisions across environments.
 
 ## Exemption governance {#managing-exemptions}

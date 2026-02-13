@@ -194,23 +194,23 @@
 - ✅ JSONL telemetry store ignores corrupted lines, rewrites atomically, and retains valid run history with coverage.
 - ✅ Analyzer execution handles missing binaries gracefully, emitting exit-code notes and telemetry metadata.
 - ✅ **Sprint 4 & 5 comprehensive planning documents:**
-  - `docs/explanation/sprint-4-ir-analysis.md` – Detailed IR builder, Semgrep, CodeQL integration plan
-  - `docs/explanation/sprint-5-safety-envelope.md` – Comprehensive safety envelope design and implementation plan
+    - `docs/explanation/sprint-4-ir-analysis.md` – Detailed IR builder, Semgrep, CodeQL integration plan
+    - `docs/explanation/sprint-5-safety-envelope.md` – Comprehensive safety envelope design and implementation plan
 - ✅ **Architecture Decision Records:**
-  - ADR-0004: IR Builder Architecture and Caching Strategy
-  - ADR-0005: Safety Envelope Design for Automated Code Fixes
+    - ADR-0004: IR Builder Architecture and Caching Strategy
+    - ADR-0005: Safety Envelope Design for Automated Code Fixes
 - ✅ **Sprint 4 Week 1 deliverables (IR Builder):**
-  - `src/emperator/ir/` package with IRBuilder, SymbolExtractor, CacheManager
-  - CLI commands: `emperator ir parse`, `emperator ir cache`
-  - 19 comprehensive tests (100% passing)
-  - Documentation: `docs/reference/ir-format.md`, `docs/explanation/ir-architecture.md`, `docs/how-to/use-ir-cache.md`
-  - Tree-sitter, LibCST, MessagePack dependencies integrated
+    - `src/emperator/ir/` package with IRBuilder, SymbolExtractor, CacheManager
+    - CLI commands: `emperator ir parse`, `emperator ir cache`
+    - 19 comprehensive tests (100% passing)
+    - Documentation: `docs/reference/ir-format.md`, `docs/explanation/ir-architecture.md`, `docs/how-to/use-ir-cache.md`
+    - Tree-sitter, LibCST, MessagePack dependencies integrated
 - ✅ **Sprint 4 Week 2 deliverables (Semgrep Integration):**
-  - `src/emperator/rules/` package with SemgrepRuleGenerator
-  - CLI commands: `emperator rules generate`, `emperator rules validate`
-  - 7 rules across 3 categories (naming, security, architecture)
-  - 14 comprehensive tests (100% passing)
-  - Generated rule packs in `contract/generated/semgrep/`
+    - `src/emperator/rules/` package with SemgrepRuleGenerator
+    - CLI commands: `emperator rules generate`, `emperator rules validate`
+    - 7 rules across 3 categories (naming, security, architecture)
+    - 14 comprehensive tests (100% passing)
+    - Generated rule packs in `contract/generated/semgrep/`
 - ⏳ Sprint 4 Week 3-4 (CodeQL pipeline, correlation engine, benchmarks) – implementation pending
 - ⏳ Sprint 5 deliverables (safety envelope, rollback playbooks, telemetry uplift) – detailed plan created, implementation pending per `docs/explanation/sprint-5-safety-envelope.md`.
 
@@ -233,11 +233,11 @@
 - Directory blueprint: `directory_structure.md`.
 - Delivery artefacts: `emperator_specs/Project_Plan.md`, `emperator_specs/Sprint_Playbook.md`.
 - **Sprint planning:**
-  - Sprint 4 detailed plan: `docs/explanation/sprint-4-ir-analysis.md`
-  - Sprint 5 detailed plan: `docs/explanation/sprint-5-safety-envelope.md`
+    - Sprint 4 detailed plan: `docs/explanation/sprint-4-ir-analysis.md`
+    - Sprint 5 detailed plan: `docs/explanation/sprint-5-safety-envelope.md`
 - **Architecture decisions:**
-  - ADR-0004: IR Builder Architecture: `docs/adr/0004-ir-builder-architecture.md`
-  - ADR-0005: Safety Envelope Design: `docs/adr/0005-safety-envelope-design.md`
+    - ADR-0004: IR Builder Architecture: `docs/adr/0004-ir-builder-architecture.md`
+    - ADR-0005: Safety Envelope Design: `docs/adr/0005-safety-envelope-design.md`
 - Analyzer run usage: `emperator analysis run` (telemetry-backed analyzer execution).
 - Analyzer plan usage: `emperator analysis plan` (Semgrep/CodeQL command scaffolding).
 - Telemetry design: `docs/adr/0003-analyzer-telemetry-architecture.md`, `src/emperator/analysis.py` telemetry helpers.

@@ -13,17 +13,17 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-METADATA_FILE_NAME = 'metadata.json'
-SARIF_FORMAT = 'sarifv2.1.0'
-DEFAULT_CACHE_DIR = Path('.emperator/codeql-cache')
-DEFAULT_SARIF_NAME = 'analysis.sarif'
+METADATA_FILE_NAME = "metadata.json"
+SARIF_FORMAT = "sarifv2.1.0"
+DEFAULT_CACHE_DIR = Path(".emperator/codeql-cache")
+DEFAULT_SARIF_NAME = "analysis.sarif"
 
 __all__ = [
-    'CodeQLManager',
-    'CodeQLDatabase',
-    'CodeQLFinding',
-    'CodeQLManagerError',
-    'CodeQLUnavailableError',
+    "CodeQLDatabase",
+    "CodeQLFinding",
+    "CodeQLManager",
+    "CodeQLManagerError",
+    "CodeQLUnavailableError",
 ]
 
 
@@ -79,11 +79,11 @@ class CodeQLManager:
         return self._cache_dir
 
     def _discover_codeql(self) -> Path:
-        location = shutil.which('codeql')
+        location = shutil.which("codeql")
         if location is None:
             message = (
-                'CodeQL CLI was not found on PATH. '
-                'Install CodeQL and ensure the binary is discoverable.'
+                "CodeQL CLI was not found on PATH. "
+                "Install CodeQL and ensure the binary is discoverable."
             )
             raise CodeQLUnavailableError(message)
         return Path(location).resolve()
@@ -100,7 +100,9 @@ class CodeQLManager:
         """Create a CodeQL database for the provided language."""
         source_root = source_root.resolve()
         fingerprint = self._fingerprint_source(source_root, language)
-        target_dir = (output or self.cache_dir / f'{language}-{fingerprint[:12]}').resolve()
+        target_dir = (
+            output or self.cache_dir / f"{language}-{fingerprint[:12]}"
+        ).resolve()
         if target_dir.exists() and not force:
             metadata = self._load_metadata(target_dir)
             if metadata is not None:
@@ -113,20 +115,22 @@ class CodeQLManager:
         codeql = self._ensure_codeql()
         command = [
             str(codeql),
-            'database',
-            'create',
+            "database",
+            "create",
             str(target_dir),
-            '--language',
+            "--language",
             language,
-            '--source-root',
+            "--source-root",
             str(source_root),
-            '--threads',
-            'auto',
-            '--overwrite',
+            "--threads",
+            "auto",
+            "--overwrite",
             *extra_args,
         ]
         await self._run_subprocess(command, cwd=source_root)
-        database = self._collect_metadata(target_dir, language, source_root, fingerprint)
+        database = self._collect_metadata(
+            target_dir, language, source_root, fingerprint
+        )
         self.cache_database(database)
         return database
 
@@ -142,21 +146,23 @@ class CodeQLManager:
         if not queries:
             return ()
         resolved_queries = tuple(Path(query).resolve() for query in queries)
-        sarif_path = (sarif_output or database.path / DEFAULT_SARIF_NAME).with_suffix('.sarif')
+        sarif_path = (sarif_output or database.path / DEFAULT_SARIF_NAME).with_suffix(
+            ".sarif"
+        )
         codeql = self._ensure_codeql()
         command = [
             str(codeql),
-            'database',
-            'analyze',
+            "database",
+            "analyze",
             str(database.path),
             *[str(query) for query in resolved_queries],
-            '--format',
+            "--format",
             SARIF_FORMAT,
-            '--output',
+            "--output",
             str(sarif_path),
-            '--threads',
-            'auto',
-            '--rerun',
+            "--threads",
+            "auto",
+            "--rerun",
             *extra_args,
         ]
         await self._run_subprocess(command, cwd=database.source_root)
@@ -166,14 +172,14 @@ class CodeQLManager:
         """Persist metadata describing the cached database."""
         metadata_path = self._metadata_path(db.path)
         payload = {
-            'language': db.language,
-            'path': str(db.path),
-            'source_root': str(db.source_root),
-            'created_at': db.created_at.isoformat(),
-            'size_bytes': db.size_bytes,
-            'fingerprint': db.fingerprint,
+            "language": db.language,
+            "path": str(db.path),
+            "source_root": str(db.source_root),
+            "created_at": db.created_at.isoformat(),
+            "size_bytes": db.size_bytes,
+            "fingerprint": db.fingerprint,
         }
-        metadata_path.write_text(json.dumps(payload, indent=2), encoding='utf-8')
+        metadata_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     def invalidate_cache(self, source_root: Path, language: str) -> tuple[Path, ...]:
         """Remove cached databases matching the source root and language."""
@@ -237,8 +243,8 @@ class CodeQLManager:
         stdout, stderr = await process.communicate()
         if process.returncode != 0:
             message = (
-                'CodeQL command failed with exit code '
-                f'{process.returncode}: {stderr.decode().strip()}'
+                "CodeQL command failed with exit code "
+                f"{process.returncode}: {stderr.decode().strip()}"
             )
             raise CodeQLManagerError(message)
         if stdout:
@@ -271,37 +277,37 @@ class CodeQLManager:
         metadata_path = self._metadata_path(db_dir)
         if not metadata_path.exists():
             return None
-        data = json.loads(metadata_path.read_text(encoding='utf-8'))
+        data = json.loads(metadata_path.read_text(encoding="utf-8"))
         return CodeQLDatabase(
-            language=str(data['language']),
-            path=Path(data['path']).resolve(),
-            source_root=Path(data['source_root']).resolve(),
-            created_at=datetime.fromisoformat(str(data['created_at'])),
-            size_bytes=int(data['size_bytes']),
-            fingerprint=str(data['fingerprint']),
+            language=str(data["language"]),
+            path=Path(data["path"]).resolve(),
+            source_root=Path(data["source_root"]).resolve(),
+            created_at=datetime.fromisoformat(str(data["created_at"])),
+            size_bytes=int(data["size_bytes"]),
+            fingerprint=str(data["fingerprint"]),
         )
 
     def _calculate_directory_size(self, directory: Path) -> int:
         size = 0
-        for path in directory.rglob('*'):
+        for path in directory.rglob("*"):
             if path.is_file():
                 size += path.stat().st_size
         return size
 
     def _fingerprint_source(self, source_root: Path, language: str) -> str:
         digest = sha256()
-        digest.update(language.encode('utf-8'))
+        digest.update(language.encode("utf-8"))
         for file_path in self._iter_source_files(source_root):
             relative = file_path.relative_to(source_root)
             stat = file_path.stat()
-            digest.update(str(relative).encode('utf-8'))
-            digest.update(str(stat.st_mtime_ns).encode('utf-8'))
-            digest.update(str(stat.st_size).encode('utf-8'))
+            digest.update(str(relative).encode("utf-8"))
+            digest.update(str(stat.st_mtime_ns).encode("utf-8"))
+            digest.update(str(stat.st_size).encode("utf-8"))
         return digest.hexdigest()
 
     def _iter_source_files(self, source_root: Path) -> Iterable[Path]:
-        for path in sorted(source_root.rglob('*')):
-            if path.is_file() and '.git' not in path.parts:
+        for path in sorted(source_root.rglob("*")):
+            if path.is_file() and ".git" not in path.parts:
                 yield path
 
     def _ensure_codeql(self) -> Path:
@@ -313,8 +319,8 @@ class CodeQLManager:
         metadata = self._load_metadata(db_dir.resolve())
         if metadata is None:
             message = (
-                'No CodeQL metadata manifest found. '
-                f'Expected {self._metadata_path(db_dir)} to exist.'
+                "No CodeQL metadata manifest found. "
+                f"Expected {self._metadata_path(db_dir)} to exist."
             )
             raise CodeQLManagerError(message)
         return metadata
@@ -322,31 +328,39 @@ class CodeQLManager:
     def _parse_sarif(self, sarif_path: Path) -> tuple[CodeQLFinding, ...]:
         if not sarif_path.exists():
             return ()
-        data = json.loads(sarif_path.read_text(encoding='utf-8'))
-        runs = data.get('runs', [])
+        data = json.loads(sarif_path.read_text(encoding="utf-8"))
+        runs = data.get("runs", [])
         findings: list[CodeQLFinding] = []
         for run in runs:
-            results = run.get('results', [])
+            results = run.get("results", [])
             for result in results:
-                rule_id = str(result.get('ruleId', ''))
-                message = str(result.get('message', {}).get('text', ''))
+                rule_id = str(result.get("ruleId", ""))
+                message = str(result.get("message", {}).get("text", ""))
                 severity = None
-                properties = result.get('properties') or {}
-                severity = properties.get('problem.severity') or properties.get('severity')
-                location_info = result.get('locations', [{}])[0]
-                physical_location = location_info.get('physicalLocation', {})
-                artifact = physical_location.get('artifactLocation', {})
-                file_uri = artifact.get('uri')
-                region = physical_location.get('region', {})
+                properties = result.get("properties") or {}
+                severity = properties.get("problem.severity") or properties.get(
+                    "severity"
+                )
+                location_info = result.get("locations", [{}])[0]
+                physical_location = location_info.get("physicalLocation", {})
+                artifact = physical_location.get("artifactLocation", {})
+                file_uri = artifact.get("uri")
+                region = physical_location.get("region", {})
                 finding = CodeQLFinding(
                     rule_id=rule_id,
                     message=message,
                     severity=str(severity) if severity is not None else None,
                     file_path=Path(file_uri).resolve() if file_uri else None,
-                    start_line=int(region.get('startLine')) if region.get('startLine') else None,
-                    start_column=int(region.get('startColumn'))
-                    if region.get('startColumn')
-                    else None,
+                    start_line=(
+                        int(region.get("startLine"))
+                        if region.get("startLine")
+                        else None
+                    ),
+                    start_column=(
+                        int(region.get("startColumn"))
+                        if region.get("startColumn")
+                        else None
+                    ),
                     sarif=result,
                 )
                 findings.append(finding)

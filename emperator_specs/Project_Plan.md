@@ -18,12 +18,12 @@
 
 - **Definition of Ready:** Backlog items specify contract inputs, IR dependencies, acceptance tests, security requirements, and rollback strategy.
 - **Definition of Done:**
-  - Tests: `pytest --cov=emperator --cov-report=term-missing` with ≥90% coverage and no collection errors.
-  - Lint/Format: `ruff check --no-fix .`, `ruff format --check .`, `eslint`/`biome` for JS assets.
-  - Types: `mypy src` with zero errors (missing stubs resolved via typeshed packages).
-  - Security: `bandit -r src`, Semgrep/CodeQL packs defined in `rules/`.
-  - Build: `python -m build` clean of warnings, including SPDX compliance.
-  - Docs & Contract: Updated references in `docs/`, `contract/`, `directory_structure.md`, and changelog entries when user-visible.
+    - Tests: `pytest --cov=emperator --cov-report=term-missing` with ≥90% coverage and no collection errors.
+    - Lint/Format: `ruff check --no-fix .`, `ruff format --check .`, `eslint`/`biome` for JS assets.
+    - Types: `mypy src` with zero errors (missing stubs resolved via typeshed packages).
+    - Security: `bandit -r src`, Semgrep/CodeQL packs defined in `rules/`.
+    - Build: `python -m build` clean of warnings, including SPDX compliance.
+    - Docs & Contract: Updated references in `docs/`, `contract/`, `directory_structure.md`, and changelog entries when user-visible.
 - **Conventions Enforcement:** CUE schemas in `contract/conventions/` and policy rules gate directory structure, naming, and resource allocation; these must be compiled and executed in CI before merges.
 - **Evidence Capture:** Every sprint exits with artifacts: coverage reports, SBOM, contract diffs, and remediation logs stored in `docs/` or release notes.
 

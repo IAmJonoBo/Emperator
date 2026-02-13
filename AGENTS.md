@@ -39,23 +39,23 @@ change.
    `docs/reference/`), and existing implementation before planning a change.
 1. **Plan aloud.** Share a concise execution plan with the requester before editing files.
 1. **Use official bootstrap commands:**
-   - `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) prepares both Python and Node lanes.
-   - `pnpm run setup:lint` installs JS tooling and runs the formatter/lint suite.
-   - `pnpm run sync` (wrapper around `scripts/sync-environments.sh`) quickly re-aligns uv and pnpm dependencies without the full formatter/lint pass.
+    - `./scripts/setup-tooling.sh` (or `pnpm run setup:tooling`) prepares both Python and Node lanes.
+    - `pnpm run setup:lint` installs JS tooling and runs the formatter/lint suite.
+    - `pnpm run sync` (wrapper around `scripts/sync-environments.sh`) quickly re-aligns uv and pnpm dependencies without the full formatter/lint pass.
 1. **Implement with guardrails.** Keep diffs minimal, add succinct comments only when the intent
    would otherwise be unclear, and respect the 100-character guideline where practical.
 1. **Sync contract + docs.** When a rule, generator, or policy changes, update:
-   - `docs/reference/contract-spec.md`
-   - `docs/includes/copilot-prompts.md`
-   - Any affected how-to or explanation pages (e.g., developer experience, governance).
+    - `docs/reference/contract-spec.md`
+    - `docs/includes/copilot-prompts.md`
+    - Any affected how-to or explanation pages (e.g., developer experience, governance).
 1. **Validate before handing off:**
-   - `pnpm fmt` (includes YAML formatter, Biome, Ruff format/import sort)
-   - `pnpm lint` (Ruff check, Biome check, ESLint)
-   - `uv run pytest`
-   - `uv run mypy src`
-   - `mkdocs build --strict` for docs-heavy changes
-   - `lychee --config .lychee.toml docs` when touching links
-   - `emperator apply --diff --no-commit` (or `--strict` in CI-critical flows)
+    - `pnpm fmt` (includes YAML formatter, Biome, Ruff format/import sort)
+    - `pnpm lint` (Ruff check, Biome check, ESLint)
+    - `uv run pytest`
+    - `uv run mypy src`
+    - `mkdocs build --strict` for docs-heavy changes
+    - `lychee --config .lychee.toml docs` when touching links
+    - `emperator apply --diff --no-commit` (or `--strict` in CI-critical flows)
 1. **Report outcomes.** Surface command summaries and residual risks. Call out skipped steps and
    justify them.
 

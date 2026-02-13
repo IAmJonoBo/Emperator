@@ -81,15 +81,15 @@ Interface specifications enable Emperator to scaffold handlers, tests, and clien
 ```yaml title="contract/api/openapi.yaml"
 openapi: 3.1.0
 info:
- title: Emperator Reference Contract
- version: 1.2.0
+    title: Emperator Reference Contract
+    version: 1.2.0
 paths:
- /healthz:
-  get:
-   operationId: getHealth
-   responses:
-    '200':
-     description: OK
+    /healthz:
+        get:
+            operationId: getHealth
+            responses:
+                "200":
+                    description: OK
 ```
 
 - Align operation IDs with code generation templates in `contract/generators/`.

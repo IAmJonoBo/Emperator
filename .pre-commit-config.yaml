@@ -1,66 +1,66 @@
 exclude: |
-  (?x)^
-  (
-    site/|
-    build/|
-    \.cache/|
-    \.venv/
-  )
+    (?x)^
+    (
+      site/|
+      build/|
+      \.cache/|
+      \.venv/
+    )
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: check-case-conflict
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
-    hooks:
-      - id: ruff
-        args:
-          - --fix
-      - id: ruff-format
-  - repo: https://github.com/adrienverge/yamllint
-    rev: v1.35.1
-    hooks:
-      - id: yamllint
-        args:
-          - "-c"
-          - ".yamllint"
-        files: '\\.(ya?ml)$'
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.10.0-1
-    hooks:
-      - id: shfmt
-        args:
-          - "-w"
-          - "-i"
-          - "2"
-          - "-bn"
-          - "-ci"
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.1
-    hooks:
-      - id: actionlint
-        args:
-          - "-no-color"
-  - repo: local
-    hooks:
-      - id: biome
-        name: biome check (JS/TS)
-        entry: pnpm biome check --write
-        language: system
-        files: '\\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$'
-        pass_filenames: false
-      - id: eslint
-        name: eslint (JS/TS)
-        entry: pnpm lint:eslint
-        language: system
-        pass_filenames: true
-      - id: commitlint
-        name: commitlint
-        entry: pnpm commitlint --edit
-        language: system
-        stages:
-          - commit-msg
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.6.0
+      hooks:
+          - id: check-case-conflict
+          - id: end-of-file-fixer
+          - id: trailing-whitespace
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.6.9
+      hooks:
+          - id: ruff
+            args:
+                - --fix
+          - id: ruff-format
+    - repo: https://github.com/adrienverge/yamllint
+      rev: v1.35.1
+      hooks:
+          - id: yamllint
+            args:
+                - "-c"
+                - ".yamllint"
+            files: '\\.(ya?ml)$'
+    - repo: https://github.com/scop/pre-commit-shfmt
+      rev: v3.10.0-1
+      hooks:
+          - id: shfmt
+            args:
+                - "-w"
+                - "-i"
+                - "2"
+                - "-bn"
+                - "-ci"
+    - repo: https://github.com/rhysd/actionlint
+      rev: v1.7.1
+      hooks:
+          - id: actionlint
+            args:
+                - "-no-color"
+    - repo: local
+      hooks:
+          - id: biome
+            name: biome check (JS/TS)
+            entry: pnpm biome check --write
+            language: system
+            files: '\\.(c?js|m?ts|jsx|tsx|json|jsonc|css|md)$'
+            pass_filenames: false
+          - id: eslint
+            name: eslint (JS/TS)
+            entry: pnpm lint:eslint
+            language: system
+            pass_filenames: true
+          - id: commitlint
+            name: commitlint
+            entry: pnpm commitlint --edit
+            language: system
+            stages:
+                - commit-msg

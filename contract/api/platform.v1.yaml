@@ -1,66 +1,66 @@
 openapi: 3.1.0
 info:
-  title: Emperator Platform Contract
-  version: 0.1.0
-  summary: Canonical API contract for the Emperator platform runtime.
-  contact:
-    name: Emperator Platform Team
-    url: https://emperator.example
-  license:
-    name: Apache-2.0
-    url: https://www.apache.org/licenses/LICENSE-2.0
+    title: Emperator Platform Contract
+    version: 0.1.0
+    summary: Canonical API contract for the Emperator platform runtime.
+    contact:
+        name: Emperator Platform Team
+        url: https://emperator.example
+    license:
+        name: Apache-2.0
+        url: https://www.apache.org/licenses/LICENSE-2.0
 servers:
-  - url: https://api.emperator.example
-    description: Production entrypoint
+    - url: https://api.emperator.example
+      description: Production entrypoint
 paths:
-  /healthz:
-    get:
-      operationId: getHealthz
-      summary: Readiness and liveness signal.
-      tags:
-        - Meta
-      responses:
-        '200':
-          description: Service is healthy.
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - status
-                  - version
-                properties:
-                  status:
-                    type: string
-                    description: Human-readable service status.
-                    example: ok
-                  version:
-                    type: string
-                    description: Package version string.
-                    example: 0.1.0
-  /contract:
-    get:
-      operationId: getContract
-      summary: Retrieve the current API contract metadata.
-      tags:
-        - Meta
-      responses:
-        '200':
-          description: Contract metadata response.
-          content:
-            application/json:
-              schema:
-                type: object
-                required:
-                  - contractVersion
-                  - sourcePath
-                properties:
-                  contractVersion:
-                    type: string
-                    description: Version identifier from the authoritative contract document.
-                    example: 0.1.0
-                  sourcePath:
-                    type: string
-                    description: Repository-relative path to the contract artifact.
-                    example: emperator/contract/api/platform.v1.yaml
+    /healthz:
+        get:
+            operationId: getHealthz
+            summary: Readiness and liveness signal.
+            tags:
+                - Meta
+            responses:
+                "200":
+                    description: Service is healthy.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - status
+                                    - version
+                                properties:
+                                    status:
+                                        type: string
+                                        description: Human-readable service status.
+                                        example: ok
+                                    version:
+                                        type: string
+                                        description: Package version string.
+                                        example: 0.1.0
+    /contract:
+        get:
+            operationId: getContract
+            summary: Retrieve the current API contract metadata.
+            tags:
+                - Meta
+            responses:
+                "200":
+                    description: Contract metadata response.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                    - contractVersion
+                                    - sourcePath
+                                properties:
+                                    contractVersion:
+                                        type: string
+                                        description: Version identifier from the authoritative contract document.
+                                        example: 0.1.0
+                                    sourcePath:
+                                        type: string
+                                        description: Repository-relative path to the contract artifact.
+                                        example: emperator/contract/api/platform.v1.yaml
 components: {}

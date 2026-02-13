@@ -23,15 +23,15 @@ The `manifest.json` file tracks all cached files and their metadata:
 
 ```json
 {
-  "version": "1.0",
-  "schema": "tree-sitter-ir",
-  "files": {
-    "src/emperator/cli.py": {
-      "content_hash": "a1b2c3d4...",
-      "last_modified": 1697123456.789,
-      "cache_file": ".emperator/ir-cache/files/a1b2c3d4.msgpack"
+    "version": "1.0",
+    "schema": "tree-sitter-ir",
+    "files": {
+        "src/emperator/cli.py": {
+            "content_hash": "a1b2c3d4...",
+            "last_modified": 1697123456.789,
+            "cache_file": ".emperator/ir-cache/files/a1b2c3d4.msgpack"
+        }
     }
-  }
 }
 ```
 

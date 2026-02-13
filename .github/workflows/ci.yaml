@@ -1,168 +1,167 @@
 name: Emperator CI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-
+    push:
+        branches:
+            - main
+    pull_request:
 
 env:
-  PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit
-  UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+    PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit
+    UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
 
 jobs:
-  pre-commit:
-    name: pre-commit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.18.3
-      - name: Enable corepack
-        run: corepack enable
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Run pre-commit suite
-        run: uv run --extra dev pre-commit run --all-files --show-diff-on-failure
+    pre-commit:
+        name: pre-commit
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+            - name: Enable corepack
+              run: corepack enable
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Install Node dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Run pre-commit suite
+              run: uv run --extra dev pre-commit run --all-files --show-diff-on-failure
 
-  lint:
-    name: lint & sarif
-    runs-on: ubuntu-latest
-    needs:
-      - pre-commit
-      - contract-validate
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.18.3
-      - name: Enable corepack
-        run: corepack enable
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Format check
-        run: pnpm fmt -- --check
-      - name: Lint (Ruff + Biome + ESLint)
-        run: pnpm lint
-      - name: Generate SARIF bundles
-        run: pnpm lint:sarif
-      - name: Upload SARIF artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-sarif
-          path: .sarif/
-          if-no-files-found: warn
+    lint:
+        name: lint & sarif
+        runs-on: ubuntu-latest
+        needs:
+            - pre-commit
+            - contract-validate
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+            - name: Enable corepack
+              run: corepack enable
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Install Node dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Format check
+              run: pnpm fmt -- --check
+            - name: Lint (Ruff + Biome + ESLint)
+              run: pnpm lint
+            - name: Generate SARIF bundles
+              run: pnpm lint:sarif
+            - name: Upload SARIF artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lint-sarif
+                  path: .sarif/
+                  if-no-files-found: warn
 
-  type-check:
-    name: mypy
-    runs-on: ubuntu-latest
-    needs:
-      - pre-commit
-      - contract-validate
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.18.3
-      - name: Enable corepack
-        run: corepack enable
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Run mypy
-        run: uv run --extra dev mypy src
+    type-check:
+        name: mypy
+        runs-on: ubuntu-latest
+        needs:
+            - pre-commit
+            - contract-validate
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+            - name: Enable corepack
+              run: corepack enable
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Install Node dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Run mypy
+              run: uv run --extra dev mypy src
 
-  tests:
-    name: pytest
-    runs-on: ubuntu-latest
-    needs:
-      - pre-commit
-      - contract-validate
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.18.3
-      - name: Enable corepack
-        run: corepack enable
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Run test suite
-        run: uv run --extra dev --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing
+    tests:
+        name: pytest
+        runs-on: ubuntu-latest
+        needs:
+            - pre-commit
+            - contract-validate
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.18.3
+            - name: Enable corepack
+              run: corepack enable
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Install Node dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Run test suite
+              run: uv run --extra dev --with pytest-cov --with httpx pytest --cov=src/emperator --cov=tests --cov-report=term-missing
 
-  build:
-    name: package build
-    runs-on: ubuntu-latest
-    needs:
-      - lint
-      - type-check
-      - tests
-      - contract-validate
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Build wheel and sdist
-        run: uv run --extra dev --with build python -m build
+    build:
+        name: package build
+        runs-on: ubuntu-latest
+        needs:
+            - lint
+            - type-check
+            - tests
+            - contract-validate
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Build wheel and sdist
+              run: uv run --extra dev --with build python -m build
 
-  contract-validate:
-    name: contract gate
-    runs-on: ubuntu-latest
-    needs: pre-commit
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Add uv to PATH
-        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Sync Python dependencies
-        run: uv sync --extra dev
-      - name: Validate contract assets
-        run: uv run --extra dev emperator contract validate --strict
+    contract-validate:
+        name: contract gate
+        runs-on: ubuntu-latest
+        needs: pre-commit
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+            - name: Install uv
+              run: curl -LsSf https://astral.sh/uv/install.sh | sh
+            - name: Add uv to PATH
+              run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            - name: Sync Python dependencies
+              run: uv sync --extra dev
+            - name: Validate contract assets
+              run: uv run --extra dev emperator contract validate --strict

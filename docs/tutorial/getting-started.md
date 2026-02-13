@@ -54,15 +54,15 @@ deny[msg] {
 ```yaml title="contract/api/openapi.yaml"
 openapi: 3.1.0
 info:
-  title: Sample Service Contract
-  version: 0.1.0
+    title: Sample Service Contract
+    version: 0.1.0
 paths:
-  /healthz:
-    get:
-      operationId: getHealth
-      responses:
-        '200':
-          description: OK
+    /healthz:
+        get:
+            operationId: getHealth
+            responses:
+                "200":
+                    description: OK
 ```
 
 ## Step 2 — Seed a code sample that violates the contract
@@ -155,13 +155,13 @@ Integrate Emperator with `pre-commit` so every developer receives the same enfor
 
 ```yaml title=".pre-commit-config.yaml"
 repos:
-  - repo: local
-    hooks:
-      - id: emperator
-        name: Emperator Standards Check
-        entry: emperator apply --diff --color
-        language: system
-        pass_filenames: false
+    - repo: local
+      hooks:
+          - id: emperator
+            name: Emperator Standards Check
+            entry: emperator apply --diff --color
+            language: system
+            pass_filenames: false
 ```
 
 Install the hook:

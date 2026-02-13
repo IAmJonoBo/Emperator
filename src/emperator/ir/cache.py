@@ -21,8 +21,8 @@ class CacheManager:
 
         """
         self.cache_dir = cache_dir
-        self.manifest_path = cache_dir / 'manifest.json'
-        self.files_dir = cache_dir / 'files'
+        self.manifest_path = cache_dir / "manifest.json"
+        self.files_dir = cache_dir / "files"
 
     def initialize(self) -> None:
         """Create cache directory structure."""
@@ -32,9 +32,9 @@ class CacheManager:
         if not self.manifest_path.exists():
             self._write_manifest(
                 {
-                    'version': '1.0',
-                    'schema': 'tree-sitter-ir',
-                    'files': {},
+                    "version": "1.0",
+                    "schema": "tree-sitter-ir",
+                    "files": {},
                 }
             )
 
@@ -55,7 +55,7 @@ class CacheManager:
 
         """
         if not self.manifest_path.exists():
-            return {'version': '1.0', 'schema': 'tree-sitter-ir', 'files': {}}
+            return {"version": "1.0", "schema": "tree-sitter-ir", "files": {}}
         return json.loads(self.manifest_path.read_text())
 
     def _serialize_location(self, location: Location) -> dict[str, int]:
@@ -69,10 +69,10 @@ class CacheManager:
 
         """
         return {
-            'line': location.line,
-            'column': location.column,
-            'end_line': location.end_line,
-            'end_column': location.end_column,
+            "line": location.line,
+            "column": location.column,
+            "end_line": location.end_line,
+            "end_column": location.end_column,
         }
 
     def _deserialize_location(self, data: dict[str, int]) -> Location:
@@ -86,10 +86,10 @@ class CacheManager:
 
         """
         return Location(
-            line=data['line'],
-            column=data['column'],
-            end_line=data['end_line'],
-            end_column=data['end_column'],
+            line=data["line"],
+            column=data["column"],
+            end_line=data["end_line"],
+            end_column=data["end_column"],
         )
 
     def _serialize_symbol(self, symbol: Symbol) -> dict[str, Any]:
@@ -103,11 +103,11 @@ class CacheManager:
 
         """
         return {
-            'name': symbol.name,
-            'kind': symbol.kind.value,
-            'location': self._serialize_location(symbol.location),
-            'scope': symbol.scope,
-            'metadata': symbol.metadata or {},
+            "name": symbol.name,
+            "kind": symbol.kind.value,
+            "location": self._serialize_location(symbol.location),
+            "scope": symbol.scope,
+            "metadata": symbol.metadata or {},
         }
 
     def _deserialize_symbol(self, data: dict[str, Any]) -> Symbol:
@@ -121,11 +121,11 @@ class CacheManager:
 
         """
         return Symbol(
-            name=data['name'],
-            kind=SymbolKind(data['kind']),
-            location=self._deserialize_location(data['location']),
-            scope=data['scope'],
-            metadata=data.get('metadata', {}),
+            name=data["name"],
+            kind=SymbolKind(data["kind"]),
+            location=self._deserialize_location(data["location"]),
+            scope=data["scope"],
+            metadata=data.get("metadata", {}),
         )
 
     def save_snapshot(self, snapshot: IRSnapshot) -> None:
@@ -143,23 +143,23 @@ class CacheManager:
             symbols_data = [self._serialize_symbol(s) for s in parsed_file.symbols]
 
             file_data = {
-                'path': str(parsed_file.path),
-                'language': parsed_file.language,
-                'content_hash': parsed_file.content_hash,
-                'last_modified': parsed_file.last_modified,
-                'symbols': symbols_data,
-                'has_errors': parsed_file.has_errors(),
+                "path": str(parsed_file.path),
+                "language": parsed_file.language,
+                "content_hash": parsed_file.content_hash,
+                "last_modified": parsed_file.last_modified,
+                "symbols": symbols_data,
+                "has_errors": parsed_file.has_errors(),
             }
 
             # Save to cache file
-            cache_file = self.files_dir / f'{parsed_file.content_hash}.msgpack'
+            cache_file = self.files_dir / f"{parsed_file.content_hash}.msgpack"
             cache_file.write_bytes(msgpack.packb(file_data))
 
             # Update manifest
-            manifest['files'][str(parsed_file.path)] = {
-                'content_hash': parsed_file.content_hash,
-                'last_modified': parsed_file.last_modified,
-                'cache_file': str(cache_file),
+            manifest["files"][str(parsed_file.path)] = {
+                "content_hash": parsed_file.content_hash,
+                "last_modified": parsed_file.last_modified,
+                "cache_file": str(cache_file),
             }
 
         self._write_manifest(manifest)
@@ -178,14 +178,14 @@ class CacheManager:
         manifest = self._read_manifest()
         file_key = str(path)
 
-        if file_key not in manifest['files']:
+        if file_key not in manifest["files"]:
             return None
 
-        file_entry = manifest['files'][file_key]
-        if file_entry['content_hash'] != content_hash:
+        file_entry = manifest["files"][file_key]
+        if file_entry["content_hash"] != content_hash:
             return None
 
-        cache_file = Path(file_entry['cache_file'])
+        cache_file = Path(file_entry["cache_file"])
         if not cache_file.exists():
             return None
 
@@ -194,7 +194,9 @@ class CacheManager:
         except (OSError, msgpack.exceptions.ExtraData):
             return None
 
-        for serialized_symbol in file_data.get('symbols', ()):  # warm caches for future use
+        for serialized_symbol in file_data.get(
+            "symbols", ()
+        ):  # warm caches for future use
             self._deserialize_symbol(serialized_symbol)
 
         # Note: We cannot restore the Tree object yet, so signal a cache miss to reparse.
@@ -220,16 +222,16 @@ class CacheManager:
         removed = 0
         files_to_remove = []
 
-        for file_path, file_entry in manifest['files'].items():
-            if file_entry['last_modified'] < cutoff_time:
-                cache_file = Path(file_entry['cache_file'])
+        for file_path, file_entry in manifest["files"].items():
+            if file_entry["last_modified"] < cutoff_time:
+                cache_file = Path(file_entry["cache_file"])
                 if cache_file.exists():
                     cache_file.unlink()
                 files_to_remove.append(file_path)
                 removed += 1
 
         for file_path in files_to_remove:
-            del manifest['files'][file_path]
+            del manifest["files"][file_path]
 
         self._write_manifest(manifest)
         return removed

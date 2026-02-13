@@ -11,9 +11,9 @@ import yaml
 class Severity(Enum):
     """Severity levels for rules."""
 
-    INFO = 'INFO'
-    WARNING = 'WARNING'
-    ERROR = 'ERROR'
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 @dataclass
@@ -36,22 +36,22 @@ class SemgrepRule:
 
         """
         rule_dict: dict[str, Any] = {
-            'id': self.id,
-            'message': self.message,
-            'severity': self.severity.value,
-            'languages': list(self.languages),
-            'metadata': self.metadata,
+            "id": self.id,
+            "message": self.message,
+            "severity": self.severity.value,
+            "languages": list(self.languages),
+            "metadata": self.metadata,
         }
 
         # Add pattern (can be string or dict for complex patterns)
         if isinstance(self.pattern, str):
-            rule_dict['pattern'] = self.pattern
+            rule_dict["pattern"] = self.pattern
         else:
             rule_dict.update(self.pattern)
 
         # Add fix if provided
         if self.fix:
-            rule_dict['fix'] = self.fix
+            rule_dict["fix"] = self.fix
 
         return rule_dict
 
@@ -75,17 +75,17 @@ class SemgrepRuleGenerator:
         # Python function naming (snake_case)
         rules.append(
             SemgrepRule(
-                id='naming-function-snake-case',
-                message='Function names should use snake_case',
+                id="naming-function-snake-case",
+                message="Function names should use snake_case",
                 severity=Severity.WARNING,
                 pattern={
-                    'pattern': 'def $FUNC(...): ...',
-                    'pattern-not-regex': r'def [a-z_][a-z0-9_]*\(',
+                    "pattern": "def $FUNC(...): ...",
+                    "pattern-not-regex": r"def [a-z_][a-z0-9_]*\(",
                 },
-                languages=('python',),
+                languages=("python",),
                 metadata={
-                    'category': 'naming',
-                    'source': 'contract/conventions.cue#naming.functions',
+                    "category": "naming",
+                    "source": "contract/conventions.cue#naming.functions",
                 },
             )
         )
@@ -93,17 +93,17 @@ class SemgrepRuleGenerator:
         # Python class naming (PascalCase)
         rules.append(
             SemgrepRule(
-                id='naming-class-pascal-case',
-                message='Class names should use PascalCase',
+                id="naming-class-pascal-case",
+                message="Class names should use PascalCase",
                 severity=Severity.WARNING,
                 pattern={
-                    'pattern': 'class $CLASS: ...',
-                    'pattern-not-regex': r'class [A-Z][a-zA-Z0-9]*:',
+                    "pattern": "class $CLASS: ...",
+                    "pattern-not-regex": r"class [A-Z][a-zA-Z0-9]*:",
                 },
-                languages=('python',),
+                languages=("python",),
                 metadata={
-                    'category': 'naming',
-                    'source': 'contract/conventions.cue#naming.classes',
+                    "category": "naming",
+                    "source": "contract/conventions.cue#naming.classes",
                 },
             )
         )
@@ -122,36 +122,37 @@ class SemgrepRuleGenerator:
         # Ban eval() usage
         rules.append(
             SemgrepRule(
-                id='security-ban-eval',
+                id="security-ban-eval",
                 message=(
-                    'Use of eval() is forbidden. ' 'Use ast.literal_eval() or json.loads() instead.'
+                    "Use of eval() is forbidden. "
+                    "Use ast.literal_eval() or json.loads() instead."
                 ),
                 severity=Severity.ERROR,
-                pattern='eval(...)',
-                languages=('python',),
+                pattern="eval(...)",
+                languages=("python",),
                 metadata={
-                    'category': 'security',
-                    'source': 'contract/policy/security.rego',
-                    'cwe': 'CWE-95',
-                    'owasp': 'A03:2021',
+                    "category": "security",
+                    "source": "contract/policy/security.rego",
+                    "cwe": "CWE-95",
+                    "owasp": "A03:2021",
                 },
-                fix='ast.literal_eval(...)',
+                fix="ast.literal_eval(...)",
             )
         )
 
         # Ban exec() usage
         rules.append(
             SemgrepRule(
-                id='security-ban-exec',
-                message='Use of exec() is forbidden. Refactor to avoid dynamic code execution.',
+                id="security-ban-exec",
+                message="Use of exec() is forbidden. Refactor to avoid dynamic code execution.",
                 severity=Severity.ERROR,
-                pattern='exec(...)',
-                languages=('python',),
+                pattern="exec(...)",
+                languages=("python",),
                 metadata={
-                    'category': 'security',
-                    'source': 'contract/policy/security.rego',
-                    'cwe': 'CWE-95',
-                    'owasp': 'A03:2021',
+                    "category": "security",
+                    "source": "contract/policy/security.rego",
+                    "cwe": "CWE-95",
+                    "owasp": "A03:2021",
                 },
             )
         )
@@ -159,22 +160,22 @@ class SemgrepRuleGenerator:
         # SQL injection detection
         rules.append(
             SemgrepRule(
-                id='security-sql-injection',
-                message='Potential SQL injection. Use parameterized queries instead.',
+                id="security-sql-injection",
+                message="Potential SQL injection. Use parameterized queries instead.",
                 severity=Severity.ERROR,
                 pattern={
-                    'pattern-either': [
-                        {'pattern': 'cursor.execute(f"...", ...)'},
-                        {'pattern': 'cursor.execute("..." + $X, ...)'},
-                        {'pattern': 'cursor.execute("..." % ...)'},
+                    "pattern-either": [
+                        {"pattern": 'cursor.execute(f"...", ...)'},
+                        {"pattern": 'cursor.execute("..." + $X, ...)'},
+                        {"pattern": 'cursor.execute("..." % ...)'},
                     ]
                 },
-                languages=('python',),
+                languages=("python",),
                 metadata={
-                    'category': 'security',
-                    'source': 'contract/policy/security.rego',
-                    'cwe': 'CWE-89',
-                    'owasp': 'A03:2021',
+                    "category": "security",
+                    "source": "contract/policy/security.rego",
+                    "cwe": "CWE-89",
+                    "owasp": "A03:2021",
                 },
             )
         )
@@ -182,19 +183,20 @@ class SemgrepRuleGenerator:
         # Hardcoded secrets
         rules.append(
             SemgrepRule(
-                id='security-hardcoded-secret',
+                id="security-hardcoded-secret",
                 message=(
-                    'Potential hardcoded secret. ' 'Use environment variables or secret management.'
+                    "Potential hardcoded secret. "
+                    "Use environment variables or secret management."
                 ),
                 severity=Severity.ERROR,
                 pattern={
-                    'pattern-regex': r'(password|api_key|secret|token)\s*=\s*["\'][^"\']+["\']',
+                    "pattern-regex": r'(password|api_key|secret|token)\s*=\s*["\'][^"\']+["\']',
                 },
-                languages=('python',),
+                languages=("python",),
                 metadata={
-                    'category': 'security',
-                    'source': 'contract/policy/security.rego',
-                    'cwe': 'CWE-798',
+                    "category": "security",
+                    "source": "contract/policy/security.rego",
+                    "cwe": "CWE-798",
                 },
             )
         )
@@ -213,20 +215,20 @@ class SemgrepRuleGenerator:
         # Prevent circular imports
         rules.append(
             SemgrepRule(
-                id='architecture-no-circular-import',
-                message='Potential circular import detected',
+                id="architecture-no-circular-import",
+                message="Potential circular import detected",
                 severity=Severity.WARNING,
                 pattern={
-                    'pattern': 'import $MODULE',
-                    'metavariable-regex': {
-                        'metavariable': '$MODULE',
-                        'regex': r'emperator\.(.*)',
+                    "pattern": "import $MODULE",
+                    "metavariable-regex": {
+                        "metavariable": "$MODULE",
+                        "regex": r"emperator\.(.*)",
                     },
                 },
-                languages=('python',),
+                languages=("python",),
                 metadata={
-                    'category': 'architecture',
-                    'source': 'contract/policy/architecture.rego',
+                    "category": "architecture",
+                    "source": "contract/policy/architecture.rego",
                 },
             )
         )
@@ -256,9 +258,9 @@ class SemgrepRuleGenerator:
         """
         output.parent.mkdir(parents=True, exist_ok=True)
 
-        rule_pack = {'rules': [rule.to_dict() for rule in rules]}
+        rule_pack = {"rules": [rule.to_dict() for rule in rules]}
 
-        with output.open('w') as f:
+        with output.open("w") as f:
             yaml.dump(rule_pack, f, default_flow_style=False, sort_keys=False)
 
     def write_category_packs(
@@ -281,7 +283,7 @@ class SemgrepRuleGenerator:
         # Group rules by category
         by_category: dict[str, list[SemgrepRule]] = {}
         for rule in rules:
-            category = rule.metadata.get('category', 'general')
+            category = rule.metadata.get("category", "general")
             if category not in by_category:
                 by_category[category] = []
             by_category[category].append(rule)
@@ -289,7 +291,7 @@ class SemgrepRuleGenerator:
         # Write each category pack
         written = {}
         for category, category_rules in by_category.items():
-            output_file = output_dir / f'{category}.yaml'
+            output_file = output_dir / f"{category}.yaml"
             self.write_rule_pack(tuple(category_rules), output_file)
             written[category] = output_file
 
